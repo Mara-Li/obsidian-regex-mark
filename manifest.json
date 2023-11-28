@@ -1,7 +1,7 @@
 {
 	"id": "regex-mark",
 	"name": "Regex Mark",
-	"version": "1.1.0",
+	"version": "1.1.1",
 	"minAppVersion": "0.15.0",
 	"description": "Add custom CSS classes to text based on regular expressions.",
 	"author": "RieN7",
