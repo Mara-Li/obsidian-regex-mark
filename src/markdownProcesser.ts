@@ -1,3 +1,4 @@
+import { removeTags } from './cmPlugin'
 import { SettingOption } from './setting'
 
 export function MarkdownProcesser(data: SettingOption[], element: HTMLElement) {
@@ -28,7 +29,7 @@ export function MarkdownProcesser(data: SettingOption[], element: HTMLElement) {
         for (const d of data) {
           if (!d.regex || !d.class || d.regex === '' || d.class === '')
             continue
-          const regex = new RegExp(d.regex, 'g')
+          const regex = new RegExp(removeTags(d.regex), 'g')
           if (!d.hide)
             text = text.replace(regex, `<span class="${d.class}" data-contents="$&">$&</span>`)
           else {

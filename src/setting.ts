@@ -9,7 +9,7 @@ export interface SettingOption {
 
 export type SettingOptions = SettingOption[]
 
-export class SampleSettingTab extends PluginSettingTab {
+export class RemarkRegexSettingTab extends PluginSettingTab {
   plugin: RegexMark
 
   constructor(app: App, plugin: RegexMark) {
@@ -44,6 +44,9 @@ export class SampleSettingTab extends PluginSettingTab {
       text: 'This plugin requires reopen the file to take effect.',
       cls: 'secondary',
     })
+
+    const infoSub = productTitle.createEl('p')
+    infoSub.innerHTML = 'You can create custom markdown markup with using the <code>{{open:regex}}</code> and <code>{{close:regex}}</code>. The open and close regex will be hidden in Live-Preview. You need to use the "hide" toggle to make it work.'
 
     const titleEl = containerEl.createDiv({ cls: 'line' })
     titleEl.createSpan({

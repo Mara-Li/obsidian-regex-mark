@@ -1,7 +1,7 @@
 import { Plugin } from 'obsidian'
 import { MarkdownProcesser } from './markdownProcesser'
 import { cmExtension } from './cmPlugin'
-import { SampleSettingTab, SettingOptions } from './setting'
+import { RemarkRegexSettingTab, SettingOptions } from './setting'
 import { Extension } from '@codemirror/state'
 
 export default class RegexMark extends Plugin {
@@ -12,7 +12,7 @@ export default class RegexMark extends Plugin {
   async onload() {
     console.log('loading plugin RegexMark')
     await this.loadSettings()
-    this.addSettingTab(new SampleSettingTab(this.app, this))
+    this.addSettingTab(new RemarkRegexSettingTab(this.app, this))
     this.registerMarkdownPostProcessor((element: HTMLElement) => {
       MarkdownProcesser(this.settings, element)
     })

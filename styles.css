@@ -40,3 +40,11 @@
   font-size: 0.8em;
   color: #666;
 }
+
+.is-live-preview .cm-hide {
+  display: none;
+}
+
+.is-live-preview .cm-active .cm-hide {
+  display: inline;
+}
