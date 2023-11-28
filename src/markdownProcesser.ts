@@ -6,11 +6,14 @@ export function MarkdownProcesser(data: SettingOption[], element: HTMLElement) {
 
   for (const p of paragraph) {
     let ignore = true
+    console.log(p)
     for (const d of data) {
       if (!d.regex || !d.class || d.regex === '' || d.class === '')
         continue
-      const regex = new RegExp(d.regex, 'g')
+      const regex = new RegExp(removeTags(d.regex), 'g')
+      console.log(p.textContent)
       if (regex.test(p.textContent || '')) {
+        console.log(p.textContent, 'not ignore')
         ignore = false
         break
       }
@@ -33,17 +36,16 @@ export function MarkdownProcesser(data: SettingOption[], element: HTMLElement) {
           if (!d.hide)
             text = text.replace(regex, `<span class="${d.class}" data-contents="$&">$&</span>`)
           else {
-            //find if use group in the regex
-            const group = d.regex.match(/\((.*?)\)/)
+            const group = removeTags(d.regex).match(/\((.*?)\)/)
             if (!group)
               continue
-            if (group) {
-              text = text.replace(regex, `<span class="${d.class}" data-contents="$1">$1</span>`)
-            }
+            text = text.replace(regex, `<span class="${d.class}" data-contents="$1">$1</span>`)
+
           }
         }
         const span = document.createElement('span')
         span.innerHTML = text
+        console.log(node)
         if (node.parentNode)
           node.parentNode.replaceChild(span, node)
       }

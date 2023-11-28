@@ -121,7 +121,6 @@ class VarWidget extends WidgetType {
       }
       const regexText = new RegExp(removeTags(this.data.regex), 'g')
       wrap.innerHTML = openTagHide + text.replace(regexText, '$1') + closeTagHide
-      console.log(wrap.innerHTML)
     } else
       wrap.innerText = text
     return wrap

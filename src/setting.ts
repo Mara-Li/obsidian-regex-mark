@@ -46,7 +46,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
     })
 
     const infoSub = productTitle.createEl('p')
-    infoSub.innerHTML = 'You can create custom markdown markup with using the <code>{{open:regex}}</code> and <code>{{close:regex}}</code>. The open and close regex will be hidden in Live-Preview. You need to use the "hide" toggle to make it work.'
+    infoSub.innerHTML = 'You can create custom markdown markup with using the <code>{{open:regex}}</code> and <code>{{close:regex}}</code>. The open and close regex will be hidden in Live-Preview. You need to use the "hide" toggle to make it work.<br><br>Note that "overwriting" markdown (ie underline with "<code>__</code>") will not work in Reading Mode.'
 
     const titleEl = containerEl.createDiv({ cls: 'line' })
     titleEl.createSpan({
