@@ -51,11 +51,16 @@ class CMPlugin implements PluginValue {
         while (!cursor.next().done) {
           const { from, to } = cursor.value
           const string = view.state.sliceDoc(from, to).trim()
-          const markDeco = Decoration.replace({
-            widget: new VarWidget(string, d),
-            block: false,
-            inclusive: false,
+          let markDeco = Decoration.mark({
+            class: d.class,
+            attributes: { 'data-contents' : string },
           })
+          if (d.hide)
+            markDeco = Decoration.replace({
+              widget: new VarWidget(string, d),
+              block: false,
+              inclusive: false,
+            })
 
           decorations.push(markDeco.range(from, to))
         }
