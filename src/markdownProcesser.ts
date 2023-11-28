@@ -21,7 +21,7 @@ export function MarkdownProcesser(data: SettingOption[], element: HTMLElement) {
     const textNodes = []
     while (treeWalker.nextNode()) {
       textNodes.push(treeWalker.currentNode)
-    } 
+    }
     for (const node of textNodes) {
       let text = node.textContent
       if (text) {
@@ -29,7 +29,17 @@ export function MarkdownProcesser(data: SettingOption[], element: HTMLElement) {
           if (!d.regex || !d.class || d.regex === '' || d.class === '')
             continue
           const regex = new RegExp(d.regex, 'g')
-          text = text.replace(regex, `<span class="${d.class}" data-contents="$&">$&</span>`)
+          if (!d.hide)
+            text = text.replace(regex, `<span class="${d.class}" data-contents="$&">$&</span>`)
+          else {
+            //find if use group in the regex
+            const group = d.regex.match(/\((.*?)\)/)
+            if (!group)
+              continue
+            if (group) {
+              text = text.replace(regex, `<span class="${d.class}" data-contents="$1">$1</span>`)
+            }
+          }
         }
         const span = document.createElement('span')
         span.innerHTML = text

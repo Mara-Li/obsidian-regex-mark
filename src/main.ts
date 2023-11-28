@@ -10,6 +10,7 @@ export default class RegexMark extends Plugin {
   cmExtension: Extension
 
   async onload() {
+    console.log('loading plugin RegexMark')
     await this.loadSettings()
     this.addSettingTab(new SampleSettingTab(this.app, this))
     this.registerMarkdownPostProcessor((element: HTMLElement) => {
@@ -22,7 +23,7 @@ export default class RegexMark extends Plugin {
   }
 
   onunload() {
-
+    console.log('unloading plugin RegexMark')
   }
 
   async loadSettings() {

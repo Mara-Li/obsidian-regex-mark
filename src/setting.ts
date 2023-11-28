@@ -4,6 +4,7 @@ import RegexMark from './main'
 export interface SettingOption {
   regex: string
   class: string
+  hide?: boolean
 }
 
 export type SettingOptions = SettingOption[]
@@ -61,6 +62,7 @@ export class SampleSettingTab extends PluginSettingTab {
     const tempData = {
       regex: '',
       class: '',
+      hide: false,
     }
 
     const line = (containerEl: HTMLElement, index: number) => {
@@ -68,7 +70,7 @@ export class SampleSettingTab extends PluginSettingTab {
       if (index > this.plugin.settings.length - 1 || index < -1)
         return
       else if (index === -1)
-        data = { regex: '', class: '' }
+        data = { regex: '', class: '', hide: false }
       else
         data = this.plugin.settings[index]
       const el = new Setting(containerEl)
@@ -78,7 +80,7 @@ export class SampleSettingTab extends PluginSettingTab {
             .setValue(data.regex)
             .onChange(async (value) => {
               if (index === -1) {
-                tempData.regex = value 
+                tempData.regex = value
               }
               else {
                 if (value === '')
@@ -97,7 +99,7 @@ export class SampleSettingTab extends PluginSettingTab {
             .setValue(data.class)
             .onChange(async (value) => {
               if (index === -1) {
-                tempData.class = value 
+                tempData.class = value
               }
               else {
                 if (value === '')
@@ -110,6 +112,18 @@ export class SampleSettingTab extends PluginSettingTab {
           text.inputEl.classList.add('class')
           return text
         })
+        .addToggle(toggle => toggle
+          .setValue(data.hide ?? false)
+          .setTooltip('Hide the text that matches the regex. Work only if you use group in the regex.')
+          .setDisabled(data.regex.match(/\((.*?)\)/) === null)
+          .onChange(async (value) => {
+            if (index === -1)
+              tempData.hide = value
+            data.hide = value
+            await this.plugin.saveSettings()
+          })
+          .toggleEl.classList.add('hide-regex')
+        )
       el.settingEl.classList.remove('setting-item')
       el.infoEl.remove()
       el.controlEl.classList.remove('setting-item-control')
@@ -126,6 +140,7 @@ export class SampleSettingTab extends PluginSettingTab {
             this.plugin.settings.push({
               regex: tempData.regex,
               class: tempData.class,
+              hide: tempData.hide,
             })
             await this.plugin.saveSettings()
             line(containerEl, this.plugin.settings.length - 1)?.addButton(button => button
@@ -138,10 +153,16 @@ export class SampleSettingTab extends PluginSettingTab {
               }))
             tempData.regex = ''
             tempData.class = ''
+            tempData.hide = false
             const regexInput = addValueEl.querySelector('.regex') as HTMLInputElement
             const classInput = addValueEl.querySelector('.class') as HTMLInputElement
+            //disable toggle by default
+            const toggle = addValueEl.querySelector('.hide-regex') as HTMLInputElement
             regexInput.value = ''
             classInput.value = ''
+            //disable toggle by default
+            toggle.disabled = true
+
           }
           else {
             new Notice('Regex and Class cannot be empty')

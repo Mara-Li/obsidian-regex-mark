@@ -6,12 +6,13 @@ import {
   ViewPlugin,
   Decoration,
   DecorationSet,
+  WidgetType,
 } from '@codemirror/view'
 import { RegExpCursor } from '@codemirror/search'
 import { Extension, Facet, combineConfig } from '@codemirror/state'
 import { cloneDeep } from 'lodash'
 import RegexMark from './main'
-import { SettingOptions } from './setting'
+import { SettingOptions, SettingOption } from './setting'
 
 const Config = Facet.define<SettingOptions, Required<SettingOptions>>({
   combine(options) {
@@ -50,7 +51,12 @@ class CMPlugin implements PluginValue {
         while (!cursor.next().done) {
           const { from, to } = cursor.value
           const string = view.state.sliceDoc(from, to).trim()
-          const markDeco = Decoration.mark({ class: d.class, attributes: { 'data-contents': string } })
+          const markDeco = Decoration.replace({
+            widget: new VarWidget(string, d),
+            block: false,
+            inclusive: false,
+          })
+
           decorations.push(markDeco.range(from, to))
         }
       }
@@ -64,3 +70,33 @@ const pluginSpec: PluginSpec<CMPlugin> = {
 }
 
 const cmPlugin = ViewPlugin.fromClass(CMPlugin, pluginSpec)
+
+class VarWidget extends WidgetType {
+  data : SettingOption
+  constructor(readonly value: string, data: SettingOption) {
+    super()
+    this.data = data
+  }
+
+  eq(other: VarWidget) {
+    //return false if the regex is edited
+    const regex = new RegExp(this.data.regex, 'g')
+    if (this.value.match(regex) === null)
+      return false
+    return other.value == this.value
+  }
+
+  toDOM() {
+    const wrap = document.createElement('span')
+    wrap.addClass(this.data.class)
+    let text = this.value
+    const regex = new RegExp(this.data.regex, 'g')
+    if (this.data.hide)
+      text = this.value.replace(regex, '$1')
+    wrap.innerHTML = text
+    return wrap
+  }
+
+  ignoreEvent() { return false }
+}
+
