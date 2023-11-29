@@ -62,7 +62,7 @@ class CMPlugin implements PluginValue {
 					}
 					const string = view.state.sliceDoc(from, to).trim();
 					const markDeco = Decoration.replace({
-						widget: new VarWidget(string, d, view),
+						widget: new LivePreviewWidget(string, d, view),
 					});
 					decorations.push(markDeco.range(from, to));
 
@@ -81,7 +81,7 @@ const pluginSpec: PluginSpec<CMPlugin> = {
 
 const cmPlugin = ViewPlugin.fromClass(CMPlugin, pluginSpec);
 
-class VarWidget extends WidgetType {
+class LivePreviewWidget extends WidgetType {
 	data : SettingOption;
 	view: EditorView;
 	constructor(readonly value: string, data: SettingOption, view: EditorView) {
@@ -92,7 +92,7 @@ class VarWidget extends WidgetType {
 
 	//Widget is only updated when the raw text is changed / the elements get focus and loses it
 
-	eq(other: VarWidget) {
+	eq(other: LivePreviewWidget) {
 		//return false if the regex is edited
 		const regex = new RegExp(removeTags(this.data.regex), "g");
 		if (this.value.match(regex) === null)
