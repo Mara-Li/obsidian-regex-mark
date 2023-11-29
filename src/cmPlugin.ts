@@ -62,7 +62,7 @@ class CMPlugin implements PluginValue {
 					}
 					const string = view.state.sliceDoc(from, to).trim();
 					const markDeco = Decoration.replace({
-						widget: new VarWidget(string, d, view, checkSelectionOverlap(view.state.selection, from, to)),
+						widget: new VarWidget(string, d, view),
 					});
 					decorations.push(markDeco.range(from, to));
 
@@ -84,12 +84,10 @@ const cmPlugin = ViewPlugin.fromClass(CMPlugin, pluginSpec);
 class VarWidget extends WidgetType {
 	data : SettingOption;
 	view: EditorView;
-	isSelected: boolean;
-	constructor(readonly value: string, data: SettingOption, view: EditorView, isSelected: boolean) {
+	constructor(readonly value: string, data: SettingOption, view: EditorView) {
 		super();
 		this.data = data;
 		this.view = view;
-		this.isSelected = isSelected;
 	}
 
 	//Widget is only updated when the raw text is changed / the elements get focus and loses it
