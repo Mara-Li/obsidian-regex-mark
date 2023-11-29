@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.1.5](https://github.com/Lisandra-dev/obsidian-regex-mark/compare/1.1.4...1.1.5) (2023-11-29)
+
+
+### Bug Fixes
+
+* cursor bug (again) ([add93b2](https://github.com/Lisandra-dev/obsidian-regex-mark/commit/add93b2d5b98b89e75ed5680d1dbec5a1c16e920))
+
 ## [1.1.4](https://github.com/Lisandra-dev/obsidian-regex-mark/compare/1.1.3...1.1.4) (2023-11-29)
 
 ## [1.1.3](https://github.com/Lisandra-dev/obsidian-regex-mark/compare/1.1.2...1.1.3) (2023-11-29)
