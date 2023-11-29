@@ -6,14 +6,11 @@ export function MarkdownProcesser(data: SettingOption[], element: HTMLElement) {
 
   for (const p of paragraph) {
     let ignore = true
-    console.log(p)
     for (const d of data) {
       if (!d.regex || !d.class || d.regex === '' || d.class === '')
         continue
       const regex = new RegExp(removeTags(d.regex), 'g')
-      console.log(p.textContent)
       if (regex.test(p.textContent || '')) {
-        console.log(p.textContent, 'not ignore')
         ignore = false
         break
       }
@@ -45,7 +42,6 @@ export function MarkdownProcesser(data: SettingOption[], element: HTMLElement) {
         }
         const span = document.createElement('span')
         span.innerHTML = text
-        console.log(node)
         if (node.parentNode)
           node.parentNode.replaceChild(span, node)
       }
