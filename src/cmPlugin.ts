@@ -35,7 +35,7 @@ class CMPlugin implements PluginValue {
   }
 
   update(update: ViewUpdate) {
-    if (update.docChanged || update.viewportChanged) {
+    if (update.docChanged || update.viewportChanged || update.selectionSet) {
       this.decorations = this.buildDecorations(update.view)
     }
   }
@@ -50,14 +50,22 @@ class CMPlugin implements PluginValue {
         const cursor = new RegExpCursor(view.state.doc, removeTags(d.regex), {}, part.from, part.to)
         while (!cursor.next().done) {
           const { from, to } = cursor.value
+          //don't add the decoration if the cursor (selection in the editor) is inside the decoration
+          if (checkSelectionOverlap(view.state.selection, from, to))
+          {
+            //just apply the decoration to the whole line
+            const markup = Decoration.mark({ class: d.class })
+            decorations.push(markup.range(from, to))
+            continue
+          }
           const string = view.state.sliceDoc(from, to).trim()
           const markDeco = Decoration.replace({
             widget: new VarWidget(string, d, view, checkSelectionOverlap(view.state.selection, from, to)),
-            block: false,
-            inclusive: false,
           })
-
           decorations.push(markDeco.range(from, to))
+
+
+
         }
       }
     }
@@ -89,8 +97,10 @@ class VarWidget extends WidgetType {
     const regex = new RegExp(removeTags(this.data.regex), 'g')
     if (this.value.match(regex) === null)
       return false
+
     return other.value == this.value
   }
+
 
   toDOM() {
     const wrap = document.createElement('span')
@@ -106,27 +116,30 @@ class VarWidget extends WidgetType {
         openTag = this.data.regex.match(/{{open:(.*?)}}/)?.[1]
       if (this.data.regex.match('{{close'))
         closeTag = this.data.regex.match(/{{close:(.*?)}}/)?.[1]
-      let openTagHide = ''
-      let closeTagHide = ''
-      if (openTag) {
-        //search the openTag in the text and replace it with the hide tag
-        const openTagRegex = new RegExp(openTag, 'g')
-        const openTagText = this.value.match(openTagRegex)?.[0]
-        openTagHide = `<span class="cm-hide">${openTagText}</span>`
-      }
-      if (closeTag) {
-        const closeTagRegex = new RegExp(closeTag, 'g')
-        const closeTagText = this.value.match(closeTagRegex)?.[0]
-        closeTagHide = `<span class="cm-hide">${closeTagText}</span>`
-      }
-      const regexText = new RegExp(removeTags(this.data.regex), 'g')
-      wrap.innerHTML = openTagHide + text.replace(regexText, '$1') + closeTagHide
+
+      const newContent = wrap.createEl('span')
+      //replace the regex open tag with the actual open tag
+      const openRegex = new RegExp(openTag as string, 'g')
+      const closeRegex = new RegExp(closeTag as string, 'g')
+      //use createEl to:
+      // - replace the openRegex with <span class="cm-hide">openTag</span>
+      // - replace the closeRegex with <span class="cm-hide">closeTag</span>
+      // - replace the text with <span class="data.class">text</span>
+      // result : <span class="cm-hide">openTag</span><span class="data.class">text</span><span class="cm-hide">closeTag</span>
+      //BUG : cursor is not placed correctly when the text is selected
+
+      newContent.createEl('span', { cls: 'cm-hide' }).setText(text.match(openRegex)?.[1] || '')
+      newContent.createEl('span', { cls: this.data.class }).setText(text.replace(openRegex, '').replace(closeRegex, '') || '')
+      newContent.createEl('span', { cls: 'cm-hide' }).setText(text.match(closeRegex)?.[1] || '')
+
+      //edit the from & to position of the cursor
+
     } else
       wrap.innerText = text
     return wrap
   }
 
-  ignoreEvent(): boolean {return false}
+
 
 }
 
