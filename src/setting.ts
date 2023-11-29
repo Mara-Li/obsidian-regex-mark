@@ -1,5 +1,7 @@
-import { App, Notice, PluginSettingTab, Setting } from 'obsidian'
-import RegexMark from './main'
+import { App, PluginSettingTab, Setting } from "obsidian";
+
+import RegexMark from "./main";
+
 
 export interface SettingOption {
   regex: string
@@ -10,187 +12,144 @@ export interface SettingOption {
 export type SettingOptions = SettingOption[]
 
 export class RemarkRegexSettingTab extends PluginSettingTab {
-  plugin: RegexMark
+	plugin: RegexMark;
 
-  constructor(app: App, plugin: RegexMark) {
-    super(app, plugin)
-    this.plugin = plugin
-  }
+	constructor(app: App, plugin: RegexMark) {
+		super(app, plugin);
+		this.plugin = plugin;
+	}
 
-  display(): void {
-    const { containerEl } = this
-    containerEl.empty()
+	display(): void {
+		const { containerEl } = this;
+		containerEl.empty();
 
-    const productTitle = containerEl.createDiv()
-    productTitle.createEl('p', {
-      text: 'Regex Mark',
-      cls: 'h2',
-    })
-    productTitle.createEl('p', {
-      text: 'Regex Mark is a plugin that allows you to add custom CSS class to text that matches a regex.',
-    })
-    const link = productTitle.createEl('p', {
-      text: 'If you are not familiar with regex, you can use this tool to help you build regex: ',
-      cls: 'secondary',
-    })
-    link.createEl('a', {
-      text: 'https://regex101.com/',
-      attr: {
-        href: 'https://regex101.com/',
-        target: '_blank',
-      },
-    })
-    productTitle.createEl('p', {
-      text: 'This plugin requires reopen the file to take effect.',
-      cls: 'secondary',
-    })
+		const productTitle = containerEl.createDiv();
+		productTitle.createEl("p", {
+			text: "Regex Mark",
+			cls: "h2",
+		});
+		productTitle.createEl("p", {
+			text: "Regex Mark is a plugin that allows you to add custom CSS class to text that matches a regex.",
+		});
+		const link = productTitle.createEl("p", {
+			text: "If you are not familiar with regex, you can use this tool to help you build regex: ",
+			cls: "secondary",
+		});
+		link.createEl("a", {
+			text: "https://regex101.com/",
+			attr: {
+				href: "https://regex101.com/",
+				target: "_blank",
+			},
+		});
+		productTitle.createEl("p", {
+			text: "This plugin requires reopen the file to take effect.",
+			cls: "secondary",
+		});
 
-    const infoSub = productTitle.createEl('p')
-    infoSub.innerHTML = 'You can create custom markdown markup with using the <code>{{open:regex}}</code> and <code>{{close:regex}}</code>. The open and close regex will be hidden in Live-Preview. You need to use the "hide" toggle to make it work.<br><br>Note that "overwriting" markdown (ie underline with "<code>__</code>") will not work in Reading Mode.'
+		const infoSub = productTitle.createEl("p");
+		infoSub.innerHTML = "You can create custom markdown markup with using the <code>{{open:regex}}</code> and <code>{{close:regex}}</code>. The open and close regex will be hidden in Live-Preview. You need to use the \"hide\" toggle to make it work.<br><br>Note that \"overwriting\" markdown (ie underline with underscore) will not work in Reading Mode.";
 
-    const titleEl = containerEl.createDiv({ cls: 'line' })
-    titleEl.createSpan({
-      text: 'Regex',
-      cls: 'regex title',
-    })
-    titleEl.createSpan({
-      text: 'Class',
-      cls: 'class title',
-    })
-    titleEl.createSpan({
-      text: 'Hide',
-      cls: 'hidden title',
-    })
+		for (const data of this.plugin.settings) {
+			new Setting(containerEl)
+				.setClass("regex-setting")
+				.addText((text) => {
+					text
+						.setValue(data.regex)
+						.onChange(async (value) => {
+							data.regex = value;
+							await this.plugin.saveSettings();
+						});
+					text.inputEl.addClass("extra-width");
+					this.addTooltip("regex", text.inputEl);
+				})
+				.addText((text) => {
+					text
+						.setValue(data.class)
+						.onChange(async (value) => {
+							data.class = value;
+							await this.plugin.saveSettings();
+						});
+					text.inputEl.addClass("extra-width");
+					this.addTooltip("class", text.inputEl);
+				})
+				.addToggle((toggle) => {
+					toggle
+						.setValue(data.hide ?? false)
+						.setTooltip("Hide the regex in Live-Preview, only keeping the content.")
+						.onChange(async (value) => {
+							data.hide = value;
+							await this.plugin.saveSettings();
+						});
+				})
+				.addExtraButton((button) => {
+					button
+						.setIcon("trash")
+						.setTooltip("Delete this regex")
+						.onClick(async () => {
+							this.plugin.settings = this.plugin.settings.filter((d) => d !== data);
+							await this.plugin.saveSettings();
+							this.display();
+						});
+				})
+				.addExtraButton((button) => {
+					button
+						.setIcon("arrow-up")
+						.setTooltip("Move this regex up")
+						.onClick(async () => {
+							const index = this.plugin.settings.indexOf(data);
+							if (index > 0) {
+								this.plugin.settings.splice(index - 1, 0, this.plugin.settings.splice(index, 1)[0]);
+								await this.plugin.saveSettings();
+								this.display();
+							}
+						});
+				})
+				.addExtraButton((button) => {
+					button
+						.setIcon("arrow-down")
+						.setTooltip("Move this regex down")
+						.onClick(async () => {
+							const index = this.plugin.settings.indexOf(data);
+							if (index < this.plugin.settings.length - 1) {
+								this.plugin.settings.splice(index + 1, 0, this.plugin.settings.splice(index, 1)[0]);
+								await this.plugin.saveSettings();
+								this.display();
+							}
+						});
+				});
+		}
 
-    const tempData = {
-      regex: '',
-      class: '',
-      hide: false,
-    }
+		//add + button
+		new Setting(containerEl)
+			.addButton((button) => {
+				button
+					.setButtonText("Add Regex")
+					.setTooltip("Add a new regex")
+					.onClick(async () => {
+						this.plugin.settings.push({
+							regex: "",
+							class: "",
+							hide: false,
+						});
+						await this.plugin.saveSettings();
+						this.display();
+					});
+			});
+	}
 
-    const line = (containerEl: HTMLElement, index: number) => {
-      let data: SettingOption
-      if (index > this.plugin.settings.length - 1 || index < -1)
-        return
-      else if (index === -1)
-        data = { regex: '', class: '', hide: false }
-      else
-        data = this.plugin.settings[index]
-      const el = new Setting(containerEl)
-        .addText(text => {
-          text
-            .setPlaceholder('regex')
-            .setValue(data.regex)
-            .onChange(async (value) => {
-              if (index === -1) {
-                tempData.regex = value
-              }
-              else {
-                if (value === '')
-                  new Notice('Regex cannot be empty')
-                data.regex = value
-                this.plugin.settings.splice(index, 1, data)
-                await this.plugin.saveSettings()
-              }
-            })
-          text.inputEl.classList.add('regex')
-          return text
-        })
-        .addText(text => {
-          text
-            .setPlaceholder('class')
-            .setValue(data.class)
-            .onChange(async (value) => {
-              if (index === -1) {
-                tempData.class = value
-              }
-              else {
-                if (value === '')
-                  new Notice('Class cannot be empty')
-                data.class = value
-                this.plugin.settings.splice(index, 1, data)
-                await this.plugin.saveSettings()
-              }
-            })
-          text.inputEl.classList.add('class')
-          return text
-        })
-        .addToggle(toggle => toggle
-          .setValue(data.hide ?? false)
-          .setTooltip('Hide the text that matches the regex. Work only if you use group in the regex.')
-          .setDisabled(data.regex.match(/\((.*?)\)/) === null)
-          .onChange(async (value) => {
-            if (index === -1)
-              tempData.hide = value
-            data.hide = value
-            await this.plugin.saveSettings()
-          })
-          .toggleEl.classList.add('hide-regex')
-        )
-      el.settingEl.classList.remove('setting-item')
-      el.infoEl.remove()
-      el.controlEl.classList.remove('setting-item-control')
-      el.controlEl.classList.add('line')
-      return el
-    }
-
-    const addValueEl = containerEl.createDiv()
-    line(addValueEl, -1)?.setClass('add-value')
-      .addButton(button => button
-        .setIcon('plus')
-        .onClick(async () => {
-          if (tempData.regex && tempData.class) {
-            this.plugin.settings.push({
-              regex: tempData.regex,
-              class: tempData.class,
-              hide: tempData.hide,
-            })
-            await this.plugin.saveSettings()
-            line(containerEl, this.plugin.settings.length - 1)?.addButton(button => button
-              .setIcon('trash')
-              .setWarning()
-              .onClick(async () => {
-                this.plugin.settings.splice(this.plugin.settings.length - 1, 1)
-                await this.plugin.saveSettings()
-                this.display()
-              }))
-            tempData.regex = ''
-            tempData.class = ''
-            tempData.hide = false
-            const regexInput = addValueEl.querySelector('.regex') as HTMLInputElement
-            const classInput = addValueEl.querySelector('.class') as HTMLInputElement
-            //disable toggle by default
-            const toggle = addValueEl.querySelector('.hide-regex') as HTMLInputElement
-            regexInput.value = ''
-            classInput.value = ''
-            //disable toggle by default
-            toggle.disabled = true
-
-          }
-          else {
-            new Notice('Regex and Class cannot be empty')
-          }
-        })
-      )
-
-    const dataEl = containerEl.createDiv()
-    for (let i = 0; i < this.plugin.settings.length; i++) {
-      line(dataEl, i)?.addButton(button => button
-        .setIcon('trash')
-        .setWarning()
-        .onClick(async () => {
-          this.plugin.settings.splice(i, 1)
-          await this.plugin.saveSettings()
-          this.display()
-        })
-      )
-    }
-  }
-
-  async hide() {
-    this.plugin.settings = this.plugin.settings.filter((value) => value.regex !== '' && value.class !== '')
-    await this.plugin.saveSettings()
-    this.plugin.updateCmExtension()
-    super.hide()
-  }
+	addTooltip(text: string, cb: HTMLElement) {
+		cb.onfocus = () => {
+			const tooltip = cb.parentElement?.createEl("div", { text, cls: "tooltip" });
+			if (tooltip) {
+				const rec = cb.getBoundingClientRect();
+				tooltip.style.top = `${rec.top + rec.height + 5}px`;
+				tooltip.style.left = `${rec.left + rec.width / 2}px`;
+			}
+		};
+		cb.onblur = () => {
+			cb.parentElement?.querySelector(".tooltip")?.remove();
+		};
+	}
 }
+

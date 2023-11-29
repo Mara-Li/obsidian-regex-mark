@@ -22,13 +22,14 @@
 }
 
 .class {
-  flex-basis: 30%;
+  flex-basis: 100%;
 }
 
 .hidden {
   opacity: 0;
-  width: 42px;
+  width: 10em;
 }
+
 
 .h2 {
   font-size: 1.8em;
@@ -47,4 +48,12 @@
 
 .is-live-preview .cm-active .cm-hide {
   display: inline;
+}
+
+.regex-setting .setting-item-info {
+  display: none;
+}
+
+.regex-setting input.extra-width {
+  width: 100%;
 }
