@@ -37,7 +37,7 @@ class CMPlugin implements PluginValue {
 	}
 
 	update(update: ViewUpdate) {
-		if (update.docChanged || update.viewportChanged || update.selectionSet) {
+		if (update) {
 			this.decorations = this.buildDecorations(update.view);
 		}
 	}
@@ -61,13 +61,12 @@ class CMPlugin implements PluginValue {
 						continue;
 					}
 					const string = view.state.sliceDoc(from, to).trim();
+					//if cursor on the string is empty, don't add the decoration
+
 					const markDeco = Decoration.replace({
 						widget: new LivePreviewWidget(string, d, view),
 					});
 					decorations.push(markDeco.range(from, to));
-
-
-
 				}
 			}
 		}
@@ -107,9 +106,6 @@ class LivePreviewWidget extends WidgetType {
 		wrap.addClass(this.data.class);
 		const text = this.value;
 		if (this.data.hide){
-			//example of hiding:
-			//entry : __content__ => <span class="underline"><span class="cm-hide">__</span>content<span class="cm-hide">__</span></span>
-			//regex : {{open:__}}(.*){{close:__}}
 			let openTag = null;
 			let closeTag = null;
 			if (this.data.regex.match("{{open"))
@@ -118,21 +114,11 @@ class LivePreviewWidget extends WidgetType {
 				closeTag = this.data.regex.match(/{{close:(.*?)}}/)?.[1];
 
 			const newContent = wrap.createEl("span");
-			//replace the regex open tag with the actual open tag
 			const openRegex = new RegExp(openTag as string, "g");
 			const closeRegex = new RegExp(closeTag as string, "g");
-			//use createEl to:
-			// - replace the openRegex with <span class="cm-hide">openTag</span>
-			// - replace the closeRegex with <span class="cm-hide">closeTag</span>
-			// - replace the text with <span class="data.class">text</span>
-			// result : <span class="cm-hide">openTag</span><span class="data.class">text</span><span class="cm-hide">closeTag</span>
-			//BUG : cursor is not placed correctly when the text is selected
-
 			newContent.createEl("span", { cls: "cm-hide" }).setText(text.match(openRegex)?.[1] || "");
 			newContent.createEl("span", { cls: this.data.class }).setText(text.replace(openRegex, "").replace(closeRegex, "") || "");
 			newContent.createEl("span", { cls: "cm-hide" }).setText(text.match(closeRegex)?.[1] || "");
-
-			//edit the from & to position of the cursor
 
 		} else
 			wrap.innerText = text;
@@ -149,10 +135,11 @@ function checkSelectionOverlap(selection: EditorSelection | undefined, from: num
 	}
 
 	for (const range of selection.ranges) {
-		if (range.to >= from && range.from <= to) {
+		if (range.to >= from || range.from <= to) {
 			return true;
-		}
+		} //if text is not undefined, check if the selection is inside the text
 	}
 
 	return false;
 }
+
