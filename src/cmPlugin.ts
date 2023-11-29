@@ -72,6 +72,7 @@ class CMPlugin implements PluginValue {
 		}
 		return Decoration.set(decorations.sort((a, b) => a.from - b.from));
 	}
+
 }
 
 const pluginSpec: PluginSpec<CMPlugin> = {
@@ -125,7 +126,12 @@ class LivePreviewWidget extends WidgetType {
 		return wrap;
 	}
 
-
+	ignoreEvent(event: Event){
+		return false;
+	}
+	destroy(dom: HTMLElement): void {
+		//do nothing
+	}
 
 }
 
@@ -135,7 +141,7 @@ function checkSelectionOverlap(selection: EditorSelection | undefined, from: num
 	}
 
 	for (const range of selection.ranges) {
-		if (range.to >= from || range.from <= to) {
+		if (range.to >= from && range.from <= to) {
 			return true;
 		} //if text is not undefined, check if the selection is inside the text
 	}
