@@ -33,7 +33,6 @@ export default class RegexMark extends Plugin {
 
 	async saveSettings() {
 		await this.saveData(this.settings);
-		this.updateCmExtension();
 	}
 
 	updateCmExtension() {

@@ -1,6 +1,7 @@
-import { App, PluginSettingTab, Setting } from "obsidian";
+import { App, Notice, PluginSettingTab, Setting } from "obsidian";
 
 import RegexMark from "./main";
+import { hasToHide, isValidRegex } from "./utils";
 
 
 export interface SettingOption {
@@ -42,13 +43,10 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 				target: "_blank",
 			},
 		});
-		productTitle.createEl("p", {
-			text: "This plugin requires reopen the file to take effect.",
-			cls: "secondary",
-		});
 
 		const infoSub = productTitle.createEl("p");
-		infoSub.innerHTML = "You can create custom markdown markup with using the <code>{{open:regex}}</code> and <code>{{close:regex}}</code>. The open and close regex will be hidden in Live-Preview. You need to use the \"hide\" toggle to make it work.<br><br>Note that \"overwriting\" markdown (ie underline with underscore) will not work in Reading Mode.";
+		infoSub.innerHTML = "You can create custom markdown markup with using the <code>{{open:regex}}</code> and <code>{{close:regex}}</code>. The open and close regex will be hidden in Live-Preview. You need to use the \"hide\" toggle to make it work.<br><br>Note that \"overwriting\" markdown (ie underline with underscore as <code>__underline__</code>) will not work in Reading Mode.";
+		//I know it's a BAD methods to use but the other methods is very bad to write, and I DON'T WANT TO WRITE IT.
 
 		for (const data of this.plugin.settings) {
 			new Setting(containerEl)
@@ -59,9 +57,13 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 						.onChange(async (value) => {
 							data.regex = value;
 							await this.plugin.saveSettings();
+							text.inputEl.setAttribute("regex-value", data.regex);
+							//disable hide toggle if no group is found
+							this.disableToggle(data);
 						});
 					text.inputEl.addClass("extra-width");
 					this.addTooltip("regex", text.inputEl);
+					text.inputEl.setAttribute("regex-value", data.regex);
 				})
 				.addText((text) => {
 					text
@@ -69,9 +71,11 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 						.onChange(async (value) => {
 							data.class = value;
 							await this.plugin.saveSettings();
+							text.inputEl.setAttribute("css-value", data.class);
 						});
 					text.inputEl.addClass("extra-width");
 					this.addTooltip("class", text.inputEl);
+					text.inputEl.setAttribute("css-value", data.class);
 				})
 				.addToggle((toggle) => {
 					toggle
@@ -81,6 +85,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 							data.hide = value;
 							await this.plugin.saveSettings();
 						});
+					toggle.toggleEl.addClass("group-toggle");
 				})
 				.addExtraButton((button) => {
 					button
@@ -118,6 +123,8 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 							}
 						});
 				});
+			this.disableToggle(data);
+
 		}
 
 		//add + button
@@ -135,7 +142,32 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 						this.display();
 					});
+			})
+			.addButton((button) => {
+				button
+					.setButtonText("Verify & apply")
+					.setTooltip("Verify and apply the regexes")
+					.onClick(async () => {
+						const regexes = this.plugin.settings.map((d) => d.regex);
+						const valid = regexes.every((d) => this.verifyRegex(d));
+						const css = this.plugin.settings.map((d) => d.class);
+						const validCss = css.every((d) => this.verifyClass(d));
+						if (valid && validCss) {
+							this.plugin.updateCmExtension();
+							new Notice("Regexes are valid and applied.");
+						} else {
+							let msg = "Invalid";
+							if (!valid) msg += " regexes";
+							if (!valid && !validCss) msg += " and";
+							if (!validCss) msg += " css";
+							msg += ".";
+							new Notice(msg);
+						}
+
+					});
+
 			});
+
 	}
 
 	addTooltip(text: string, cb: HTMLElement) {
@@ -151,5 +183,46 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 			cb.parentElement?.querySelector(".tooltip")?.remove();
 		};
 	}
+
+	verifyRegex(regex: string) {
+		const cb = document.querySelector(`input[regex-value="${escapeRegExp(regex)}"]`);
+		if (regex.trim().length === 0) {
+			if (cb) cb.addClass("is-invalid");
+			return false;
+		}
+		try {
+			new RegExp(regex);
+			if (cb) cb.removeClass("is-invalid");
+			return true;
+		} catch (e) {
+			console.warn("Invalid regex", regex);
+			if (cb) cb.addClass("is-invalid");
+			return false;
+		}
+	}
+
+	verifyClass(css: string) {
+		const cb = document.querySelector(`input[css-value="${escapeRegExp(css)}"]`);
+		if (css.trim().length === 0) {
+			if (cb) cb.addClass("is-invalid");
+			return false;
+		}
+		cb?.removeClass("is-invalid");
+		return true;
+	}
+
+	disableToggle(data: SettingOption) {
+		const index = this.plugin.settings.indexOf(data);
+		const toggle = document.querySelectorAll(".group-toggle")[index];
+		const verify = !hasToHide(data.regex) || !isValidRegex(data.regex) || data.regex.trim().length === 0;
+		if (toggle) {
+			toggle.toggleClass("is-disabled-manually", verify);
+		}
+	}
 }
+
+function escapeRegExp(regex: string) {
+	return regex.replace(/[\\]/g, "\\$&"); // $& means the whole matched string
+}
+
 

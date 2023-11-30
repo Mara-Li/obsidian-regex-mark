@@ -12,3 +12,12 @@ export function isValidRegex(regex: string) {
 		return false;
 	}
 }
+
+export function hasToHide(regex: string) {
+	//search for group in regex
+	const group = removeTags(regex).match(/\((.*?)\)/);
+	if (!group) return false;
+	return true;
+
+
+}

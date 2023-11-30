@@ -57,3 +57,12 @@
 .regex-setting input.extra-width {
   width: 100%;
 }
+
+.regex-setting input.is-invalid {
+  border-color: var(--text-error);
+}
+
+.regex-setting .is-disabled-manually {
+  pointer-events: none;
+  opacity: 0.5;
+}
