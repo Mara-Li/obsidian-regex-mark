@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.2.1](https://github.com/Lisandra-dev/obsidian-regex-mark/compare/1.2.0...1.2.1) (2023-11-30)
+
+
+### Bug Fixes
+
+* disable toggle if regex is invalid ([d90cb4c](https://github.com/Lisandra-dev/obsidian-regex-mark/commit/d90cb4c434318a15ad6b9cfbc358588e0ed0d990))
+
 ## [1.2.0](https://github.com/Lisandra-dev/obsidian-regex-mark/compare/1.1.6...1.2.0) (2023-11-29)
 
 
