@@ -61,9 +61,8 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 							//disable hide toggle if no group is found
 							this.disableToggle(data);
 						});
-					text.inputEl.addClass("extra-width");
+					text.inputEl.addClasses(["extra-width", "regex-input"]);
 					this.addTooltip("regex", text.inputEl);
-					text.inputEl.setAttribute("regex-value", data.regex);
 				})
 				.addText((text) => {
 					text
@@ -73,9 +72,8 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 							await this.plugin.saveSettings();
 							text.inputEl.setAttribute("css-value", data.class);
 						});
-					text.inputEl.addClass("extra-width");
+					text.inputEl.addClasses(["extra-width", "css-input"]);
 					this.addTooltip("class", text.inputEl);
-					text.inputEl.setAttribute("css-value", data.class);
 				})
 				.addToggle((toggle) => {
 					toggle
@@ -148,10 +146,13 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 					.setButtonText("Verify & apply")
 					.setTooltip("Verify and apply the regexes")
 					.onClick(async () => {
-						const regexes = this.plugin.settings.map((d) => d.regex);
-						const valid = regexes.every((d) => this.verifyRegex(d));
-						const css = this.plugin.settings.map((d) => d.class);
-						const validCss = css.every((d) => this.verifyClass(d));
+						const isDuplicate = this.findDuplicate();
+						if (!isDuplicate) {
+							new Notice("Duplicate regexes found, please fix them before applying.");
+							return;
+						}
+						const valid = this.plugin.settings.every((d) => this.verifyRegex(d));
+						const validCss = this.plugin.settings.every((d) => this.verifyClass(d));
 						if (valid && validCss) {
 							this.plugin.updateCmExtension();
 							new Notice("Regexes are valid and applied.");
@@ -184,8 +185,10 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 		};
 	}
 
-	verifyRegex(regex: string) {
-		const cb = document.querySelector(`input[regex-value="${escapeRegExp(regex)}"]`);
+	verifyRegex(data: SettingOption) {
+		const index = this.plugin.settings.indexOf(data);
+		const regex = data.regex;
+		const cb = document.querySelectorAll(".regex-input")[index];
 		if (regex.trim().length === 0) {
 			if (cb) cb.addClass("is-invalid");
 			return false;
@@ -201,8 +204,9 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 		}
 	}
 
-	verifyClass(css: string) {
-		const cb = document.querySelector(`input[css-value="${escapeRegExp(css)}"]`);
+	verifyClass(data: SettingOption) {
+		const css = data.class;
+		const cb = document.querySelectorAll(".css-input")[this.plugin.settings.indexOf(data)];
 		if (css.trim().length === 0) {
 			if (cb) cb.addClass("is-invalid");
 			return false;
@@ -219,10 +223,39 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 			toggle.toggleClass("is-disabled-manually", verify);
 		}
 	}
+
+	findDuplicate() {
+		//find the index of the first duplicate in this.plugin.settings
+		const duplicateIndex: {
+			regex: string;
+			index: number[];
+		}[] = [];
+		//remove all is-invalid class
+		document.querySelectorAll(".is-invalid").forEach((d) => d.removeClass("is-invalid"));
+		for (const data of this.plugin.settings) {
+			const index = duplicateIndex.findIndex((d) => d.regex === data.regex);
+			if (index >= 0) {
+				duplicateIndex[index].index.push(this.plugin.settings.indexOf(data));
+			} else {
+				duplicateIndex.push({
+					regex: data.regex,
+					index: [this.plugin.settings.indexOf(data)],
+				});
+			}
+		}
+
+		const allDuplicateIndex = duplicateIndex.flatMap((d) => d.index.length > 1 ? d.index : []);
+		if (allDuplicateIndex.length === 0) return true;
+		for (const duplicate of allDuplicateIndex) {
+			const cb = document.querySelectorAll(".regex-input")[duplicate];
+			if (cb) cb.addClass("is-invalid");
+			const regex = this.plugin.settings[duplicate].regex;
+			new Notice(`Duplicate regex: ${regex}.`);
+		}
+		return false;
+	}
 }
 
-function escapeRegExp(regex: string) {
-	return regex.replace(/[\\]/g, "\\$&"); // $& means the whole matched string
-}
+
 
 
