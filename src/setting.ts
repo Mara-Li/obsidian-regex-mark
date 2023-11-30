@@ -156,15 +156,14 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 						if (valid && validCss) {
 							this.plugin.updateCmExtension();
 							new Notice("Regexes are valid and applied.");
-						} else {
-							let msg = "Invalid";
-							if (!valid) msg += " regexes";
-							if (!valid && !validCss) msg += " and";
-							if (!validCss) msg += " css";
-							msg += ".";
-							new Notice(msg);
+							return;
 						}
-
+						let msg = "Found: ";
+						if (!valid) msg += "invalid regexes";
+						if (!valid && !validCss) msg += " and ";
+						if (!validCss) msg += "empty css";
+						msg += "\n. Please fix them before applying.";
+						new Notice(msg);
 					});
 
 			});
