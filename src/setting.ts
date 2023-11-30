@@ -214,7 +214,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 	disableToggle(data: SettingOption) {
 		const index = this.plugin.settings.indexOf(data);
 		const toggle = document.querySelectorAll(".group-toggle")[index];
-		const verify = !hasToHide(data.regex) || !isValidRegex(data.regex) || data.regex.trim().length === 0;
+		const verify = !hasToHide(data.regex) || !isValidRegex(data.regex, false) || data.regex.trim().length === 0;
 		if (toggle) {
 			toggle.toggleClass("is-disabled-manually", verify);
 		}
