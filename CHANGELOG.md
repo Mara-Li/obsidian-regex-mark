@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.3.0](https://github.com/Lisandra-dev/obsidian-regex-mark/compare/1.2.2...1.3.0) (2023-12-02)
+
+
+### Features
+
+* add support for "li" ! ([7f36774](https://github.com/Lisandra-dev/obsidian-regex-mark/commit/7f36774068a39f1a3dbd1e7f3245ce38ba4fbc7c))
+
 ## [1.2.2](https://github.com/Lisandra-dev/obsidian-regex-mark/compare/1.2.1...1.2.2) (2023-11-30)
 
 
