@@ -165,9 +165,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 						msg += "\n. Please fix them before applying.";
 						new Notice(msg);
 					});
-
 			});
-
 	}
 
 	addTooltip(text: string, cb: HTMLElement) {
