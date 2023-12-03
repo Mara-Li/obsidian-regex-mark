@@ -4,6 +4,7 @@ export function removeTags(regex: string) {
 }
 
 export function isValidRegex(regex: string, warn=true) {
+
 	try {
 		new RegExp(removeTags(regex));
 		return true;

@@ -162,7 +162,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 						if (!valid) msg += "invalid regexes";
 						if (!valid && !validCss) msg += " and ";
 						if (!validCss) msg += "empty css";
-						msg += "\n. Please fix them before applying.";
+						msg += ". Please fix them before applying.";
 						new Notice(msg);
 					});
 			});
@@ -187,6 +187,11 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 		const regex = data.regex;
 		const cb = document.querySelectorAll(".regex-input")[index];
 		if (regex.trim().length === 0) {
+			if (cb) cb.addClass("is-invalid");
+			return false;
+		}
+		if (data.hide && (data.regex.includes("\\}") && data.regex.includes("}}"))) {
+			new Notice("You can't use \\} in {{close:regex}} or {{open:regex}} if you want to hide the regex.");
 			if (cb) cb.addClass("is-invalid");
 			return false;
 		}
@@ -216,6 +221,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 		const index = this.plugin.settings.indexOf(data);
 		const toggle = document.querySelectorAll(".group-toggle")[index];
 		const verify = !hasToHide(data.regex) || !isValidRegex(data.regex, false) || data.regex.trim().length === 0;
+
 		if (toggle) {
 			toggle.toggleClass("is-disabled-manually", verify);
 		}

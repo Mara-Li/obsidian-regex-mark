@@ -115,6 +115,9 @@ class LivePreviewWidget extends WidgetType {
 				closeTag = this.data.regex.match(/{{close:(.*?)}}/)?.[1];
 
 			const newContent = wrap.createEl("span");
+			if (!isValidRegex(openTag as string, true) || !isValidRegex(closeTag as string, true)){
+				return wrap;
+			}
 			const openRegex = new RegExp(openTag as string, "g");
 			const closeRegex = new RegExp(closeTag as string, "g");
 			newContent.createEl("span", { cls: "cm-hide" }).setText(text.match(openRegex)?.[1] || "");
@@ -126,9 +129,11 @@ class LivePreviewWidget extends WidgetType {
 		return wrap;
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	ignoreEvent(event: Event){
 		return false;
 	}
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	destroy(dom: HTMLElement): void {
 		//do nothing
 	}
