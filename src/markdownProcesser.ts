@@ -2,8 +2,7 @@ import { SettingOption } from "./setting";
 import { isValidRegex, removeTags } from "./utils";
 
 export function MarkdownProcesser(data: SettingOption[], element: HTMLElement) {
-	let paragraph = element.findAll("p");
-	paragraph = paragraph.concat(element.findAll("li"));
+	const paragraph = element.findAll("p, li, h1, h2, h3, h4, h5, h6");
 	for (const p of paragraph) {
 		let ignore = true;
 		for (const d of data) {
@@ -25,7 +24,6 @@ export function MarkdownProcesser(data: SettingOption[], element: HTMLElement) {
 		}
 		for (const node of textNodes) {
 			let text = node.textContent;
-			console.log(text);
 			if (text) {
 				for (const d of data) {
 					if (!d.regex || !d.class || d.regex === "" || d.class === "")
