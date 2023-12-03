@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.4.0](https://github.com/Lisandra-dev/obsidian-regex-mark/compare/1.3.0...1.4.0) (2023-12-03)
+
+
+### Features
+
+* prevent regex with \} as they are wrongly parsed ([162493a](https://github.com/Lisandra-dev/obsidian-regex-mark/commit/162493a88ec7ae7717afd3d133462df48f23edbd))
+
 ## [1.3.0](https://github.com/Lisandra-dev/obsidian-regex-mark/compare/1.2.2...1.3.0) (2023-12-02)
 
 
