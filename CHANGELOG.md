@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.4.1](https://github.com/Lisandra-dev/obsidian-regex-mark/compare/1.4.0...1.4.1) (2023-12-03)
+
+
+### Bug Fixes
+
+* all regex without close/open return null ([4364939](https://github.com/Lisandra-dev/obsidian-regex-mark/commit/436493969e9e37f66e3417871892f059ea342f17))
+* allow to have markup in heading ([5a544db](https://github.com/Lisandra-dev/obsidian-regex-mark/commit/5a544db8a34bcf423998f43998f44b657d5eb0dc))
+
 ## [1.4.0](https://github.com/Lisandra-dev/obsidian-regex-mark/compare/1.3.0...1.4.0) (2023-12-03)
 
 
