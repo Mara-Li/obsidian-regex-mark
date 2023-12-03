@@ -115,7 +115,7 @@ class LivePreviewWidget extends WidgetType {
 				closeTag = this.data.regex.match(/{{close:(.*?)}}/)?.[1];
 
 			const newContent = wrap.createEl("span");
-			if (!isValidRegex(openTag as string, true) || !isValidRegex(closeTag as string, true)){
+			if ((openTag && !isValidRegex(openTag as string, true)) || (closeTag && !isValidRegex(closeTag as string, true))){
 				return wrap;
 			}
 			const openRegex = new RegExp(openTag as string, "g");
