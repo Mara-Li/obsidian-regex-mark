@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.4.2](https://github.com/Lisandra-dev/obsidian-regex-mark/compare/1.4.1...1.4.2) (2023-12-22)
+
+
+### Bug Fixes
+
+* allow table ([d012425](https://github.com/Lisandra-dev/obsidian-regex-mark/commit/d012425758007362d8c1570d6235f21f9f46431a))
+
 ## [1.4.1](https://github.com/Lisandra-dev/obsidian-regex-mark/compare/1.4.0...1.4.1) (2023-12-03)
 
 
