@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-regex-mark",
-	"version": "1.4.2",
+	"version": "1.5.0",
 	"description": "Add custom CSS classes to text based on regular expressions.",
 	"main": "main.js",
 	"scripts": {
@@ -32,6 +32,7 @@
 		"typescript": "4.7.4"
 	},
 	"dependencies": {
+		"@codemirror/language": "^6.9.3",
 		"commit-and-tag-version": "^12.0.0"
 	}
 }

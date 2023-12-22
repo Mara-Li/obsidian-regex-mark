@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.5.0](https://github.com/Lisandra-dev/obsidian-regex-mark/compare/1.4.2...1.5.0) (2023-12-22)
+
+
+### Features
+
+* allow table and callout title to be rendered too ([c01456c](https://github.com/Lisandra-dev/obsidian-regex-mark/commit/c01456cb74542ad92438771e21ebb202671b3ac8))
+
 ## [1.4.2](https://github.com/Lisandra-dev/obsidian-regex-mark/compare/1.4.1...1.4.2) (2023-12-22)
 
 
