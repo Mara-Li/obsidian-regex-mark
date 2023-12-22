@@ -2,7 +2,7 @@ import { SettingOption } from "./setting";
 import { isValidRegex, removeTags } from "./utils";
 
 export function MarkdownProcesser(data: SettingOption[], element: HTMLElement) {
-	const paragraph = element.findAll("p, li, h1, h2, h3, h4, h5, h6");
+	const paragraph = element.findAll("p, li, h1, h2, h3, h4, h5, h6, td");
 	for (const p of paragraph) {
 		let ignore = true;
 		for (const d of data) {

@@ -61,8 +61,6 @@ class CMPlugin implements PluginValue {
 						continue;
 					}
 					const string = view.state.sliceDoc(from, to).trim();
-					//if cursor on the string is empty, don't add the decoration
-
 					const markDeco = Decoration.replace({
 						widget: new LivePreviewWidget(string, d, view),
 					});
