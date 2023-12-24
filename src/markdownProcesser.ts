@@ -2,7 +2,6 @@ import { SettingOption } from "./setting";
 import { isValidRegex, removeTags } from "./utils";
 
 export function MarkdownProcesser(data: SettingOption[], element: HTMLElement) {
-	console.log(element.findAll(".callout"));
 	const paragraph = element.findAll("p, li, h1, h2, h3, h4, h5, h6, td, .callout-title-inner");
 	paragraph.push(...element.findAllSelf(".table-cell-wrapper"));
 
