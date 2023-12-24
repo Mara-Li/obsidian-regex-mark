@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.5.1](https://github.com/Lisandra-dev/obsidian-regex-mark/compare/1.5.0...1.5.1) (2023-12-24)
+
+
+### Bug Fixes
+
+* forgot to remove logs ([bc30cb6](https://github.com/Lisandra-dev/obsidian-regex-mark/commit/bc30cb63717a714b320274b2cfcc7ac054848e64))
+
 ## [1.5.0](https://github.com/Lisandra-dev/obsidian-regex-mark/compare/1.4.2...1.5.0) (2023-12-22)
 
 
