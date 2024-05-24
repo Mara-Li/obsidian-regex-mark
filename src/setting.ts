@@ -32,7 +32,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 
 			<p> You can create custom MarkDown Markup with using the <code>{{open:regex}}</code> and <code>{{close:regex}}</code>. The open and close regex will be hidden in Live-Preview. You need to use the "hide" toggle to make it work.</p>
 			
-			<p> Note that "overwriting" markdown (ie underline with underscore as <code>__underline__</code>) will not work in Reading Mode.</p>
+			<p> Note that "overwriting" markdown (for example underline with underscore as <code>__underline__</code>) will not work in Reading Mode.</p>
 			`);
 
 		const customDom = sanitizeHTMLToDom(els);
