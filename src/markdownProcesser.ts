@@ -31,20 +31,17 @@ export function MarkdownProcesser(data: SettingOption[], element: HTMLElement) {
 					if (!d.regex || !d.class || d.regex === "" || d.class === "")
 						continue;
 					const regex = new RegExp(removeTags(d.regex), "g");
-					if (!d.hide)
-						text = text.replace(regex, `<span class="${d.class}" data-contents="$&">$&</span>`);
+					if (!d.hide) text = text.replace(regex, `<span class="${d.class}" data-contents="$&">$&</span>`);
 					else {
 						const group = removeTags(d.regex).match(/\((.*?)\)/);
-						if (!group)
-							continue;
+						if (!group) continue;
 						text = text.replace(regex, `<span class="${d.class}" data-contents="$1">$1</span>`);
 
 					}
 				}
 				const span = document.createElement("span");
 				span.innerHTML = text;
-				if (node.parentNode)
-					node.parentNode.replaceChild(span, node);
+				if (node.parentNode) node.parentNode.replaceChild(span, node);
 			}
 		}
 	}
