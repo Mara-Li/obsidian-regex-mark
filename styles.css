@@ -6,7 +6,7 @@
 }
 
 .line:not(:has(.title)) {
-  border-top: 1px solid var(--background-modifier-border)
+  border-top: 1px solid var(--background-modifier-border);
 }
 
 .title {
@@ -29,7 +29,6 @@
   opacity: 0;
   width: 10em;
 }
-
 
 .h2 {
   font-size: 1.8em;
@@ -65,4 +64,9 @@
 .regex-setting .is-disabled-manually {
   pointer-events: none;
   opacity: 0.5;
+}
+
+.sup-text {
+  vertical-align: super;
+  font-size: 90%;
 }
