@@ -25,20 +25,17 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 		containerEl.empty();
 
 		const productTitle = containerEl.createEl("p", {text: "Regex Mark allows to add custom CSS class to text that matches a regex."})
-		const secondaryHTML = dedent(`
+		
+		const els = dedent(`
 			<p class="regex-setting-secondary">If you are not familiar with regex, you can use this tool to help you build regex: 
 			<a href="https://regex101.com/" target="_blank">https://regex101.com/</a> (don't forget to set <strong>ECMAScript (Javascript)</strong> as the FLAVOR in the settings).</p>
-		`);
-		const dom = sanitizeHTMLToDom(secondaryHTML);
-		
-		productTitle.appendChild(dom);
-		const customHTML = dedent(`
+
 			<p> You can create custom MarkDown Markup with using the <code>{{open:regex}}</code> and <code>{{close:regex}}</code>. The open and close regex will be hidden in Live-Preview. You need to use the "hide" toggle to make it work.</p>
 			
 			<p> Note that "overwriting" markdown (ie underline with underscore as <code>__underline__</code>) will not work in Reading Mode.</p>
 			`);
 
-		const customDom = sanitizeHTMLToDom(customHTML);
+		const customDom = sanitizeHTMLToDom(els);
 		productTitle.appendChild(customDom);
 
 		for (const data of this.plugin.settings) {
