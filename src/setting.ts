@@ -1,5 +1,5 @@
-import { type App, Notice, PluginSettingTab, Setting } from "obsidian";
-
+import { type App, Notice, PluginSettingTab, sanitizeHTMLToDom, Setting } from "obsidian";
+import { dedent } from "ts-dedent";
 import type RegexMark from "./main";
 import { hasToHide, isValidRegex } from "./utils";
 
@@ -24,44 +24,22 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 		const { containerEl } = this;
 		containerEl.empty();
 
-		const productTitle = containerEl.createDiv();
+		const productTitle = containerEl.createEl("p", {text: "Regex Mark allows to add custom CSS class to text that matches a regex."})
+		const secondaryHTML = dedent(`
+			<p class="regex-setting-secondary">If you are not familiar with regex, you can use this tool to help you build regex: 
+			<a href="https://regex101.com/" target="_blank">https://regex101.com/</a> (don't forget to set <strong>ECMAScript (Javascript)</strong> as the FLAVOR in the settings).</p>
+		`);
+		const dom = sanitizeHTMLToDom(secondaryHTML);
 		
-		productTitle.createEl("p", {
-			text: "Regex Mark is a plugin that allows you to add custom CSS class to text that matches a regex.",
-		});
-		const link = productTitle.createEl("p", {
-			text: "If you are not familiar with regex, you can use this tool to help you build regex: ",
-			cls: "regex-setting-secondary",
-		});
-		link.createEl("a", {
-			text: "https://regex101.com/",
-			attr: {
-				href: "https://regex101.com/",
-				target: "_blank",
-			},
-		});
-		link.createEl("span", {
-			text: " (don't forget to set ",
-		});
-		link.createEl("span", {
-			text: "ECMAScript (Javascript)",
-			cls: "regex-setting-bold",
-		});
-		link.createEl("span", {
-			text: " as the FLAVOR in the settings).",
-		});
+		productTitle.appendChild(dom);
+		const customHTML = dedent(`
+			<p> You can create custom MarkDown Markup with using the <code>{{open:regex}}</code> and <code>{{close:regex}}</code>. The open and close regex will be hidden in Live-Preview. You need to use the "hide" toggle to make it work.</p>
+			
+			<p> Note that "overwriting" markdown (ie underline with underscore as <code>__underline__</code>) will not work in Reading Mode.</p>
+			`);
 
-		const t = productTitle.createEl("p", {
-			text: "You can create custom markdown markup with using the"});
-		t.createEl("code", {text: "{{open:regex}}"});
-		t.createEl("span", {text: " and "});
-		t.createEl("code", {text: "{{close:regex}}"});
-		t.createEl("span", {text: ". The open and close regex will be hidden in Live-Preview. You need to use the \"hide\" toggle to make it work."});
-		const o = productTitle.createEl("p", {
-			text: "Note that \"overwriting\" markdown (ie underline with underscore as "
-		});
-		o.createEl("code", {text: "__underline__"});
-		o.createEl("span", {text: ") will not work in Reading Mode."});
+		const customDom = sanitizeHTMLToDom(customHTML);
+		productTitle.appendChild(customDom);
 
 		for (const data of this.plugin.settings) {
 			new Setting(containerEl)
@@ -116,11 +94,12 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 						.setTooltip("Move this regex up")
 						.onClick(async () => {
 							const index = this.plugin.settings.indexOf(data);
-							if (index > 0) {
-								this.plugin.settings.splice(index - 1, 0, this.plugin.settings.splice(index, 1)[0]);
-								await this.plugin.saveSettings();
-								this.display();
+							if (index <= 0) {
+								return;
 							}
+							this.plugin.settings.splice(index - 1, 0, this.plugin.settings.splice(index, 1)[0]);
+							await this.plugin.saveSettings();
+							this.display();
 						});
 				})
 				.addExtraButton((button) => {
@@ -129,11 +108,12 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 						.setTooltip("Move this regex down")
 						.onClick(async () => {
 							const index = this.plugin.settings.indexOf(data);
-							if (index < this.plugin.settings.length - 1) {
-								this.plugin.settings.splice(index + 1, 0, this.plugin.settings.splice(index, 1)[0]);
-								await this.plugin.saveSettings();
-								this.display();
+							if (index >= this.plugin.settings.length - 1) {
+								return;
 							}
+							this.plugin.settings.splice(index + 1, 0, this.plugin.settings.splice(index, 1)[0]);
+							await this.plugin.saveSettings();
+							this.display();
 						});
 				});
 			this.disableToggle(data);
@@ -186,11 +166,12 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 	addTooltip(text: string, cb: HTMLElement) {
 		cb.onfocus = () => {
 			const tooltip = cb.parentElement?.createEl("div", { text, cls: "tooltip" });
-			if (tooltip) {
-				const rec = cb.getBoundingClientRect();
-				tooltip.style.top = `${rec.top + rec.height + 5}px`;
-				tooltip.style.left = `${rec.left + rec.width / 2}px`;
+			if (!tooltip) {
+				return;
 			}
+			const rec = cb.getBoundingClientRect();
+			tooltip.style.top = `${rec.top + rec.height + 5}px`;
+			tooltip.style.left = `${rec.left + rec.width / 2}px`;
 		};
 		cb.onblur = () => {
 			cb.parentElement?.querySelector(".tooltip")?.remove();
