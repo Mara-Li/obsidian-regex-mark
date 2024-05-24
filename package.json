@@ -5,6 +5,7 @@
 	"main": "main.js",
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
+		"lint": "pnpm biome lint --apply src/",
 		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
 		"version": "node version-bump.mjs && git add manifest.json versions.json",
 		"release": "commit-and-tag-version"
@@ -16,14 +17,13 @@
 	"author": "",
 	"license": "MIT",
 	"devDependencies": {
+		"@biomejs/biome": "1.7.3",
 		"@codemirror/search": "^6.5.4",
 		"@codemirror/state": "^6.3.1",
 		"@codemirror/view": "^6.22.0",
-		"@lisandra-dev/eslint-config": "^1.1.4",
+		"@types/dompurify": "^3.0.5",
 		"@types/lodash": "^4.14.201",
 		"@types/node": "^16.11.6",
-		"@typescript-eslint/eslint-plugin": "5.29.0",
-		"@typescript-eslint/parser": "5.29.0",
 		"builtin-modules": "3.3.0",
 		"esbuild": "0.17.3",
 		"lodash": "^4.17.21",

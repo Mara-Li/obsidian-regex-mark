@@ -73,7 +73,3 @@ The css for the above example is:
 
 You can then use the CSS class to style the text in your CSS snippet or any other usages.
 
-## Roadmap
-
-- [x] Basic functionality
-- [ ] Add support for capturing groups

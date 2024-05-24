@@ -1,12 +1,12 @@
-import { App, Notice, PluginSettingTab, Setting } from "obsidian";
+import { type App, Notice, PluginSettingTab, Setting } from "obsidian";
 
-import RegexMark from "./main";
+import type RegexMark from "./main";
 import { hasToHide, isValidRegex } from "./utils";
 
 
 export interface SettingOption {
   regex: string
-  class: string
+    class: string
   hide?: boolean
 }
 
@@ -25,16 +25,13 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 		containerEl.empty();
 
 		const productTitle = containerEl.createDiv();
-		productTitle.createEl("p", {
-			text: "Regex Mark",
-			cls: "h2",
-		});
+		
 		productTitle.createEl("p", {
 			text: "Regex Mark is a plugin that allows you to add custom CSS class to text that matches a regex.",
 		});
 		const link = productTitle.createEl("p", {
 			text: "If you are not familiar with regex, you can use this tool to help you build regex: ",
-			cls: "secondary",
+			cls: "regex-setting-secondary",
 		});
 		link.createEl("a", {
 			text: "https://regex101.com/",
@@ -43,10 +40,28 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 				target: "_blank",
 			},
 		});
+		link.createEl("span", {
+			text: " (don't forget to set ",
+		});
+		link.createEl("span", {
+			text: "ECMAScript (Javascript)",
+			cls: "regex-setting-bold",
+		});
+		link.createEl("span", {
+			text: " as the FLAVOR in the settings).",
+		});
 
-		const infoSub = productTitle.createEl("p");
-		infoSub.innerHTML = "You can create custom markdown markup with using the <code>{{open:regex}}</code> and <code>{{close:regex}}</code>. The open and close regex will be hidden in Live-Preview. You need to use the \"hide\" toggle to make it work.<br><br>Note that \"overwriting\" markdown (ie underline with underscore as <code>__underline__</code>) will not work in Reading Mode.";
-		//I know it's a BAD methods to use but the other methods is very bad to write, and I DON'T WANT TO WRITE IT.
+		const t = productTitle.createEl("p", {
+			text: "You can create custom markdown markup with using the"});
+		t.createEl("code", {text: "{{open:regex}}"});
+		t.createEl("span", {text: " and "});
+		t.createEl("code", {text: "{{close:regex}}"});
+		t.createEl("span", {text: ". The open and close regex will be hidden in Live-Preview. You need to use the \"hide\" toggle to make it work."});
+		const o = productTitle.createEl("p", {
+			text: "Note that \"overwriting\" markdown (ie underline with underscore as "
+		});
+		o.createEl("code", {text: "__underline__"});
+		o.createEl("span", {text: ") will not work in Reading Mode."});
 
 		for (const data of this.plugin.settings) {
 			new Setting(containerEl)
@@ -199,7 +214,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 			new RegExp(regex);
 			if (cb) cb.removeClass("is-invalid");
 			return true;
-		} catch (e) {
+		} catch (_e) {
 			console.warn("Invalid regex", regex);
 			if (cb) cb.addClass("is-invalid");
 			return false;

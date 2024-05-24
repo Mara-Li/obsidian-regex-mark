@@ -36,7 +36,7 @@
   margin: 0.5em 0;
 }
 
-.secondary {
+.regex-setting-secondary {
   font-size: 0.8em;
   color: #666;
 }
@@ -53,6 +53,10 @@
   display: none;
 }
 
+.regex-setting input.min-width {
+  min-width: 7ch;
+}
+
 .regex-setting input.extra-width {
   width: 100%;
 }
@@ -66,7 +70,6 @@
   opacity: 0.5;
 }
 
-.sup-text {
-  vertical-align: super;
-  font-size: 90%;
+.regex-setting-bold {
+  font-weight: bold;
 }

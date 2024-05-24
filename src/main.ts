@@ -1,9 +1,9 @@
-import { Extension } from "@codemirror/state";
+import type { Extension } from "@codemirror/state";
 import { Plugin } from "obsidian";
 
 import { cmExtension } from "./cmPlugin";
 import { MarkdownProcesser } from "./markdownProcesser";
-import { RemarkRegexSettingTab, SettingOptions } from "./setting";
+import { RemarkRegexSettingTab, type SettingOptions } from "./setting";
 
 export default class RegexMark extends Plugin {
 	settings: SettingOptions = [];

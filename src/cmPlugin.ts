@@ -1,19 +1,19 @@
 import { RegExpCursor } from "@codemirror/search";
-import { combineConfig,EditorSelection, Extension, Facet } from "@codemirror/state";
+import { combineConfig,type EditorSelection, type Extension, Facet } from "@codemirror/state";
 import {
 	Decoration,
-	DecorationSet,
-	EditorView,
-	PluginSpec,
-	PluginValue,
+	type DecorationSet,
+	type EditorView,
+	type PluginSpec,
+	type PluginValue,
 	ViewPlugin,
-	ViewUpdate,
+	type ViewUpdate,
 	WidgetType,
 } from "@codemirror/view";
 import { cloneDeep } from "lodash";
 
-import RegexMark from "./main";
-import { SettingOption,SettingOptions } from "./setting";
+import type RegexMark from "./main";
+import type { SettingOption,SettingOptions } from "./setting";
 import { isValidRegex, removeTags } from "./utils";
 
 const Config = Facet.define<SettingOptions, Required<SettingOptions>>({
@@ -92,7 +92,7 @@ class LivePreviewWidget extends WidgetType {
 
 	eq(other: LivePreviewWidget) {
 		//return false if the regex is edited
-		const regex = new RegExp(removeTags(this.data.regex), "g");
+		const regex = new RegExp(removeTags(this.data.regex));
 		if (this.value.match(regex) === null)
 			return false;
 
@@ -128,11 +128,11 @@ class LivePreviewWidget extends WidgetType {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	ignoreEvent(event: Event){
+	ignoreEvent(_event: Event){
 		return false;
 	}
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	destroy(dom: HTMLElement): void {
+	destroy(_dom: HTMLElement): void {
 		//do nothing
 	}
 

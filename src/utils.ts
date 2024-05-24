@@ -8,7 +8,7 @@ export function isValidRegex(regex: string, warn=true) {
 	try {
 		new RegExp(removeTags(regex));
 		return true;
-	} catch (e) {
+	} catch (_e) {
 		if (warn) console.warn(`Invalid regex: ${regex}`);
 		return false;
 	}

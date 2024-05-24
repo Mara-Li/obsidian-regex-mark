@@ -1,4 +1,6 @@
-import { SettingOption } from "./setting";
+import { sanitizeHTMLToDom } from "obsidian";
+
+import type { SettingOption } from "./setting";
 import { isValidRegex, removeTags } from "./utils";
 
 export function MarkdownProcesser(data: SettingOption[], element: HTMLElement) {
@@ -10,7 +12,7 @@ export function MarkdownProcesser(data: SettingOption[], element: HTMLElement) {
 		for (const d of data) {
 			if (!d.regex || !d.class || d.regex === "" || d.class === "" || !isValidRegex(d.regex))
 				continue;
-			const regex = new RegExp(removeTags(d.regex), "g");
+			const regex = new RegExp(removeTags(d.regex));
 			if (regex.test(p.textContent || "")) {
 				ignore = false;
 				break;
@@ -28,20 +30,20 @@ export function MarkdownProcesser(data: SettingOption[], element: HTMLElement) {
 			let text = node.textContent;
 			if (text) {
 				for (const d of data) {
-					if (!d.regex || !d.class || d.regex === "" || d.class === "")
-						continue;
-					const regex = new RegExp(removeTags(d.regex), "g");
-					if (!d.hide) text = text.replace(regex, `<span class="${d.class}" data-contents="$&">$&</span>`);
-					else {
+					if (!d.regex || !d.class || d.regex === "" || d.class === "") continue;
+					const regex = new RegExp(removeTags(d.regex));
+					if (d.hide) {
 						const group = removeTags(d.regex).match(/\((.*?)\)/);
-						if (!group) continue;
+						const dataText = regex.exec(text);
+						if (!group || !dataText || !dataText?.[1]) continue;
 						text = text.replace(regex, `<span class="${d.class}" data-contents="$1">$1</span>`);
-
 					}
+					else text = text.replace(regex, `<span class="${d.class}" data-contents="$&">$&</span>`);
 				}
-				const span = document.createElement("span");
-				span.innerHTML = text;
-				if (node.parentNode) node.parentNode.replaceChild(span, node);
+				const dom = sanitizeHTMLToDom(text);
+				if (node.parentNode) {
+					node.parentNode.replaceChild(dom, node);
+				}
 			}
 		}
 	}
