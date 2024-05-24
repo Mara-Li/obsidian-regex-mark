@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.5.2](https://github.com/Lisandra-dev/obsidian-regex-mark/compare/1.5.1...1.5.2) (2024-05-24)
+
+
+### Bug Fixes
+
+* avoid innerHTML and use `sanitizeHTMLToDom` instead ([fd50ce0](https://github.com/Lisandra-dev/obsidian-regex-mark/commit/fd50ce0818beaa28e2da04ad42c2aecb3f69603e))
+
 ## [1.5.1](https://github.com/Lisandra-dev/obsidian-regex-mark/compare/1.5.0...1.5.1) (2023-12-24)
 
 
