@@ -4,7 +4,8 @@
 	"version": "1.5.2",
 	"minAppVersion": "0.15.0",
 	"description": "Add custom CSS classes to text based on regular expressions.",
-	"author": "RieN7",
-	"authorUrl": "https://github.com/rien7",
-	"isDesktopOnly": false
+	"author": "Lisandra-dev",
+	"authorUrl": "https://github.com/lisandra-dev",
+	"isDesktopOnly": false,
+  "fundingUrl": "https://ko-fi.com/lisandra_dev",
 }
