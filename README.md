@@ -73,3 +73,7 @@ The css for the above example is:
 
 You can then use the CSS class to style the text in your CSS snippet or any other usages.
 
+---
+## Credits
+
+- [rien7](https://github.com/rien7/obsidian-regex-mark): Original work
