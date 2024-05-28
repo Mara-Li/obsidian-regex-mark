@@ -28,6 +28,11 @@
 }
 
 .regex-setting .is-disabled-manually {
-  pointer-events: none;
   opacity: 0.5;
+}
+
+.regex-mark-callout {
+  border-left: 2px solid var(--color-blue);
+  padding-left: 1em;
+  background-color: rgba(var(--color-blue-rgb), 0.1);
 }

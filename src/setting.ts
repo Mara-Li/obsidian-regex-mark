@@ -3,14 +3,13 @@ import { dedent } from "ts-dedent";
 import type RegexMark from "./main";
 import { hasToHide, isValidRegex } from "./utils";
 
-
 export interface SettingOption {
-  regex: string
-    class: string
-  hide?: boolean
+	regex: string;
+	class: string;
+	hide?: boolean;
 }
 
-export type SettingOptions = SettingOption[]
+export type SettingOptions = SettingOption[];
 
 export class RemarkRegexSettingTab extends PluginSettingTab {
 	plugin: RegexMark;
@@ -24,15 +23,17 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 		const { containerEl } = this;
 		containerEl.empty();
 
-		const productTitle = containerEl.createEl("p", {text: "Regex Mark allows to add custom CSS class to text that matches a regex."})
-		
+		const productTitle = containerEl.createEl("p", {
+			text: "Regex Mark allows to add custom CSS class to text that matches a regex.",
+		});
+
 		const els = dedent(`
 			<p class="regex-setting-secondary">If you are not familiar with regex, you can use this tool to help you build regex: 
 			<a href="https://regex101.com/" target="_blank">https://regex101.com/</a> (don't forget to set <strong>ECMAScript (Javascript)</strong> as the FLAVOR in the settings).</p>
 
-			<p> You can create custom MarkDown Markup with using the <code>{{open:regex}}</code> and <code>{{close:regex}}</code>. The open and close regex will be hidden in Live-Preview. You need to use the "hide" toggle to make it work.</p>
+			<p> You can create custom MarkDown Markup with using the <code>{{open:regex}}</code> and <code>{{close:regex}}</code>. The open and close regex will be hidden in Live-Preview. You need to use the "hide" toggle to make it work.<br><br> To activate the toggle, you need to use a <b>regex group</b>. See <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_expressions/Groups_and_backreferences">here for more information</a>.<br><span class="regex-setting-secondary"> Note: Named group is not implanted.</span></p>
 			
-			<p> Note that "overwriting" markdown (for example underline with underscore as <code>__underline__</code>) will not work in Reading Mode.</p>
+			<p class="regex-mark-callout"> "Overwriting" markdown (for example underline with underscore as <code>__underline__</code>) will not work in Reading Mode.</p>
 			`);
 
 		const customDom = sanitizeHTMLToDom(els);
@@ -42,26 +43,22 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 			new Setting(containerEl)
 				.setClass("regex-setting")
 				.addText((text) => {
-					text
-						.setValue(data.regex)
-						.onChange(async (value) => {
-							data.regex = value;
-							await this.plugin.saveSettings();
-							text.inputEl.setAttribute("regex-value", data.regex);
-							//disable hide toggle if no group is found
-							this.disableToggle(data);
-						});
+					text.setValue(data.regex).onChange(async (value) => {
+						data.regex = value;
+						await this.plugin.saveSettings();
+						text.inputEl.setAttribute("regex-value", data.regex);
+						//disable hide toggle if no group is found
+						this.disableToggle(data);
+					});
 					text.inputEl.addClasses(["extra-width", "regex-input"]);
 					this.addTooltip("regex", text.inputEl);
 				})
 				.addText((text) => {
-					text
-						.setValue(data.class)
-						.onChange(async (value) => {
-							data.class = value;
-							await this.plugin.saveSettings();
-							text.inputEl.setAttribute("css-value", data.class);
-						});
+					text.setValue(data.class).onChange(async (value) => {
+						data.class = value;
+						await this.plugin.saveSettings();
+						text.inputEl.setAttribute("css-value", data.class);
+					});
 					text.inputEl.addClasses(["extra-width", "css-input"]);
 					this.addTooltip("class", text.inputEl);
 				})
@@ -74,6 +71,11 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 							await this.plugin.saveSettings();
 						});
 					toggle.toggleEl.addClass("group-toggle");
+					const verify = !hasToHide(data.regex) || !isValidRegex(data.regex, false);
+					if (verify) {
+						toggle.setTooltip("Can't hide the regex if no group is found in it.");
+						toggle.setDisabled(true);
+					}
 				})
 				.addExtraButton((button) => {
 					button
@@ -94,7 +96,11 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 							if (index <= 0) {
 								return;
 							}
-							this.plugin.settings.splice(index - 1, 0, this.plugin.settings.splice(index, 1)[0]);
+							this.plugin.settings.splice(
+								index - 1,
+								0,
+								this.plugin.settings.splice(index, 1)[0]
+							);
 							await this.plugin.saveSettings();
 							this.display();
 						});
@@ -108,13 +114,16 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 							if (index >= this.plugin.settings.length - 1) {
 								return;
 							}
-							this.plugin.settings.splice(index + 1, 0, this.plugin.settings.splice(index, 1)[0]);
+							this.plugin.settings.splice(
+								index + 1,
+								0,
+								this.plugin.settings.splice(index, 1)[0]
+							);
 							await this.plugin.saveSettings();
 							this.display();
 						});
 				});
 			this.disableToggle(data);
-
 		}
 
 		//add + button
@@ -163,9 +172,8 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 	addTooltip(text: string, cb: HTMLElement) {
 		cb.onfocus = () => {
 			const tooltip = cb.parentElement?.createEl("div", { text, cls: "tooltip" });
-			if (!tooltip) {
-				return;
-			}
+			if (!tooltip) return;
+
 			const rec = cb.getBoundingClientRect();
 			tooltip.style.top = `${rec.top + rec.height + 5}px`;
 			tooltip.style.left = `${rec.left + rec.width / 2}px`;
@@ -183,8 +191,10 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 			if (cb) cb.addClass("is-invalid");
 			return false;
 		}
-		if (data.hide && (data.regex.includes("\\}") && data.regex.includes("}}"))) {
-			new Notice("You can't use \\} in {{close:regex}} or {{open:regex}} if you want to hide the regex.");
+		if (data.hide && data.regex.includes("\\}") && data.regex.includes("}}")) {
+			new Notice(
+				"You can't use \\} in {{close:regex}} or {{open:regex}} if you want to hide the regex."
+			);
 			if (cb) cb.addClass("is-invalid");
 			return false;
 		}
@@ -201,7 +211,8 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 
 	verifyClass(data: SettingOption) {
 		const css = data.class;
-		const cb = document.querySelectorAll(".css-input")[this.plugin.settings.indexOf(data)];
+		const cb =
+			document.querySelectorAll(".css-input")[this.plugin.settings.indexOf(data)];
 		if (css.trim().length === 0) {
 			if (cb) cb.addClass("is-invalid");
 			return false;
@@ -212,12 +223,17 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 
 	disableToggle(data: SettingOption) {
 		const index = this.plugin.settings.indexOf(data);
-		const toggle = document.querySelectorAll(".group-toggle")[index];
-		const verify = !hasToHide(data.regex) || !isValidRegex(data.regex, false) || data.regex.trim().length === 0;
+		const toggle = document.querySelectorAll<HTMLElement>(".group-toggle")[index];
+		const verify =
+			!hasToHide(data.regex) ||
+			!isValidRegex(data.regex, false) ||
+			data.regex.trim().length === 0;
 
-		if (toggle) {
-			toggle.toggleClass("is-disabled-manually", verify);
-		}
+		if (toggle) toggle.toggleClass("is-disabled-manually", verify);
+		if (!verify) return;
+
+		toggle.setAttribute("disabled", "true");
+		toggle.ariaHidden = "true";
 	}
 
 	findDuplicate() {
@@ -240,7 +256,9 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 			}
 		}
 
-		const allDuplicateIndex = duplicateIndex.flatMap((d) => d.index.length > 1 ? d.index : []);
+		const allDuplicateIndex = duplicateIndex.flatMap((d) =>
+			d.index.length > 1 ? d.index : []
+		);
 		if (allDuplicateIndex.length === 0) return true;
 		for (const duplicate of allDuplicateIndex) {
 			const cb = document.querySelectorAll(".regex-input")[duplicate];
@@ -251,7 +269,3 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 		return false;
 	}
 }
-
-
-
-
