@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.5.3](https://github.com/Mara-Li/obsidian-regex-mark/compare/1.5.2...1.5.3) (2024-05-28)
+
+
+### Bug Fixes
+
+* remove unused css-class ([e3a5a94](https://github.com/Mara-Li/obsidian-regex-mark/commit/e3a5a948ab11df47918360ebb8d6f3d35848f837))
+* set a tooltip when hide is disabled ([787fe8b](https://github.com/Mara-Li/obsidian-regex-mark/commit/787fe8b14456d4f85ec379f13d19a191ce86a5d5))
+
 ## [1.5.2](https://github.com/Lisandra-dev/obsidian-regex-mark/compare/1.5.1...1.5.2) (2024-05-24)
 
 
