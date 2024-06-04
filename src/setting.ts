@@ -1,4 +1,11 @@
-import { type App, Notice, PluginSettingTab, sanitizeHTMLToDom, Setting } from "obsidian";
+import {
+	type App,
+	Notice,
+	PluginSettingTab,
+	sanitizeHTMLToDom,
+	Setting,
+	type ToggleComponent,
+} from "obsidian";
 import { dedent } from "ts-dedent";
 import type RegexMark from "./main";
 import { hasToHide, isValidRegex } from "./utils";
@@ -18,6 +25,16 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 	constructor(app: App, plugin: RegexMark) {
 		super(app, plugin);
 		this.plugin = plugin;
+	}
+
+	toggleToolTip(toggle: ToggleComponent, verify: boolean) {
+		if (verify) {
+			toggle.setTooltip("Can't hide the regex if no group is found in it.");
+			toggle.setDisabled(true);
+		} else {
+			toggle.setDisabled(false);
+			toggle.setTooltip("Hide the regex in Live-Preview, only keeping the content.");
+		}
 	}
 
 	display(): void {
@@ -73,10 +90,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 						});
 					toggle.toggleEl.addClass("group-toggle");
 					const verify = !hasToHide(data.regex) || !isValidRegex(data.regex, false);
-					if (verify) {
-						toggle.setTooltip("Can't hide the regex if no group is found in it.");
-						toggle.setDisabled(true);
-					}
+					this.toggleToolTip(toggle, verify);
 				})
 				.addExtraButton((button) => {
 					button
@@ -242,7 +256,11 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 			data.regex.trim().length === 0;
 
 		if (toggle) toggle.toggleClass("is-disabled-manually", verify);
-		if (!verify) return;
+		if (!verify) {
+			toggle.removeAttribute("disabled");
+			toggle.removeAttribute("aria-hidden");
+			return;
+		}
 
 		toggle.setAttribute("disabled", "true");
 		toggle.ariaHidden = "true";
