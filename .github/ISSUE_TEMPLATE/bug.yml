@@ -12,7 +12,10 @@ body:
   - type: checkboxes
     attributes:
       label: Issue validation
-      description: "Thanks to check if your issue is relative to the repository. Any non relative or duplicate issue will be closed."
+      description: |
+        - Thanks to check if your issue is relative to the repository. Any non relative or duplicate issue will be closed.
+        - Please, check the documentation and the configuration files before submitting your request.
+        - Issue not in English will be closed.
       options:
         - label: "I checked the issue to prevent duplicate"
           required: true
