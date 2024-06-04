@@ -1,0 +1,38 @@
+.regex-setting-secondary {
+  font-size: 0.8em;
+  color: #666;
+}
+
+.is-live-preview .cm-hide {
+  display: none;
+}
+
+.is-live-preview .cm-active .cm-hide {
+  display: inline;
+}
+
+.regex-setting .setting-item-info {
+  display: none;
+}
+
+.regex-setting input.min-width {
+  min-width: 7ch;
+}
+
+.regex-setting input.extra-width {
+  width: 100%;
+}
+
+.regex-setting input.is-invalid {
+  border-color: var(--text-error);
+}
+
+.regex-setting .is-disabled-manually {
+  opacity: 0.5;
+}
+
+.regex-mark-callout {
+  border-left: 2px solid var(--color-blue);
+  padding-left: 1em;
+  background-color: rgba(var(--color-blue-rgb), 0.1);
+}
