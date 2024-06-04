@@ -7,6 +7,7 @@ export interface SettingOption {
 	regex: string;
 	class: string;
 	hide?: boolean;
+	disable?: boolean;
 }
 
 export type SettingOptions = SettingOption[];
@@ -85,6 +86,17 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 							this.plugin.settings = this.plugin.settings.filter((d) => d !== data);
 							await this.plugin.saveSettings();
 							this.display();
+						});
+				})
+				.addExtraButton((button) => {
+					button
+						.setIcon(data.disable ? "check" : "x")
+						.setTooltip(data.disable ? "Enable this class" : "Disable this class")
+						.onClick(async () => {
+							data.disable = !data.disable;
+							await this.plugin.saveSettings();
+							this.display();
+							this.plugin.updateCmExtension();
 						});
 				})
 				.addExtraButton((button) => {

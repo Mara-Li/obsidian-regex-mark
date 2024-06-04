@@ -4,13 +4,21 @@ import type { SettingOption } from "./setting";
 import { isValidRegex, removeTags } from "./utils";
 
 export function MarkdownProcesser(data: SettingOption[], element: HTMLElement) {
-	const paragraph = element.findAll("p, li, h1, h2, h3, h4, h5, h6, td, .callout-title-inner");
+	const paragraph = element.findAll(
+		"p, li, h1, h2, h3, h4, h5, h6, td, .callout-title-inner"
+	);
 	paragraph.push(...element.findAllSelf(".table-cell-wrapper"));
 
 	for (const p of paragraph) {
 		let ignore = true;
 		for (const d of data) {
-			if (!d.regex || !d.class || d.regex === "" || d.class === "" || !isValidRegex(d.regex))
+			if (
+				!d.regex ||
+				!d.class ||
+				d.regex === "" ||
+				d.class === "" ||
+				!isValidRegex(d.regex)
+			)
 				continue;
 			const regex = new RegExp(removeTags(d.regex));
 			if (regex.test(p.textContent || "")) {
@@ -18,8 +26,7 @@ export function MarkdownProcesser(data: SettingOption[], element: HTMLElement) {
 				break;
 			}
 		}
-		if (ignore)
-			continue;
+		if (ignore) continue;
 
 		const treeWalker = document.createTreeWalker(p, NodeFilter.SHOW_TEXT);
 		const textNodes = [];
@@ -30,15 +37,22 @@ export function MarkdownProcesser(data: SettingOption[], element: HTMLElement) {
 			let text = node.textContent;
 			if (text) {
 				for (const d of data) {
-					if (!d.regex || !d.class || d.regex === "" || d.class === "") continue;
+					if (!d.regex || !d.class || d.regex === "" || d.class === "" || d.disable)
+						continue;
 					const regex = new RegExp(removeTags(d.regex));
 					if (d.hide) {
 						const group = removeTags(d.regex).match(/\((.*?)\)/);
 						const dataText = regex.exec(text);
 						if (!group || !dataText || !dataText?.[1]) continue;
-						text = text.replace(regex, `<span class="${d.class}" data-contents="$1">$1</span>`);
-					}
-					else text = text.replace(regex, `<span class="${d.class}" data-contents="$&">$&</span>`);
+						text = text.replace(
+							regex,
+							`<span class="${d.class}" data-contents="$1">$1</span>`
+						);
+					} else
+						text = text.replace(
+							regex,
+							`<span class="${d.class}" data-contents="$&">$&</span>`
+						);
 				}
 				const dom = sanitizeHTMLToDom(text);
 				if (node.parentNode) {

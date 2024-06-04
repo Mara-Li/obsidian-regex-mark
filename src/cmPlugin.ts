@@ -1,5 +1,10 @@
 import { RegExpCursor } from "@codemirror/search";
-import { combineConfig,type EditorSelection, type Extension, Facet } from "@codemirror/state";
+import {
+	combineConfig,
+	type EditorSelection,
+	type Extension,
+	Facet,
+} from "@codemirror/state";
 import {
 	Decoration,
 	type DecorationSet,
@@ -13,7 +18,7 @@ import {
 import { cloneDeep } from "lodash";
 
 import type RegexMark from "./main";
-import type { SettingOption,SettingOptions } from "./setting";
+import type { SettingOption, SettingOptions } from "./setting";
 import { isValidRegex, removeTags } from "./utils";
 
 const Config = Facet.define<SettingOptions, Required<SettingOptions>>({
@@ -23,7 +28,7 @@ const Config = Facet.define<SettingOptions, Required<SettingOptions>>({
 });
 
 export function cmExtension(plugin: RegexMark) {
-	const extensions: Extension[] = [ cmPlugin ];
+	const extensions: Extension[] = [cmPlugin];
 	const options = plugin.settings;
 	extensions.push(Config.of(cloneDeep(options)));
 	return extensions;
@@ -47,14 +52,26 @@ class CMPlugin implements PluginValue {
 		const data: SettingOptions = Object.values(view.state.facet(Config));
 		for (const part of view.visibleRanges) {
 			for (const d of data) {
-				if (!d.regex || !d.class || d.regex === "" || d.class === "" || !isValidRegex(d.regex))
+				if (
+					!d.regex ||
+					!d.class ||
+					d.regex === "" ||
+					d.class === "" ||
+					!isValidRegex(d.regex) ||
+					d.disable
+				)
 					continue;
-				const cursor = new RegExpCursor(view.state.doc, removeTags(d.regex), {}, part.from, part.to);
+				const cursor = new RegExpCursor(
+					view.state.doc,
+					removeTags(d.regex),
+					{},
+					part.from,
+					part.to
+				);
 				while (!cursor.next().done) {
 					const { from, to } = cursor.value;
 					//don't add the decoration if the cursor (selection in the editor) is inside the decoration
-					if (checkSelectionOverlap(view.state.selection, from, to))
-					{
+					if (checkSelectionOverlap(view.state.selection, from, to)) {
 						//just apply the decoration to the whole line
 						const markup = Decoration.mark({ class: d.class });
 						decorations.push(markup.range(from, to));
@@ -70,7 +87,6 @@ class CMPlugin implements PluginValue {
 		}
 		return Decoration.set(decorations.sort((a, b) => a.from - b.from));
 	}
-
 }
 
 const pluginSpec: PluginSpec<CMPlugin> = {
@@ -80,9 +96,13 @@ const pluginSpec: PluginSpec<CMPlugin> = {
 const cmPlugin = ViewPlugin.fromClass(CMPlugin, pluginSpec);
 
 class LivePreviewWidget extends WidgetType {
-	data : SettingOption;
+	data: SettingOption;
 	view: EditorView;
-	constructor(readonly value: string, data: SettingOption, view: EditorView) {
+	constructor(
+		readonly value: string,
+		data: SettingOption,
+		view: EditorView
+	) {
 		super();
 		this.data = data;
 		this.view = view;
@@ -93,18 +113,16 @@ class LivePreviewWidget extends WidgetType {
 	eq(other: LivePreviewWidget) {
 		//return false if the regex is edited
 		const regex = new RegExp(removeTags(this.data.regex));
-		if (this.value.match(regex) === null)
-			return false;
+		if (this.value.match(regex) === null) return false;
 
 		return other.value == this.value;
 	}
-
 
 	toDOM() {
 		const wrap = document.createElement("span");
 		wrap.addClass(this.data.class);
 		const text = this.value;
-		if (this.data.hide){
+		if (this.data.hide) {
 			let openTag = null;
 			let closeTag = null;
 			if (this.data.regex.match("{{open"))
@@ -113,32 +131,42 @@ class LivePreviewWidget extends WidgetType {
 				closeTag = this.data.regex.match(/{{close:(.*?)}}/)?.[1];
 
 			const newContent = wrap.createEl("span");
-			if ((openTag && !isValidRegex(openTag as string, true)) || (closeTag && !isValidRegex(closeTag as string, true))){
+			if (
+				(openTag && !isValidRegex(openTag as string, true)) ||
+				(closeTag && !isValidRegex(closeTag as string, true))
+			) {
 				return wrap;
 			}
 			const openRegex = new RegExp(openTag as string, "g");
 			const closeRegex = new RegExp(closeTag as string, "g");
-			newContent.createEl("span", { cls: "cm-hide" }).setText(text.match(openRegex)?.[1] || "");
-			newContent.createEl("span", { cls: this.data.class }).setText(text.replace(openRegex, "").replace(closeRegex, "") || "");
-			newContent.createEl("span", { cls: "cm-hide" }).setText(text.match(closeRegex)?.[1] || "");
-
-		} else
-			wrap.innerText = text;
+			newContent
+				.createEl("span", { cls: "cm-hide" })
+				.setText(text.match(openRegex)?.[1] || "");
+			newContent
+				.createEl("span", { cls: this.data.class })
+				.setText(text.replace(openRegex, "").replace(closeRegex, "") || "");
+			newContent
+				.createEl("span", { cls: "cm-hide" })
+				.setText(text.match(closeRegex)?.[1] || "");
+		} else wrap.innerText = text;
 		return wrap;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	ignoreEvent(_event: Event){
+	ignoreEvent(_event: Event) {
 		return false;
 	}
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	destroy(_dom: HTMLElement): void {
 		//do nothing
 	}
-
 }
 
-function checkSelectionOverlap(selection: EditorSelection | undefined, from: number, to: number): boolean {
+function checkSelectionOverlap(
+	selection: EditorSelection | undefined,
+	from: number,
+	to: number
+): boolean {
 	if (!selection) {
 		return false;
 	}
@@ -151,4 +179,3 @@ function checkSelectionOverlap(selection: EditorSelection | undefined, from: num
 
 	return false;
 }
-
