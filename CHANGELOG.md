@@ -1,3 +1,8 @@
+## [1.6.1](https://github.com/Lisandra-dev/obsidian-regex-mark/compare/1.6.0...1.6.1) (2024-06-04)
+### Bug Fixes
+
+* stuck on disabled even regex are valid ([06c9213](https://github.com/Lisandra-dev/obsidian-regex-mark/commit/06c9213a3dce50a7763910471d18da7e7cf8e50f))
+
 ## [1.6.0](https://github.com/Lisandra-dev/obsidian-regex-mark/compare/1.6.0-0...1.6.0) (2024-06-04)
 
 ## [1.5.3](https://github.com/Mara-Li/obsidian-regex-mark/compare/1.5.2...1.5.3) (2024-05-28)
