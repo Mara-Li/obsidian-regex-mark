@@ -1,3 +1,8 @@
+## [1.6.2](https://github.com/Lisandra-dev/obsidian-regex-mark/compare/1.6.1...1.6.2) (2024-06-04)
+### Bug Fixes
+
+* regex placement ([3ac4363](https://github.com/Lisandra-dev/obsidian-regex-mark/commit/3ac4363643558525f89380bc36444a27c571f6d9))
+
 ## [1.6.1](https://github.com/Lisandra-dev/obsidian-regex-mark/compare/1.6.0...1.6.1) (2024-06-04)
 ### Bug Fixes
 
