@@ -1,33 +1,41 @@
-name: Release Obsidian plugin
+name: Release obsidian plugin
 
 on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        default: false
+        description: "Bump version based on semantic release"
+        type: boolean
+        required: false
+      beta:
+        default: false
+        description: "Make a beta release"
+        type: boolean
+        required: false
   push:
     tags:
       - "*"
+permissions:
+  contents: write
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  release:
+    if: (github.event_name == 'push') || (github.event_name == 'workflow_dispatch' && !inputs.bump)
+    uses: mara-li/reusable-workflows/.github/workflows/obsidian-plugin-release.yaml@main
 
-    steps:
-      - uses: actions/checkout@v3
+    with:
+      PLUGIN_NAME: regex-mark
+      CACHE: "pnpm"
+    secrets:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Use Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: "18.x"
-
-      - name: Build plugin
-        run: |
-          npm install
-          npm run build
-
-      - name: Create release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          tag="${GITHUB_REF#refs/tags/}"
-
-          gh release create "$tag" \
-            --title="$tag" \
-            main.js manifest.json styles.css
+  bump-version-and-release:
+    if: ${{ inputs.bump }}
+    uses: mara-li/reusable-workflows/.github/workflows/obsidian-plugin-bump-version.yaml@main
+    with:
+      PLUGIN_NAME: regex-mark
+      BETA: ${{ inputs.beta }}
+      CACHE: "pnpm"
+    secrets:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
