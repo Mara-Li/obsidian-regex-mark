@@ -73,6 +73,16 @@ The css for the above example is:
 
 You can then use the CSS class to style the text in your CSS snippet or any other usages.
 
+### Warning
+
+If your Obsidian refuse to open file and you get this error in the console:
+
+```shell
+RangeError: Decorations that replace line breaks may not be specified via plugins
+```
+That's mean that one of your regex doesn't work inside Obsidian. You need to check every regex you have added to find the one that cause the issue and delete it.
+
+I tried to find a way to catch the error and display it in the console, but I didn't find a way to do it... So, if you have any idea, I'm open to suggestions!
 ---
 ## Credits
 
