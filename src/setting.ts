@@ -228,6 +228,11 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 			if (cb) cb.addClass("is-invalid");
 			return false;
 		}
+		if (data.regex.match(/(.*)\[\^(.*)\](.*)/) && !data.regex.match(/(.*)\[\^(.*)\\n\](.*)/)) {
+			new Notice("You need to add a new line after the [^] regex.");
+			if (cb) cb.addClass("is-invalid");
+			return false;
+		}
 		try {
 			new RegExp(regex);
 			if (cb) cb.removeClass("is-invalid");

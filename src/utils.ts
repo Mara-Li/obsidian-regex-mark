@@ -4,7 +4,9 @@ export function removeTags(regex: string) {
 }
 
 export function isValidRegex(regex: string, warn=true) {
-
+	if (regex.match(/(.*)\[\^(.*)\](.*)/) && !regex.match(/(.*)\[\^(.*)\\n\](.*)/)) {
+		return false;
+	}
 	try {
 		new RegExp(removeTags(regex));
 		return true;
