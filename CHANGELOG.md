@@ -1,3 +1,8 @@
+## [1.6.3](https://github.com/Lisandra-dev/obsidian-regex-mark/compare/1.6.2...1.6.3) (2024-06-08)
+### Bug Fixes
+
+* temp fix to exclude regex that can match newline ([9b37f64](https://github.com/Lisandra-dev/obsidian-regex-mark/commit/9b37f64202a780321a61843dcea5651035e714d5))
+
 ## [1.6.2](https://github.com/Lisandra-dev/obsidian-regex-mark/compare/1.6.1...1.6.2) (2024-06-04)
 ### Bug Fixes
 
