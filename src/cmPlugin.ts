@@ -1,10 +1,5 @@
 import { RegExpCursor } from "@codemirror/search";
-import {
-	combineConfig,
-	type EditorSelection,
-	type Extension,
-	Facet,
-} from "@codemirror/state";
+import { combineConfig, type EditorSelection, type Extension, Facet } from "@codemirror/state";
 import {
 	Decoration,
 	type DecorationSet,
@@ -18,7 +13,7 @@ import {
 import { cloneDeep } from "lodash";
 
 import type RegexMark from "./main";
-import type { SettingOption, SettingOptions } from "./setting";
+import type { SettingOption, SettingOptions } from "./interface";
 import { isValidRegex, removeTags } from "./utils";
 
 const Config = Facet.define<SettingOptions, Required<SettingOptions>>({
@@ -47,27 +42,22 @@ class CMPlugin implements PluginValue {
 		}
 	}
 
+	viewMode(view: EditorView) {
+		const parent = view.dom.parentElement;
+		if (parent?.classList.contains("is-live-preview")) return "Live";
+		else return "Source";
+	}
+
 	buildDecorations(view: EditorView) {
 		const decorations = [];
 		const data: SettingOptions = Object.values(view.state.facet(Config));
+		const mode = this.viewMode(view);
 		for (const part of view.visibleRanges) {
 			for (const d of data) {
-				if (
-					!d.regex ||
-					!d.class ||
-					d.regex === "" ||
-					d.class === "" ||
-					!isValidRegex(d.regex) ||
-					d.disable
-				)
+				const displayMode = mode === "Live" ? d.viewMode?.live : d.viewMode?.source;
+				if (!d.regex || !d.class || d.regex === "" || d.class === "" || !isValidRegex(d.regex) || displayMode === false)
 					continue;
-				const cursor = new RegExpCursor(
-					view.state.doc,
-					removeTags(d.regex),
-					{},
-					part.from,
-					part.to
-				);
+				const cursor = new RegExpCursor(view.state.doc, removeTags(d.regex), {}, part.from, part.to);
 				while (!cursor.next().done) {
 					const { from, to } = cursor.value;
 					//don't add the decoration if the cursor (selection in the editor) is inside the decoration
@@ -125,10 +115,8 @@ class LivePreviewWidget extends WidgetType {
 		if (this.data.hide) {
 			let openTag = null;
 			let closeTag = null;
-			if (this.data.regex.match("{{open"))
-				openTag = this.data.regex.match(/{{open:(.*?)}}/)?.[1];
-			if (this.data.regex.match("{{close"))
-				closeTag = this.data.regex.match(/{{close:(.*?)}}/)?.[1];
+			if (this.data.regex.match("{{open")) openTag = this.data.regex.match(/{{open:(.*?)}}/)?.[1];
+			if (this.data.regex.match("{{close")) closeTag = this.data.regex.match(/{{close:(.*?)}}/)?.[1];
 
 			const newContent = wrap.createEl("span");
 			if (
@@ -139,34 +127,25 @@ class LivePreviewWidget extends WidgetType {
 			}
 			const openRegex = new RegExp(openTag as string, "g");
 			const closeRegex = new RegExp(closeTag as string, "g");
-			newContent
-				.createEl("span", { cls: "cm-hide" })
-				.setText(text.match(openRegex)?.[1] || "");
+			newContent.createEl("span", { cls: "cm-hide" }).setText(text.match(openRegex)?.[1] || "");
 			newContent
 				.createEl("span", { cls: this.data.class })
 				.setText(text.replace(openRegex, "").replace(closeRegex, "") || "");
-			newContent
-				.createEl("span", { cls: "cm-hide" })
-				.setText(text.match(closeRegex)?.[1] || "");
+			newContent.createEl("span", { cls: "cm-hide" }).setText(text.match(closeRegex)?.[1] || "");
 		} else wrap.innerText = text;
+
 		return wrap;
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	ignoreEvent(_event: Event) {
 		return false;
 	}
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	destroy(_dom: HTMLElement): void {
 		//do nothing
 	}
 }
 
-function checkSelectionOverlap(
-	selection: EditorSelection | undefined,
-	from: number,
-	to: number
-): boolean {
+function checkSelectionOverlap(selection: EditorSelection | undefined, from: number, to: number): boolean {
 	if (!selection) {
 		return false;
 	}

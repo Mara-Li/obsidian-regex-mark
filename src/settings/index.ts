@@ -48,17 +48,6 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 		productTitle.appendChild(customDom);
 
 		for (const data of this.plugin.settings) {
-			if (data.disable) {
-				console.warn(`Deprecated disable option found for ${data.class}, removing it and ajust the viewMode option.`);
-				data.viewMode = {
-					reading: false,
-					source: false,
-					live: false,
-				};
-				delete data.disable;
-				this.plugin.saveSettings();
-			}
-
 			new Setting(containerEl)
 				.setClass("regex-setting")
 				.addExtraButton((button) => {
