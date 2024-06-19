@@ -1,23 +1,9 @@
-import {
-	type App,
-	Notice,
-	PluginSettingTab,
-	sanitizeHTMLToDom,
-	Setting,
-	type ToggleComponent,
-} from "obsidian";
+import { type App, Notice, PluginSettingTab, sanitizeHTMLToDom, Setting, type ToggleComponent } from "obsidian";
 import { dedent } from "ts-dedent";
-import type RegexMark from "./main";
-import { hasToHide, isValidRegex } from "./utils";
-
-export interface SettingOption {
-	regex: string;
-	class: string;
-	hide?: boolean;
-	disable?: boolean;
-}
-
-export type SettingOptions = SettingOption[];
+import type RegexMark from "../main";
+import { hasToHide, isValidRegex } from "../utils";
+import { DEFAULT_VIEW_MODE, type ViewMode, type SettingOption } from "../interface";
+import { RemarkRegexOptions } from "./modal";
 
 export class RemarkRegexSettingTab extends PluginSettingTab {
 	plugin: RegexMark;
@@ -35,6 +21,10 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 			toggle.setDisabled(false);
 			toggle.setTooltip("Hide the regex in Live-Preview, only keeping the content.");
 		}
+	}
+
+	clone(mode: SettingOption): ViewMode {
+		return JSON.parse(JSON.stringify(mode ?? DEFAULT_VIEW_MODE)).viewMode;
 	}
 
 	display(): void {
@@ -60,6 +50,18 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 		for (const data of this.plugin.settings) {
 			new Setting(containerEl)
 				.setClass("regex-setting")
+				.addExtraButton((button) => {
+					button
+						.setIcon("eye")
+						.setTooltip("Edit the view mode")
+						.onClick(async () => {
+							new RemarkRegexOptions(this.app, this.clone(data), async (result) => {
+								data.viewMode = result;
+								await this.plugin.saveSettings();
+								this.plugin.updateCmExtension();
+							}).open();
+						});
+				})
 				.addText((text) => {
 					text.setValue(data.regex).onChange(async (value) => {
 						data.regex = value;
@@ -102,17 +104,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 							this.display();
 						});
 				})
-				.addExtraButton((button) => {
-					button
-						.setIcon(data.disable ? "check" : "x")
-						.setTooltip(data.disable ? "Enable this class" : "Disable this class")
-						.onClick(async () => {
-							data.disable = !data.disable;
-							await this.plugin.saveSettings();
-							this.display();
-							this.plugin.updateCmExtension();
-						});
-				})
+
 				.addExtraButton((button) => {
 					button
 						.setIcon("arrow-up")
@@ -122,11 +114,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 							if (index <= 0) {
 								return;
 							}
-							this.plugin.settings.splice(
-								index - 1,
-								0,
-								this.plugin.settings.splice(index, 1)[0]
-							);
+							this.plugin.settings.splice(index - 1, 0, this.plugin.settings.splice(index, 1)[0]);
 							await this.plugin.saveSettings();
 							this.display();
 						});
@@ -140,11 +128,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 							if (index >= this.plugin.settings.length - 1) {
 								return;
 							}
-							this.plugin.settings.splice(
-								index + 1,
-								0,
-								this.plugin.settings.splice(index, 1)[0]
-							);
+							this.plugin.settings.splice(index + 1, 0, this.plugin.settings.splice(index, 1)[0]);
 							await this.plugin.saveSettings();
 							this.display();
 						});
@@ -222,9 +206,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 			return false;
 		}
 		if (data.hide && data.regex.includes("\\}") && data.regex.includes("}}")) {
-			new Notice(
-				"You can't use \\} in {{close:regex}} or {{open:regex}} if you want to hide the regex."
-			);
+			new Notice("You can't use \\} in {{close:regex}} or {{open:regex}} if you want to hide the regex.");
 			if (cb) cb.addClass("is-invalid");
 			return false;
 		}
@@ -246,8 +228,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 
 	verifyClass(data: SettingOption) {
 		const css = data.class;
-		const cb =
-			document.querySelectorAll(".css-input")[this.plugin.settings.indexOf(data)];
+		const cb = document.querySelectorAll(".css-input")[this.plugin.settings.indexOf(data)];
 		if (css.trim().length === 0) {
 			if (cb) cb.addClass("is-invalid");
 			return false;
@@ -259,10 +240,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 	disableToggle(data: SettingOption) {
 		const index = this.plugin.settings.indexOf(data);
 		const toggle = document.querySelectorAll<HTMLElement>(".group-toggle")[index];
-		const verify =
-			!hasToHide(data.regex) ||
-			!isValidRegex(data.regex, false) ||
-			data.regex.trim().length === 0;
+		const verify = !hasToHide(data.regex) || !isValidRegex(data.regex, false) || data.regex.trim().length === 0;
 
 		if (toggle) toggle.toggleClass("is-disabled-manually", verify);
 		if (!verify) {
@@ -295,9 +273,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 			}
 		}
 
-		const allDuplicateIndex = duplicateIndex.flatMap((d) =>
-			d.index.length > 1 ? d.index : []
-		);
+		const allDuplicateIndex = duplicateIndex.flatMap((d) => (d.index.length > 1 ? d.index : []));
 		if (allDuplicateIndex.length === 0) return true;
 		for (const duplicate of allDuplicateIndex) {
 			const cb = document.querySelectorAll(".regex-input")[duplicate];
