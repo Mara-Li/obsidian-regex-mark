@@ -68,7 +68,6 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 						text.inputEl.setAttribute("regex-value", data.regex);
 						//disable hide toggle if no group is found
-						console.log(data, data.regex);
 						this.disableToggle(data);
 					});
 					text.inputEl.addClasses(["extra-width", "regex-input"]);
@@ -242,7 +241,6 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 		const index = this.plugin.settings.indexOf(data);
 		const toggle = document.querySelectorAll<HTMLElement>(".group-toggle")[index];
 		const verify = (!hasToHide(data.regex) && !isValidRegex(data.regex, false)) || data.regex.trim().length === 0;
-		console.log(verify);
 		if (toggle) toggle.toggleClass("is-disabled-manually", verify);
 		if (!verify) {
 			toggle.removeAttribute("disabled");
