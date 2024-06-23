@@ -1,3 +1,13 @@
+## [1.7.0](https://github.com/Lisandra-dev/obsidian-regex-mark/compare/1.6.4...1.7.0) (2024-06-23)
+### Features
+
+* allow to hide per view mode (reading, source & LP) ([01f3da3](https://github.com/Lisandra-dev/obsidian-regex-mark/commit/01f3da397d9be556981421a618d7def2f8b6c7bf))
+
+### Bug Fixes
+
+* new regex disabled ([927a306](https://github.com/Lisandra-dev/obsidian-regex-mark/commit/927a30616ae67ef605319670c015d87b331cde17))
+* structured clone + styles ([a6f7536](https://github.com/Lisandra-dev/obsidian-regex-mark/commit/a6f7536de58bbcf95b8bb4b5504cfd4e5e5a7a59))
+
 ## [1.6.3](https://github.com/Lisandra-dev/obsidian-regex-mark/compare/1.6.2...1.6.3) (2024-06-08)
 ### Bug Fixes
 
