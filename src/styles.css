@@ -36,3 +36,7 @@
   padding-left: 1em;
   background-color: rgba(var(--color-blue-rgb), 0.1);
 }
+
+.regex-setting input {
+  font-family: var(--font-monospace);
+}

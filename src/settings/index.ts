@@ -24,7 +24,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 	}
 
 	clone(mode: SettingOption): ViewMode {
-		return JSON.parse(JSON.stringify(mode ?? DEFAULT_VIEW_MODE)).viewMode;
+		return structuredClone(mode.viewMode ?? DEFAULT_VIEW_MODE);
 	}
 
 	display(): void {
