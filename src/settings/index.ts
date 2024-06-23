@@ -1,7 +1,7 @@
 import { type App, Notice, PluginSettingTab, sanitizeHTMLToDom, Setting, type ToggleComponent } from "obsidian";
 import { dedent } from "ts-dedent";
 import type RegexMark from "../main";
-import { hasToHide, isValidRegex } from "../utils";
+import { hasToHide, isInvalid, isValidRegex } from "../utils";
 import { DEFAULT_VIEW_MODE, type ViewMode, type SettingOption } from "../interface";
 import { RemarkRegexOptions } from "./modal";
 
@@ -68,6 +68,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 						text.inputEl.setAttribute("regex-value", data.regex);
 						//disable hide toggle if no group is found
+						console.log(data, data.regex);
 						this.disableToggle(data);
 					});
 					text.inputEl.addClasses(["extra-width", "regex-input"]);
@@ -91,7 +92,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 							await this.plugin.saveSettings();
 						});
 					toggle.toggleEl.addClass("group-toggle");
-					const verify = !hasToHide(data.regex) || !isValidRegex(data.regex, false);
+					const verify = !hasToHide(data.regex) && !isValidRegex(data.regex, false);
 					this.toggleToolTip(toggle, verify);
 				})
 				.addExtraButton((button) => {
@@ -210,7 +211,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 			if (cb) cb.addClass("is-invalid");
 			return false;
 		}
-		if (data.regex.match(/(.*)\[\^(.*)\](.*)/) && !data.regex.match(/(.*)\[\^(.*)\\n\](.*)/)) {
+		if (isInvalid(data.regex)) {
 			new Notice("You need to add a new line after the [^] regex.");
 			if (cb) cb.addClass("is-invalid");
 			return false;
@@ -240,8 +241,8 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 	disableToggle(data: SettingOption) {
 		const index = this.plugin.settings.indexOf(data);
 		const toggle = document.querySelectorAll<HTMLElement>(".group-toggle")[index];
-		const verify = !hasToHide(data.regex) || !isValidRegex(data.regex, false) || data.regex.trim().length === 0;
-
+		const verify = (!hasToHide(data.regex) && !isValidRegex(data.regex, false)) || data.regex.trim().length === 0;
+		console.log(verify);
 		if (toggle) toggle.toggleClass("is-disabled-manually", verify);
 		if (!verify) {
 			toggle.removeAttribute("disabled");

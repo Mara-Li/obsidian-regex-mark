@@ -1,10 +1,13 @@
-
 export function removeTags(regex: string) {
 	return regex.replace(/{{open:(.*?)}}/, "$1").replace(/{{close:(.*?)}}/, "$1");
 }
 
-export function isValidRegex(regex: string, warn=true) {
-	if (regex.match(/(.*)\[\^(.*)\](.*)/) && !regex.match(/(.*)\[\^(.*)\\n\](.*)/)) {
+export const isInvalid = (regex: string) => {
+	return regex.match(/(.*)\[\^(.*)\](.*)/) && !regex.match(/(.*)\[\^(.*)\\n(.*)\](.*)/);
+};
+
+export function isValidRegex(regex: string, warn = true) {
+	if (isInvalid(regex)) {
 		return false;
 	}
 	try {
@@ -21,6 +24,4 @@ export function hasToHide(regex: string) {
 	const group = removeTags(regex).match(/\((.*?)\)/);
 	if (!group) return false;
 	return true;
-
-
 }
