@@ -67,8 +67,8 @@ importers:
         specifier: 2.4.0
         version: 2.4.0
       typescript:
-        specifier: 4.7.4
-        version: 4.7.4
+        specifier: 5.5.2
+        version: 5.5.2
 
 packages:
 
@@ -1025,9 +1025,9 @@ packages:
   typedarray@0.0.6:
     resolution: {integrity: sha512-/aCDEGatGvZ2BIk+HmLf4ifCJFwvKFNb9/JeZPMulfgFracn9QFcAf5GO8B/mweUjSoblS5In0cWhqpfs/5PQA==}
 
-  typescript@4.7.4:
-    resolution: {integrity: sha512-C0WQT0gezHuw6AdY1M2jxUO83Rjf0HP7Sk1DtXj6j1EwkQNZrHAg2XPWlq62oqEhYvONq5pkC2Y9oPljWToLmQ==}
-    engines: {node: '>=4.2.0'}
+  typescript@5.5.2:
+    resolution: {integrity: sha512-NcRtPEOsPFFWjobJEtfihkLCZCXZt/os3zf8nTxjVH3RvTSxjrCamJpbExGvYOF+tFHc3pA65qpdwPbzjohhew==}
+    engines: {node: '>=14.17'}
     hasBin: true
 
   uglify-js@3.17.4:
@@ -1998,7 +1998,7 @@ snapshots:
 
   typedarray@0.0.6: {}
 
-  typescript@4.7.4: {}
+  typescript@5.5.2: {}
 
   uglify-js@3.17.4:
     optional: true

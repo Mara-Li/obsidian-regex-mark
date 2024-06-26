@@ -29,7 +29,7 @@ export default class RegexMark extends Plugin {
 		}
 		this.addSettingTab(new RemarkRegexSettingTab(this.app, this));
 		this.registerMarkdownPostProcessor((element: HTMLElement) => {
-			MarkdownProcesser(this.settings, element);
+			MarkdownProcesser(this.settings, element, this.app);
 		});
 		this.cmExtension = cmExtension(this);
 		this.extensions = [];

@@ -1,12 +1,12 @@
-import { sanitizeHTMLToDom } from "obsidian";
+import { type App, MarkdownView, sanitizeHTMLToDom } from "obsidian";
 
 import type { SettingOption } from "./interface";
 import { isValidRegex, removeTags } from "./utils";
 
-export function MarkdownProcesser(data: SettingOption[], element: HTMLElement) {
-	const paragraph = element.findAll("p, li, h1, h2, h3, h4, h5, h6, td, .callout-title-inner");
+export function MarkdownProcesser(data: SettingOption[], element: HTMLElement, app: App) {
+	const paragraph = element.findAll("p, li, h1, h2, h3, h4, h5, h6, td, .callout-title-inner, th");
 	paragraph.push(...element.findAllSelf(".table-cell-wrapper"));
-
+	const activeMode = app.workspace.getActiveViewOfType(MarkdownView)?.getMode() === "source";
 	for (const p of paragraph) {
 		let ignore = true;
 		for (const d of data) {
@@ -19,7 +19,7 @@ export function MarkdownProcesser(data: SettingOption[], element: HTMLElement) {
 				d.viewMode?.reading === false
 			)
 				continue;
-			const regex = new RegExp(removeTags(d.regex));
+			const regex = new RegExp(removeTags(d.regex), "gi");
 			if (regex.test(p.textContent || "")) {
 				ignore = false;
 				break;
@@ -36,9 +36,9 @@ export function MarkdownProcesser(data: SettingOption[], element: HTMLElement) {
 			let text = node.textContent;
 			if (text) {
 				for (const d of data) {
-					if (!d.regex || !d.class || d.regex === "" || d.class === "" || d.disable || d.viewMode?.reading === false)
-						continue;
-					const regex = new RegExp(removeTags(d.regex));
+					const enabled = activeMode ? d.viewMode?.live : d.viewMode?.reading;
+					if (!d.regex || !d.class || d.regex === "" || d.class === "" || enabled === false) continue;
+					const regex = new RegExp(removeTags(d.regex), "gi");
 					if (d.hide) {
 						const group = removeTags(d.regex).match(/\((.*?)\)/);
 						const dataText = regex.exec(text);
