@@ -1,3 +1,8 @@
+## [1.7.1](https://github.com/Lisandra-dev/obsidian-regex-mark/compare/1.7.0...1.7.1) (2024-06-26)
+### Bug Fixes
+
+* in table class doesn't apply ([07c80fb](https://github.com/Lisandra-dev/obsidian-regex-mark/commit/07c80fb1cbfb7f888658ddef8ee7dafe5724662d)), closes [#8](https://github.com/Lisandra-dev/obsidian-regex-mark/issues/8)
+
 ## [1.7.0](https://github.com/Lisandra-dev/obsidian-regex-mark/compare/1.6.4...1.7.0) (2024-06-23)
 ### Features
 
