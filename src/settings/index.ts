@@ -4,6 +4,7 @@ import type RegexMark from "../main";
 import { hasToHide, isInvalid, isValidRegex } from "../utils";
 import { DEFAULT_VIEW_MODE, type ViewMode, type SettingOption } from "../interface";
 import { RemarkRegexOptions } from "./modal";
+import { cloneDeep } from "lodash";
 
 export class RemarkRegexSettingTab extends PluginSettingTab {
 	plugin: RegexMark;
@@ -24,7 +25,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 	}
 
 	clone(mode: SettingOption): ViewMode {
-		return structuredClone(mode.viewMode ?? DEFAULT_VIEW_MODE);
+		return cloneDeep(mode.viewMode ?? DEFAULT_VIEW_MODE);
 	}
 
 	display(): void {
