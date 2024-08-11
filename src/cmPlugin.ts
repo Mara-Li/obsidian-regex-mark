@@ -1,5 +1,5 @@
 import { RegExpCursor } from "@codemirror/search";
-import { combineConfig, type EditorSelection, type Extension, Facet } from "@codemirror/state";
+import { type EditorSelection, type Extension, Facet, combineConfig } from "@codemirror/state";
 import {
 	Decoration,
 	type DecorationSet,
@@ -12,8 +12,8 @@ import {
 } from "@codemirror/view";
 import { cloneDeep } from "lodash";
 
-import type RegexMark from "./main";
 import type { SettingOption, SettingOptions } from "./interface";
+import type RegexMark from "./main";
 import { isValidRegex, removeTags } from "./utils";
 
 const Config = Facet.define<SettingOptions, Required<SettingOptions>>({
