@@ -4,8 +4,8 @@ import { dedent } from "ts-dedent";
 import { DEFAULT_VIEW_MODE, type SettingOption, type ViewMode } from "../interface";
 import type RegexMark from "../main";
 import { hasToHide, isInvalid, isValidRegex } from "../utils";
-import { RemarkRegexOptions } from "./modal";
 import { ExportSettings, ImportSettings } from "./import_export";
+import { RemarkRegexOptions } from "./modal";
 
 export class RemarkRegexSettingTab extends PluginSettingTab {
 	plugin: RegexMark;
@@ -32,7 +32,8 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 	display(): void {
 		const { containerEl } = this;
 		containerEl.empty();
-		new Setting(containerEl).setClass("import-export")
+		new Setting(containerEl)
+			.setClass("import-export")
 			.addButton((button) => {
 				button.setButtonText("Import").onClick(() => {
 					new ImportSettings(this.plugin, this.plugin.settings, this).open();

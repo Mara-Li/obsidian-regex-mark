@@ -1,8 +1,8 @@
-import { ButtonComponent, Modal, Platform, Setting, TextAreaComponent } from "obsidian";
-import type RegexMark from "../main";
-import type { SettingOption, SettingOptions } from "../interface";
-import type { RemarkRegexSettingTab } from ".";
 import { cloneDeep } from "lodash";
+import { ButtonComponent, Modal, Platform, Setting, TextAreaComponent } from "obsidian";
+import type { RemarkRegexSettingTab } from ".";
+import type { SettingOption, SettingOptions } from "../interface";
+import type RegexMark from "../main";
 
 export class ImportSettings extends Modal {
 	plugin: RegexMark;
@@ -18,7 +18,7 @@ export class ImportSettings extends Modal {
 
 	onOpen() {
 		const { contentEl } = this;
-		this.contentEl.addClass("RegexMark")
+		this.contentEl.addClass("RegexMark");
 
 		new Setting(contentEl).setName("Import settings").setDesc("Allow to import regex from other users.").setHeading();
 
@@ -47,9 +47,9 @@ export class ImportSettings extends Modal {
 									return !oldSettings.find((oldSetting: SettingOption) => oldSetting.regex === setting.regex);
 								});
 								oldSettings.push(...imported);
-								this.settings = oldSettings;							
+								this.settings = oldSettings;
 							} else if (importSettings instanceof Object) {
-								if (!importSettings.hasOwnProperty("regex") || !importSettings.hasOwnProperty("class")) {
+								if (!Object.hasOwn(importSettings, "regex") || !Object.hasOwn(importSettings, "class")) {
 									throw new Error("Invalid importation");
 								}
 								const imported = importSettings as SettingOption;
@@ -133,8 +133,8 @@ export class ExportSettings extends Modal {
 	}
 
 	onOpen() {
-		const { contentEl, modalEl } = this;
-		this.contentEl.addClass("RegexMark")
+		const { contentEl } = this;
+		this.contentEl.addClass("RegexMark");
 
 		new Setting(contentEl)
 			.setName("Export settings")
@@ -142,16 +142,16 @@ export class ExportSettings extends Modal {
 			.then((setting) => {
 				const copied = cloneDeep(this.settings);
 				const output = JSON.stringify(copied, null, 2);
-				setting.controlEl.createEl("a", {
-					cls: "copy",
-					text: "Copy to clipboard",
-					href: "#",
-				},
-				(copyButton) => {
-					const textArea = new TextAreaComponent(contentEl)
-						.setValue(output)
-						.then((textArea) => {
-							copyButton.addEventListener("click", (e)=>{
+				setting.controlEl.createEl(
+					"a",
+					{
+						cls: "copy",
+						text: "Copy to clipboard",
+						href: "#",
+					},
+					(copyButton) => {
+						const textArea = new TextAreaComponent(contentEl).setValue(output).then((textArea) => {
+							copyButton.addEventListener("click", (e) => {
 								e.preventDefault();
 								textArea.inputEl.select();
 								textArea.inputEl.setSelectionRange(0, 99999);
@@ -161,10 +161,11 @@ export class ExportSettings extends Modal {
 								setTimeout(() => {
 									if (copyButton.parentNode) copyButton.removeClass("success");
 								}, 2000);
-							})
+							});
 						});
 						textArea.inputEl.addClass("export-textarea");
-				})
+					}
+				);
 				if (Platform.isDesktop) {
 					setting.controlEl.createEl("a", {
 						cls: "download",
@@ -172,11 +173,13 @@ export class ExportSettings extends Modal {
 						attr: {
 							download: "regexmark.json",
 							href: `data:text/json;charset=utf-8,${encodeURIComponent(output)}`,
-						}
-					})
+						},
+					});
 				} else if (Platform.isMobile) {
 					setting.addButton((button) => {
-						button.setClass("download").setButtonText("Download")
+						button
+							.setClass("download")
+							.setButtonText("Download")
 							.onClick(() => {
 								const blob = new Blob([output], { type: "application/json" });
 								const url = URL.createObjectURL(blob);
@@ -189,7 +192,6 @@ export class ExportSettings extends Modal {
 					});
 				}
 			});
-			
 	}
 
 	onClose(): void {
