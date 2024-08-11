@@ -22,7 +22,7 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "@biomejs/biome": "1.7.3",
+    "@biomejs/biome": "1.8.3",
     "@codemirror/search": "^6.5.4",
     "@codemirror/state": "^6.3.1",
     "@codemirror/view": "^6.22.0",
