@@ -2,9 +2,9 @@ import type { Extension } from "@codemirror/state";
 import { Plugin } from "obsidian";
 
 import { cmExtension } from "./cmPlugin";
+import type { SettingOptions } from "./interface";
 import { MarkdownProcesser } from "./markdownProcesser";
 import { RemarkRegexSettingTab } from "./settings";
-import type { SettingOptions } from "./interface";
 
 export default class RegexMark extends Plugin {
 	settings: SettingOptions = [];
@@ -47,6 +47,12 @@ export default class RegexMark extends Plugin {
 
 	async saveSettings() {
 		await this.saveData(this.settings);
+	}
+
+	async overrideSettings(settings: SettingOptions) {
+		this.settings = settings;
+		await this.saveSettings();
+		this.updateCmExtension();
 	}
 
 	updateCmExtension() {

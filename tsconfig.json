@@ -17,10 +17,10 @@
       "ES6",
       "ES7",
       "ES2018",
-      "DOM.Iterable"
+      "DOM.Iterable",
+      "ESNext",
+      "ES2022"
     ]
   },
-  "include": [
-    "**/*.ts"
-  ]
+  "include": ["**/*.ts"]
 }
