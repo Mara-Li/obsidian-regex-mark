@@ -1,0 +1,11 @@
+{
+  "id": "regex-mark",
+  "name": "Regex Mark",
+  "version": "1.7.2",
+  "minAppVersion": "1.5.12",
+  "description": "Add custom CSS classes to text based on regular expressions.",
+  "author": "rien7, Mara-Li",
+  "authorUrl": "https://github.com/mara-li",
+  "isDesktopOnly": false,
+  "fundingUrl": "https://ko-fi.com/lisandra_dev"
+}
