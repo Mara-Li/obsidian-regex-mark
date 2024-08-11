@@ -1,10 +1,11 @@
-import { type App, Notice, PluginSettingTab, sanitizeHTMLToDom, Setting, type ToggleComponent } from "obsidian";
+import { cloneDeep } from "lodash";
+import { type App, Notice, PluginSettingTab, Setting, type ToggleComponent, sanitizeHTMLToDom } from "obsidian";
 import { dedent } from "ts-dedent";
+import { DEFAULT_VIEW_MODE, type SettingOption, type ViewMode } from "../interface";
 import type RegexMark from "../main";
 import { hasToHide, isInvalid, isValidRegex } from "../utils";
-import { DEFAULT_VIEW_MODE, type ViewMode, type SettingOption } from "../interface";
 import { RemarkRegexOptions } from "./modal";
-import { cloneDeep } from "lodash";
+import { ExportSettings, ImportSettings } from "./import_export";
 
 export class RemarkRegexSettingTab extends PluginSettingTab {
 	plugin: RegexMark;
@@ -31,7 +32,17 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 	display(): void {
 		const { containerEl } = this;
 		containerEl.empty();
-
+		new Setting(containerEl).setClass("import-export")
+			.addButton((button) => {
+				button.setButtonText("Import").onClick(() => {
+					new ImportSettings(this.plugin, this.plugin.settings, this).open();
+				});
+			})
+			.addButton((button) => {
+				button.setButtonText("Export").onClick(() => {
+					new ExportSettings(this.plugin, this.plugin.settings, this).open();
+				});
+			});
 		const productTitle = containerEl.createEl("p", {
 			text: "Regex Mark allows to add custom CSS class to text that matches a regex.",
 		});

@@ -40,3 +40,102 @@
 .regex-setting input {
   font-family: var(--font-monospace);
 }
+
+.setting-item.import-export {
+  padding-bottom: 10px;
+}
+
+.RegexMark .export-import > .setting-item-info {
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+  overflow: hidden;
+  padding: 0;
+}
+.RegexMark .setting-item.export-import > .setting-item-control {
+  padding-bottom: 10px;
+}
+
+.RegexMark .import-error {
+  display: none;
+  color: var(--text-error);
+}
+
+.RegexMark .import-error.active {
+  display: block;
+}
+
+.RegexMark .import-input {
+  width: 0.1px;
+  height: 0.1px;
+  opacity: 0;
+  overflow: hidden;
+  position: absolute;
+  z-index: -1;
+}
+
+.RegexMark .copy,
+.RegexMark .download,
+.RegexMark .import-label {
+  color: var(--text-normal);
+  font-size: var(--font-ui-small);
+  border-radius: var(--button-radius);
+  border: 0;
+  padding: var(--size-4-1) var(--size-4-3);
+  font-weight: var(--input-font-weight);
+  font-family: inherit;
+  cursor: pointer;
+  background-color: var(--interactive-normal);
+  box-shadow: var(--input-shadow);
+  text-align: center;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: background-color 0.1s ease, box-shadow 0.1s ease;
+}
+
+.RegexMark .copy:hover,
+.RegexMark .download:hover,
+.RegexMark .import-label:hover {
+  background-color: var(--interactive-hover);
+  box-shadow: var(--input-shadow-hover);
+}
+
+.RegexMark .import-save {
+  text-align: center;
+  width: 100%;
+}
+
+.RegexMark .import-textarea,
+.RegexMark .export-textarea {
+  width: 100%;
+  height: 200px;
+  font-family: var(--font-monospace);
+  font-size: 14px;
+}
+
+.RegexMark .copy.success::before {
+  opacity: 1;
+}
+
+.RegexMark .copy::before {
+  color: var(--color-green);
+  content: "✓";
+  position: absolute;
+  left: -18px;
+  font-weight: bold;
+  opacity: 0;
+  transition: 150ms opacity ease-in-out;
+}
+
+.RegexMark .copy,
+.RegexMark .download {
+  position: relative;
+  display: inline-block;
+  margin-left: 10px;
+}
+
+.is-mobile .RegexMark .copy,
+.RegexMark .copy,
+.RegexMark .download {
+  padding: 9px !important;
+}
