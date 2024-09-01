@@ -3,8 +3,8 @@ import { type App, MarkdownView, sanitizeHTMLToDom } from "obsidian";
 import type { SettingOption } from "./interface";
 import { isValidRegex, removeTags } from "./utils";
 
-export function MarkdownProcesser(data: SettingOption[], element: HTMLElement, app: App) {
-	const paragraph = element.findAll("p, li, h1, h2, h3, h4, h5, h6, td, .callout-title-inner, th");
+export function MarkdownProcessor(data: SettingOption[], element: HTMLElement, app: App) {
+	const paragraph = element.findAll("p, li, h1, h2, h3, h4, h5, h6, td, .callout-title-inner, th, code");
 	paragraph.push(...element.findAllSelf(".table-cell-wrapper"));
 	const activeMode = app.workspace.getActiveViewOfType(MarkdownView)?.getMode() === "source";
 	for (const p of paragraph) {
@@ -36,6 +36,7 @@ export function MarkdownProcesser(data: SettingOption[], element: HTMLElement, a
 			let text = node.textContent;
 			if (text) {
 				for (const d of data) {
+					if (node.parentNode?.nodeName === "CODE" && d.viewMode?.codeBlock === false) continue;
 					const enabled = activeMode ? d.viewMode?.live : d.viewMode?.reading;
 					if (!d.regex || !d.class || d.regex === "" || d.class === "" || enabled === false) continue;
 					const regex = new RegExp(removeTags(d.regex), d.flags?.join("") ?? "gi");
@@ -47,9 +48,7 @@ export function MarkdownProcesser(data: SettingOption[], element: HTMLElement, a
 					} else text = text.replace(regex, `<span class="${d.class}" data-contents="$&">$&</span>`);
 				}
 				const dom = sanitizeHTMLToDom(text);
-				if (node.parentNode) {
-					node.parentNode.replaceChild(dom, node);
-				}
+				if (node.parentNode) node.parentNode.replaceChild(dom, node);
 			}
 		}
 	}

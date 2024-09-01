@@ -18,6 +18,7 @@ export class RemarkRegexOptions extends Modal {
 
 		new Setting(contentEl)
 			.setName("View mode")
+			.setHeading()
 			.setDesc("Allow to choose where the regex should be applied. Each toggle are independent.");
 
 		new Setting(contentEl)
@@ -44,6 +45,16 @@ export class RemarkRegexOptions extends Modal {
 			.addToggle((toggle) => {
 				toggle.setValue(this.result.live).onChange((value) => {
 					this.result.live = value;
+				});
+			});
+
+		new Setting(contentEl)
+			.setHeading()
+			.setName("Code")
+			.setDesc("Apply the regex when the text is within code (inline or block).")
+			.addToggle((toggle) => {
+				toggle.setValue(this.result.codeBlock ?? true).onChange((value) => {
+					this.result.codeBlock = value;
 				});
 			});
 

@@ -1,5 +1,5 @@
 import { RegExpCursor } from "@codemirror/search";
-import { type EditorSelection, type Extension, Facet, combineConfig } from "@codemirror/state";
+import { combineConfig, type EditorSelection, type Extension, Facet } from "@codemirror/state";
 import {
 	Decoration,
 	type DecorationSet,
@@ -57,9 +57,13 @@ class CMPlugin implements PluginValue {
 				const displayMode = mode === "Live" ? d.viewMode?.live : d.viewMode?.source;
 				if (!d.regex || !d.class || d.regex === "" || d.class === "" || !isValidRegex(d.regex) || displayMode === false)
 					continue;
+
 				const cursor = new RegExpCursor(view.state.doc, removeTags(d.regex), {}, part.from, part.to);
 				while (!cursor.next().done) {
 					const { from, to } = cursor.value;
+					const insideBlock = disableInBlock(d, view, cursor, part, from, to);
+					if (insideBlock) continue;
+
 					//don't add the decoration if the cursor (selection in the editor) is inside the decoration
 					if (checkSelectionOverlap(view.state.selection, from, to)) {
 						//just apply the decoration to the whole line
@@ -88,6 +92,7 @@ const cmPlugin = ViewPlugin.fromClass(CMPlugin, pluginSpec);
 class LivePreviewWidget extends WidgetType {
 	data: SettingOption;
 	view: EditorView;
+
 	constructor(
 		readonly value: string,
 		data: SettingOption,
@@ -140,6 +145,7 @@ class LivePreviewWidget extends WidgetType {
 	ignoreEvent(_event: Event) {
 		return false;
 	}
+
 	destroy(_dom: HTMLElement): void {
 		//do nothing
 	}
@@ -157,4 +163,28 @@ function checkSelectionOverlap(selection: EditorSelection | undefined, from: num
 	}
 
 	return false;
+}
+
+function disableInBlock(
+	data: SettingOption,
+	view: EditorView,
+	blockMatch: any,
+	part: { from: number; to: number },
+	from: number,
+	to: number
+) {
+	if (data.viewMode?.codeBlock || data.viewMode?.codeBlock === undefined) return false;
+	const blockRegex = /(```[\s\S]*?```|`[^`]*`)/g;
+	let insideBlock = false;
+	blockRegex.lastIndex = 0;
+	// biome-ignore lint/suspicious/noAssignInExpressions: <explanation>
+	while ((blockMatch = blockRegex.exec(view.state.doc.sliceString(part.from, part.to))) !== null) {
+		const blockFrom = blockMatch.index + part.from;
+		const blockTo = blockRegex.lastIndex + part.from;
+		if (from >= blockFrom && to <= blockTo) {
+			insideBlock = true;
+			break;
+		}
+	}
+	return insideBlock;
 }

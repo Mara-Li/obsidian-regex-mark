@@ -1,11 +1,11 @@
-import {cloneDeep} from "lodash";
-import {type App, Notice, PluginSettingTab, sanitizeHTMLToDom, Setting, type ToggleComponent} from "obsidian";
-import {dedent} from "ts-dedent";
-import {DEFAULT_VIEW_MODE, type RegexFlags, type SettingOption, type ViewMode} from "../interface";
+import { cloneDeep } from "lodash";
+import { type App, Notice, PluginSettingTab, sanitizeHTMLToDom, Setting, type ToggleComponent } from "obsidian";
+import { dedent } from "ts-dedent";
+import { DEFAULT_VIEW_MODE, type RegexFlags, type SettingOption, type ViewMode } from "../interface";
 import type RegexMark from "../main";
-import {hasToHide, isInvalid, isValidRegex} from "../utils";
-import {ExportSettings, ImportSettings} from "./import_export";
-import {RemarkRegexOptions} from "./modal";
+import { hasToHide, isInvalid, isValidRegex } from "../utils";
+import { ExportSettings, ImportSettings } from "./import_export";
+import { RemarkRegexOptions } from "./modal";
 
 export class RemarkRegexSettingTab extends PluginSettingTab {
 	plugin: RegexMark;

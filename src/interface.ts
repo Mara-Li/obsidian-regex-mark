@@ -34,6 +34,7 @@ export type ViewMode = {
 	reading: boolean;
 	source: boolean;
 	live: boolean;
+	codeBlock?: boolean;
 };
 
 export const DEFAULT_VIEW_MODE: ViewMode = {

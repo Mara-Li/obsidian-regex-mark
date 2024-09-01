@@ -3,7 +3,7 @@ import { Plugin } from "obsidian";
 
 import { cmExtension } from "./cmPlugin";
 import type { SettingOptions } from "./interface";
-import { MarkdownProcesser } from "./markdownProcesser";
+import { MarkdownProcessor } from "./markdownProcessor";
 import { RemarkRegexSettingTab } from "./settings";
 
 export default class RegexMark extends Plugin {
@@ -29,7 +29,7 @@ export default class RegexMark extends Plugin {
 		}
 		this.addSettingTab(new RemarkRegexSettingTab(this.app, this));
 		this.registerMarkdownPostProcessor((element: HTMLElement) => {
-			MarkdownProcesser(this.settings, element, this.app);
+			MarkdownProcessor(this.settings, element, this.app);
 		});
 		this.cmExtension = cmExtension(this);
 		this.extensions = [];
