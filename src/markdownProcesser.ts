@@ -19,7 +19,7 @@ export function MarkdownProcesser(data: SettingOption[], element: HTMLElement, a
 				d.viewMode?.reading === false
 			)
 				continue;
-			const regex = new RegExp(removeTags(d.regex), "gi");
+			const regex = new RegExp(removeTags(d.regex), d.flags?.join("") ?? "gi");
 			if (regex.test(p.textContent || "")) {
 				ignore = false;
 				break;
@@ -38,7 +38,7 @@ export function MarkdownProcesser(data: SettingOption[], element: HTMLElement, a
 				for (const d of data) {
 					const enabled = activeMode ? d.viewMode?.live : d.viewMode?.reading;
 					if (!d.regex || !d.class || d.regex === "" || d.class === "" || enabled === false) continue;
-					const regex = new RegExp(removeTags(d.regex), "gi");
+					const regex = new RegExp(removeTags(d.regex), d.flags?.join("") ?? "gi");
 					if (d.hide) {
 						const group = removeTags(d.regex).match(/\((.*?)\)/);
 						const dataText = regex.exec(text);

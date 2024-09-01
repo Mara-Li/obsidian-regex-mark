@@ -1,11 +1,12 @@
 import { cloneDeep } from "lodash";
 import { type App, Notice, PluginSettingTab, Setting, type ToggleComponent, sanitizeHTMLToDom } from "obsidian";
 import { dedent } from "ts-dedent";
-import { DEFAULT_VIEW_MODE, type SettingOption, type ViewMode } from "../interface";
+import { DEFAULT_VIEW_MODE, type SettingOption, type ViewMode, RegexFlags } from "../interface";
 import type RegexMark from "../main";
 import { hasToHide, isInvalid, isValidRegex } from "../utils";
 import { ExportSettings, ImportSettings } from "./import_export";
 import { RemarkRegexOptions } from "./modal";
+
 
 export class RemarkRegexSettingTab extends PluginSettingTab {
 	plugin: RegexMark;
@@ -85,6 +86,23 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 					});
 					text.inputEl.addClasses(["extra-width", "regex-input"]);
 					this.addTooltip("regex", text.inputEl);
+				})
+				.addText((text) => {
+					text
+						.setValue(data.flags?.join("").toLowerCase() ?? "gi")
+						.onChange(async (value) => {
+							text.inputEl.removeClass("is-invalid");
+							this.addTooltip("Regex flags", text.inputEl);
+							data.flags = value.split("").filter((d) => ["g", "i", "m", "s", "u", "y"].includes(d.toLowerCase())) as RegexFlags[];
+							const errors = value.split("").filter((d) => !["g", "i", "m", "s", "u", "y"].includes(d));
+							if (errors.length > 0) {
+								text.inputEl.addClass("is-invalid")
+								this.addTooltip(`Invalid flags: ${errors.join(", ")}`, text.inputEl);
+							}
+							await this.plugin.saveSettings();
+						});
+					text.inputEl.addClasses(["min-width", "flags-input"]);
+					this.addTooltip("Regex flags", text.inputEl);
 				})
 				.addText((text) => {
 					text.setValue(data.class).onChange(async (value) => {
@@ -175,17 +193,18 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 							new Notice("Duplicate regexes found, please fix them before applying.");
 							return;
 						}
-						const valid = this.plugin.settings.every((d) => this.verifyRegex(d));
+						const validRegex = this.plugin.settings.every((d) => this.verifyRegex(d));
 						const validCss = this.plugin.settings.every((d) => this.verifyClass(d));
-						if (valid && validCss) {
+						if (validRegex && validCss) {
 							this.plugin.updateCmExtension();
 							new Notice("Regexes are valid and applied.");
+							this.display();
 							return;
 						}
 						let msg = "Found: ";
-						if (!valid) msg += "invalid regexes";
-						if (!valid && !validCss) msg += " and ";
-						if (!validCss) msg += "empty css";
+						if (!validRegex) msg += "invalid regexes";
+						if (!validRegex && !validCss) msg += " and ";
+						if (!validCss) msg += "empty css ";
 						msg += ". Please fix them before applying.";
 						new Notice(msg);
 					});

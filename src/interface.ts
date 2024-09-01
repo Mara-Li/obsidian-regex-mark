@@ -4,6 +4,11 @@ export interface SettingOption {
 	 */
 	regex: string;
 	/**
+	 * Regex flags
+	 * @default ['g', 'i']
+	 */
+	flags?: RegexFlags[];
+	/**
 	 * The associated css class
 	 */
 	class: string;
@@ -36,3 +41,5 @@ export const DEFAULT_VIEW_MODE: ViewMode = {
 	source: true,
 	live: true,
 };
+
+export type RegexFlags = 'g' | 'i' | 'm' | 's' | 'u' | 'y';

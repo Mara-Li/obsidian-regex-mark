@@ -139,3 +139,7 @@
 .RegexMark .download {
   padding: 9px !important;
 }
+
+.RegexMark .min-width {
+  min-width: 7ch;
+}
