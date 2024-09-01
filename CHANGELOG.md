@@ -1,3 +1,13 @@
+## [1.8.0](https://github.com/Lisandra-dev/obsidian-regex-mark/compare/1.7.3-1...1.8.0) (2024-09-01)
+### Features
+
+* add support for flags ([7b0deea](https://github.com/Lisandra-dev/obsidian-regex-mark/commit/7b0deeae17656bc4222168909e9c9c23b55fe55f)), closes [#12](https://github.com/Lisandra-dev/obsidian-regex-mark/issues/12)
+* **code:** allow to enable/disable mark on code (inlines+block) ([2ee8f8e](https://github.com/Lisandra-dev/obsidian-regex-mark/commit/2ee8f8eb6582614864466097b49374aa4518318a)), closes [#13](https://github.com/Lisandra-dev/obsidian-regex-mark/issues/13)
+
+### Bug Fixes
+
+* prevent duplicate flags ([96d7980](https://github.com/Lisandra-dev/obsidian-regex-mark/commit/96d79806728d66c948c5afbb992113a840ab79de)), closes [#13](https://github.com/Lisandra-dev/obsidian-regex-mark/issues/13)
+
 ## [1.7.2](https://github.com/Lisandra-dev/obsidian-regex-mark/compare/1.7.0...1.7.2) (2024-07-02)
 ### Bug Fixes
 
