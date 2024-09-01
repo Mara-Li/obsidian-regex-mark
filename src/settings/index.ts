@@ -1,12 +1,11 @@
-import { cloneDeep } from "lodash";
-import { type App, Notice, PluginSettingTab, Setting, type ToggleComponent, sanitizeHTMLToDom } from "obsidian";
-import { dedent } from "ts-dedent";
-import { DEFAULT_VIEW_MODE, type SettingOption, type ViewMode, RegexFlags } from "../interface";
+import {cloneDeep} from "lodash";
+import {type App, Notice, PluginSettingTab, sanitizeHTMLToDom, Setting, type ToggleComponent} from "obsidian";
+import {dedent} from "ts-dedent";
+import {DEFAULT_VIEW_MODE, type RegexFlags, type SettingOption, type ViewMode} from "../interface";
 import type RegexMark from "../main";
-import { hasToHide, isInvalid, isValidRegex } from "../utils";
-import { ExportSettings, ImportSettings } from "./import_export";
-import { RemarkRegexOptions } from "./modal";
-
+import {hasToHide, isInvalid, isValidRegex} from "../utils";
+import {ExportSettings, ImportSettings} from "./import_export";
+import {RemarkRegexOptions} from "./modal";
 
 export class RemarkRegexSettingTab extends PluginSettingTab {
 	plugin: RegexMark;
@@ -88,19 +87,24 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 					this.addTooltip("regex", text.inputEl);
 				})
 				.addText((text) => {
-					text
-						.setValue(data.flags?.join("").toLowerCase() ?? "gi")
-						.onChange(async (value) => {
-							text.inputEl.removeClass("is-invalid");
-							this.addTooltip("Regex flags", text.inputEl);
-							data.flags = value.split("").filter((d) => ["g", "i", "m", "s", "u", "y"].includes(d.toLowerCase())) as RegexFlags[];
-							const errors = value.split("").filter((d) => !["g", "i", "m", "s", "u", "y"].includes(d));
-							if (errors.length > 0) {
-								text.inputEl.addClass("is-invalid")
-								this.addTooltip(`Invalid flags: ${errors.join(", ")}`, text.inputEl);
-							}
-							await this.plugin.saveSettings();
-						});
+					text.setValue(data.flags?.join("").toLowerCase() ?? "gi").onChange(async (value) => {
+						text.inputEl.removeClass("is-invalid");
+						this.addTooltip("Regex flags", text.inputEl);
+						data.flags = value
+							.split("")
+							.map((d) => d.toLowerCase())
+							.filter(
+								(d, index, self) => ["g", "i", "m", "s", "u", "y"].includes(d) && self.indexOf(d) === index
+							) as RegexFlags[];
+						const errors = value
+							.split("")
+							.filter((d, index, self) => !["g", "i", "m", "s", "u", "y"].includes(d) || self.indexOf(d) !== index);
+						if (errors.length > 0) {
+							text.inputEl.addClass("is-invalid");
+							this.addTooltip(`Invalid flags ; they are automatically fixed at save`, text.inputEl);
+						}
+						await this.plugin.saveSettings();
+					});
 					text.inputEl.addClasses(["min-width", "flags-input"]);
 					this.addTooltip("Regex flags", text.inputEl);
 				})

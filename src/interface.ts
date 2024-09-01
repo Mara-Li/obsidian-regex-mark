@@ -42,4 +42,4 @@ export const DEFAULT_VIEW_MODE: ViewMode = {
 	live: true,
 };
 
-export type RegexFlags = 'g' | 'i' | 'm' | 's' | 'u' | 'y';
+export type RegexFlags = "g" | "i" | "m" | "s" | "u" | "y";
