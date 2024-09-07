@@ -39,8 +39,8 @@ export type Pattern = {
 };
 
 export const DEFAULT_PATTERN: Pattern = {
-	open: "{{open:(.*?)}}",
-	close: "{{close:(.*?)}}",
+	open: `\\{\\{open:(.*?)\\}\\}`,
+	close: `\\{\\{close:(.*?)\\}\\}`,
 };
 
 export const DEFAULT_SETTINGS: SettingOptions = {
