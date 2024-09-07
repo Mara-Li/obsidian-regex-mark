@@ -1,3 +1,8 @@
+## [1.9.0](https://github.com/Lisandra-dev/obsidian-regex-mark/compare/1.8.0...1.9.0) (2024-09-07)
+### Features
+
+* allow changing open/close pattern ([a1bc5e8](https://github.com/Lisandra-dev/obsidian-regex-mark/commit/a1bc5e81dbd813fd3d19778131a7a1bdb73ecd4e)), closes [#14](https://github.com/Lisandra-dev/obsidian-regex-mark/issues/14)
+
 ## [1.8.0](https://github.com/Lisandra-dev/obsidian-regex-mark/compare/1.7.3-1...1.8.0) (2024-09-01)
 ### Features
 
