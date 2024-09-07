@@ -1,9 +1,9 @@
 import { type App, MarkdownView, sanitizeHTMLToDom } from "obsidian";
 
-import type { SettingOption } from "./interface";
+import type { Mark, Pattern } from "./interface";
 import { isValidRegex, removeTags } from "./utils";
 
-export function MarkdownProcessor(data: SettingOption[], element: HTMLElement, app: App) {
+export function MarkdownProcessor(data: Mark, element: HTMLElement, app: App, pattern?: Pattern) {
 	const paragraph = element.findAll("p, li, h1, h2, h3, h4, h5, h6, td, .callout-title-inner, th, code");
 	paragraph.push(...element.findAllSelf(".table-cell-wrapper"));
 	const activeMode = app.workspace.getActiveViewOfType(MarkdownView)?.getMode() === "source";
@@ -15,11 +15,11 @@ export function MarkdownProcessor(data: SettingOption[], element: HTMLElement, a
 				!d.class ||
 				d.regex === "" ||
 				d.class === "" ||
-				!isValidRegex(d.regex) ||
+				!isValidRegex(d.regex, true, pattern) ||
 				d.viewMode?.reading === false
 			)
 				continue;
-			const regex = new RegExp(removeTags(d.regex), d.flags?.join("") ?? "gi");
+			const regex = new RegExp(removeTags(d.regex, pattern), d.flags?.join("") ?? "gi");
 			if (regex.test(p.textContent || "")) {
 				ignore = false;
 				break;
@@ -39,9 +39,9 @@ export function MarkdownProcessor(data: SettingOption[], element: HTMLElement, a
 					if (node.parentNode?.nodeName === "CODE" && d.viewMode?.codeBlock === false) continue;
 					const enabled = activeMode ? d.viewMode?.live : d.viewMode?.reading;
 					if (!d.regex || !d.class || d.regex === "" || d.class === "" || enabled === false) continue;
-					const regex = new RegExp(removeTags(d.regex), d.flags?.join("") ?? "gi");
+					const regex = new RegExp(removeTags(d.regex, pattern), d.flags?.join("") ?? "gi");
 					if (d.hide) {
-						const group = removeTags(d.regex).match(/\((.*?)\)/);
+						const group = removeTags(d.regex, pattern).match(/\((.*?)\)/);
 						const dataText = regex.exec(text);
 						if (!group || !dataText || !dataText?.[1]) continue;
 						text = text.replace(regex, `<span class="${d.class}" data-contents="$1">$1</span>`);

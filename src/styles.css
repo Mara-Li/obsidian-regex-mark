@@ -11,6 +11,11 @@
   display: inline;
 }
 
+.RegexMark {
+  /* allow to select text */
+  user-select: text;
+}
+
 .regex-setting .setting-item-info {
   display: none;
 }
@@ -31,12 +36,18 @@
   opacity: 0.5;
 }
 
+.RegexMark .error {
+  background-color: var(--background-modifier-error);
+  color: var(--text-error);
+}
+
 .regex-mark-callout {
   border-left: 2px solid var(--color-blue);
   padding-left: 1em;
   background-color: rgba(var(--color-blue-rgb), 0.1);
 }
 
+.RegexMark input,
 .regex-setting input {
   font-family: var(--font-monospace);
 }
@@ -59,6 +70,10 @@
 .RegexMark .import-error {
   display: none;
   color: var(--text-error);
+}
+
+.RegexMark input.error {
+  border-color: var(--text-error);
 }
 
 .RegexMark .import-error.active {

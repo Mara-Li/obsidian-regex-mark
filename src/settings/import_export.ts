@@ -1,7 +1,7 @@
 import { cloneDeep } from "lodash";
 import { ButtonComponent, Modal, Platform, Setting, TextAreaComponent } from "obsidian";
 import type { RemarkRegexSettingTab } from ".";
-import type { SettingOption, SettingOptions } from "../interface";
+import type { Mark, SettingOption, SettingOptions } from "../interface";
 import type RegexMark from "../main";
 
 export class ImportSettings extends Modal {
@@ -35,32 +35,40 @@ export class ImportSettings extends Modal {
 					try {
 						const importSettings = JSON.parse(str) as unknown;
 						if (importSettings) {
-							if (importSettings instanceof Array) {
-								//Verify is all the settings are correct
-								for (const setting of importSettings) {
+							if (Object.hasOwn(importSettings, "pattern")) {
+								oldSettings.pattern = (importSettings as SettingOptions).pattern;
+								delete (importSettings as SettingOptions).pattern;
+							}
+							const marks: Mark = [];
+							//import the list of regex only
+							if (Object.hasOwn(importSettings, "mark") || importSettings instanceof Array) {
+								if (Object.hasOwn(importSettings, "mark")) {
+									marks.push(...(importSettings as SettingOptions).mark);
+								} else if (importSettings instanceof Array) {
+									marks.push(...(importSettings as Mark));
+								}
+								for (const setting of marks) {
 									if (!setting.regex || !setting.class) {
 										throw new Error("Invalid importation");
 									}
 								}
 								//import only if not in the old settings
-								const imported = importSettings.filter((setting: SettingOption) => {
-									return !oldSettings.find((oldSetting: SettingOption) => oldSetting.regex === setting.regex);
+								const imported = marks.filter((setting: SettingOption) => {
+									return !oldSettings.mark.find((oldSetting: SettingOption) => oldSetting.regex === setting.regex);
 								});
-								oldSettings.push(...imported);
+								oldSettings.mark.push(...imported);
 								this.settings = oldSettings;
-							} else if (importSettings instanceof Object) {
+							} else if (importSettings instanceof Object && !Object.hasOwn(importSettings, "mark")) {
 								if (!Object.hasOwn(importSettings, "regex") || !Object.hasOwn(importSettings, "class")) {
 									throw new Error("Invalid importation");
 								}
 								const imported = importSettings as SettingOption;
-								if (!oldSettings.find((oldSetting: SettingOption) => oldSetting.regex === imported.regex)) {
-									oldSettings.push(importSettings as SettingOption);
+								if (!oldSettings.mark.find((oldSetting: SettingOption) => oldSetting.regex === imported.regex)) {
+									oldSettings.mark.push(importSettings as SettingOption);
 									this.settings = oldSettings;
 								} else {
 									throw new Error("Already in the settings");
 								}
-							} else {
-								throw new Error("Invalid importation");
 							}
 						}
 						await this.plugin.overrideSettings(oldSettings);

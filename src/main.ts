@@ -2,19 +2,19 @@ import type { Extension } from "@codemirror/state";
 import { Plugin } from "obsidian";
 
 import { cmExtension } from "./cmPlugin";
-import type { SettingOptions } from "./interface";
+import { DEFAULT_SETTINGS, type SettingOptions } from "./interface";
 import { MarkdownProcessor } from "./markdownProcessor";
 import { RemarkRegexSettingTab } from "./settings";
 
 export default class RegexMark extends Plugin {
-	settings: SettingOptions = [];
+	settings: SettingOptions;
 	extensions: Extension[];
 	cmExtension: Extension;
 
 	async onload() {
 		console.log("loading plugin RegexMark");
 		await this.loadSettings();
-		const hasDisable = this.settings.filter((data) => data.disable);
+		const hasDisable = this.settings.mark.filter((data) => data.disable);
 		for (const data of hasDisable) {
 			if (data.disable) {
 				console.warn(`Deprecated disable option found for ${data.class}, removing it and ajust the viewMode option.`);
@@ -29,7 +29,7 @@ export default class RegexMark extends Plugin {
 		}
 		this.addSettingTab(new RemarkRegexSettingTab(this.app, this));
 		this.registerMarkdownPostProcessor((element: HTMLElement) => {
-			MarkdownProcessor(this.settings, element, this.app);
+			MarkdownProcessor(this.settings.mark, element, this.app, this.settings.pattern);
 		});
 		this.cmExtension = cmExtension(this);
 		this.extensions = [];
@@ -42,7 +42,16 @@ export default class RegexMark extends Plugin {
 	}
 
 	async loadSettings() {
-		this.settings = Object.assign([], [], await this.loadData());
+		const oldSettings = await this.loadData();
+		if (Array.isArray(oldSettings)) {
+			this.settings = {
+				mark: oldSettings,
+				pattern: DEFAULT_SETTINGS.pattern,
+			};
+			await this.saveSettings();
+		} else {
+			this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+		}
 	}
 
 	async saveSettings() {

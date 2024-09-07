@@ -1,18 +1,29 @@
 import { cloneDeep } from "lodash";
-import { type App, Notice, PluginSettingTab, sanitizeHTMLToDom, Setting, type ToggleComponent } from "obsidian";
+import { type App, Notice, PluginSettingTab, Setting, type ToggleComponent, sanitizeHTMLToDom } from "obsidian";
 import { dedent } from "ts-dedent";
-import { DEFAULT_VIEW_MODE, type RegexFlags, type SettingOption, type ViewMode } from "../interface";
+import {
+	DEFAULT_PATTERN,
+	DEFAULT_VIEW_MODE,
+	type Pattern,
+	type RegexFlags,
+	type SettingOption,
+	type SettingOptions,
+	type ViewMode,
+} from "../interface";
 import type RegexMark from "../main";
-import { hasToHide, isInvalid, isValidRegex } from "../utils";
+import { hasToHide, isInvalid, isValidRegex, removeTags } from "../utils";
+import { RemarkPatternTab } from "./change_pattern";
 import { ExportSettings, ImportSettings } from "./import_export";
-import { RemarkRegexOptions } from "./modal";
+import { RemarkRegexOptions } from "./viewModal";
 
 export class RemarkRegexSettingTab extends PluginSettingTab {
 	plugin: RegexMark;
+	settings: SettingOptions;
 
 	constructor(app: App, plugin: RegexMark) {
 		super(app, plugin);
 		this.plugin = plugin;
+		this.settings = plugin.settings;
 	}
 
 	toggleToolTip(toggle: ToggleComponent, verify: boolean) {
@@ -25,12 +36,46 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 		}
 	}
 
-	clone(mode: SettingOption): ViewMode {
+	cloneViewMode(mode: SettingOption): ViewMode {
 		return cloneDeep(mode.viewMode ?? DEFAULT_VIEW_MODE);
+	}
+
+	clonePattern(pattern: SettingOptions): Pattern {
+		return cloneDeep(pattern.pattern ?? { open: "{{open:}}", close: "{{close:}}" });
+	}
+
+	updateRegex(newPattern: Pattern) {
+		const oldPattern = this.settings.pattern ?? DEFAULT_PATTERN;
+		for (const data of this.settings.mark) {
+			const newAsString: Pattern = {
+				open: newPattern.open.replace("(.*?)", "$1").replaceAll(/\\/g, ""),
+				close: newPattern.close.replace("(.*?)", "$1").replaceAll(/\\/g, ""),
+			};
+			const reg = data.regex
+				.replace(new RegExp(oldPattern.open), newAsString.open)
+				.replace(new RegExp(oldPattern.close), newAsString.close);
+			const newData = Object.assign(data, { regex: reg });
+			const valid = this.verifyRegex(newData, newPattern);
+			if (!valid) {
+				newData.viewMode = {
+					reading: false,
+					source: false,
+					live: false,
+				};
+			}
+		}
+	}
+
+	stringifyPattern(pattern: Pattern) {
+		return {
+			open: pattern.open.replace("(.*?)", "regex").replaceAll(/\\/g, ""),
+			close: pattern.close.replace("(.*?)", "regex").replaceAll(/\\/g, ""),
+		};
 	}
 
 	display(): void {
 		const { containerEl } = this;
+		containerEl.addClass("RegexMark");
 		containerEl.empty();
 		new Setting(containerEl)
 			.setClass("import-export")
@@ -43,24 +88,56 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 				button.setButtonText("Export").onClick(() => {
 					new ExportSettings(this.plugin, this.plugin.settings, this).open();
 				});
+			})
+			.addButton((button) => {
+				button
+					.setButtonText("Change open/close pattern")
+					.setTooltip("Advanced user only! Allow to change the pattern for hiding element")
+					.onClick(async () => {
+						new RemarkPatternTab(this.app, this.clonePattern(this.settings), async (result) => {
+							this.updateRegex(result);
+							this.plugin.settings.pattern = result;
+							await this.plugin.saveSettings();
+							this.display();
+						}).open();
+					});
 			});
 		const productTitle = containerEl.createEl("p", {
 			text: "Regex Mark allows to add custom CSS class to text that matches a regex.",
 		});
+		const pattern = this.stringifyPattern(this.plugin.settings.pattern ?? DEFAULT_PATTERN);
 
 		const els = dedent(`
-			<p class="regex-setting-secondary">If you are not familiar with regex, you can use this tool to help you build regex: 
-			<a href="https://regex101.com/" target="_blank">https://regex101.com/</a> (don't forget to set <strong>ECMAScript (Javascript)</strong> as the FLAVOR in the settings).</p>
-
-			<p> You can create custom MarkDown Markup with using the <code>{{open:regex}}</code> and <code>{{close:regex}}</code>. The open and close regex will be hidden in Live-Preview. You need to use the "hide" toggle to make it work.<br><br> To activate the toggle, you need to use a <b>regex group</b>. See <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_expressions/Groups_and_backreferences">here for more information</a>.<br><span class="regex-setting-secondary"> Note: Named group is not implanted.</span></p>
+			<p class="regex-setting-secondary">If you are not familiar with regex, you can use this tool to help you build regex:
+				<a href="https://regex101.com/" target="_blank">https://regex101.com/</a> (don't forget to set <strong>ECMAScript (Javascript)</strong> as the FLAVOR in the settings).
+			</p>
 			
-			<p class="regex-mark-callout"> "Overwriting" markdown (for example underline with underscore as <code>__underline__</code>) will not work in Reading Mode.</p>
+			<p>You can create custom MarkDown Markup with using the <code>${pattern.open}</code> and <code>${pattern.close}</code>. The open and close regex will be hidden in Live-Preview. You need to use the "hide" toggle to make it work.<br><br>
+			To activate the toggle, you need to use a <b>regex group</b>. See <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_expressions/Groups_and_backreferences">here for more information</a>.<br>
+			<span class="regex-setting-secondary">Note: Named group is not implanted.</span></p>
+			
+			<div data-callout-metadata="" data-callout-fold="" data-callout="note" class="callout">
+				<div class="callout-title" dir="auto">
+					<div class="callout-icon">
+						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="svg-icon lucide-pencil">
+							<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
+							<path d="m15 5 4 4"></path>
+						</svg>
+					</div>
+					<div class="callout-title-inner">Note</div>
+				</div>
+				<div class="callout-content">
+					<p dir="auto">"Overwriting" markdown (for example underline with underscore as <strong>underline</strong>) will not work in Reading Mode.</p>
+				</div>
+			</div>
 			`);
 
 		const customDom = sanitizeHTMLToDom(els);
 		productTitle.appendChild(customDom);
 
-		for (const data of this.plugin.settings) {
+		//add pattern change
+
+		for (const data of this.plugin.settings.mark) {
 			new Setting(containerEl)
 				.setClass("regex-setting")
 				.addExtraButton((button) => {
@@ -68,7 +145,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 						.setIcon("eye")
 						.setTooltip("Edit the view mode")
 						.onClick(async () => {
-							new RemarkRegexOptions(this.app, this.clone(data), async (result) => {
+							new RemarkRegexOptions(this.app, this.cloneViewMode(data), async (result) => {
 								data.viewMode = result;
 								await this.plugin.saveSettings();
 								this.plugin.updateCmExtension();
@@ -81,7 +158,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 						text.inputEl.setAttribute("regex-value", data.regex);
 						//disable hide toggle if no group is found
-						this.disableToggle(data);
+						this.disableToggle(data, this.plugin.settings.pattern);
 					});
 					text.inputEl.addClasses(["extra-width", "regex-input"]);
 					this.addTooltip("regex", text.inputEl);
@@ -126,7 +203,9 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 							await this.plugin.saveSettings();
 						});
 					toggle.toggleEl.addClass("group-toggle");
-					const verify = !hasToHide(data.regex) && !isValidRegex(data.regex, false);
+					const verify =
+						!hasToHide(data.regex, this.plugin.settings.pattern) &&
+						!isValidRegex(data.regex, false, this.plugin.settings.pattern);
 					this.toggleToolTip(toggle, verify);
 				})
 				.addExtraButton((button) => {
@@ -134,7 +213,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 						.setIcon("trash")
 						.setTooltip("Delete this regex")
 						.onClick(async () => {
-							this.plugin.settings = this.plugin.settings.filter((d) => d !== data);
+							this.plugin.settings.mark = this.plugin.settings.mark.filter((d) => d !== data);
 							await this.plugin.saveSettings();
 							this.display();
 						});
@@ -145,11 +224,11 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 						.setIcon("arrow-up")
 						.setTooltip("Move this regex up")
 						.onClick(async () => {
-							const index = this.plugin.settings.indexOf(data);
+							const index = this.plugin.settings.mark.indexOf(data);
 							if (index <= 0) {
 								return;
 							}
-							this.plugin.settings.splice(index - 1, 0, this.plugin.settings.splice(index, 1)[0]);
+							this.plugin.settings.mark.splice(index - 1, 0, this.plugin.settings.mark.splice(index, 1)[0]);
 							await this.plugin.saveSettings();
 							this.display();
 						});
@@ -159,16 +238,16 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 						.setIcon("arrow-down")
 						.setTooltip("Move this regex down")
 						.onClick(async () => {
-							const index = this.plugin.settings.indexOf(data);
-							if (index >= this.plugin.settings.length - 1) {
+							const index = this.plugin.settings.mark.indexOf(data);
+							if (index >= this.plugin.settings.mark.length - 1) {
 								return;
 							}
-							this.plugin.settings.splice(index + 1, 0, this.plugin.settings.splice(index, 1)[0]);
+							this.plugin.settings.mark.splice(index + 1, 0, this.plugin.settings.mark.splice(index, 1)[0]);
 							await this.plugin.saveSettings();
 							this.display();
 						});
 				});
-			this.disableToggle(data);
+			this.disableToggle(data, this.plugin.settings.pattern);
 		}
 
 		//add + button
@@ -178,7 +257,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 					.setButtonText("Add Regex")
 					.setTooltip("Add a new regex")
 					.onClick(async () => {
-						this.plugin.settings.push({
+						this.plugin.settings.mark.push({
 							regex: "",
 							class: "",
 							hide: false,
@@ -197,12 +276,19 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 							new Notice("Duplicate regexes found, please fix them before applying.");
 							return;
 						}
-						const validRegex = this.plugin.settings.every((d) => this.verifyRegex(d));
-						const validCss = this.plugin.settings.every((d) => this.verifyClass(d));
+						const validRegex = this.plugin.settings.mark.every((d) =>
+							this.verifyRegex(d, this.plugin.settings.pattern)
+						);
+						const validCss = this.plugin.settings.mark.every((d) => this.verifyClass(d));
 						if (validRegex && validCss) {
-							this.plugin.updateCmExtension();
-							new Notice("Regexes are valid and applied.");
+							try {
+								this.plugin.updateCmExtension();
+							} catch (e) {
+								console.error(e);
+								return;
+							}
 							this.display();
+							new Notice("Regexes are valid and applied.");
 							return;
 						}
 						let msg = "Found: ";
@@ -233,16 +319,17 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 		};
 	}
 
-	verifyRegex(data: SettingOption) {
-		const index = this.plugin.settings.indexOf(data);
+	verifyRegex(data: SettingOption, pattern?: Pattern) {
+		const index = this.plugin.settings.mark.indexOf(data);
 		const regex = data.regex;
 		const cb = document.querySelectorAll(".regex-input")[index];
 		if (regex.trim().length === 0) {
 			if (cb) cb.addClass("is-invalid");
 			return false;
 		}
-		if (data.hide && data.regex.includes("\\}") && data.regex.includes("}}")) {
-			new Notice("You can't use \\} in {{close:regex}} or {{open:regex}} if you want to hide the regex.");
+		if (!pattern) pattern = this.plugin.settings.pattern ?? DEFAULT_PATTERN;
+		if (data.hide && !isValidRegex(removeTags(regex, pattern))) {
+			new Notice("The open/close pattern is not recognized");
 			if (cb) cb.addClass("is-invalid");
 			return false;
 		}
@@ -264,7 +351,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 
 	verifyClass(data: SettingOption) {
 		const css = data.class;
-		const cb = document.querySelectorAll(".css-input")[this.plugin.settings.indexOf(data)];
+		const cb = document.querySelectorAll(".css-input")[this.plugin.settings.mark.indexOf(data)];
 		if (css.trim().length === 0) {
 			if (cb) cb.addClass("is-invalid");
 			return false;
@@ -273,10 +360,11 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 		return true;
 	}
 
-	disableToggle(data: SettingOption) {
-		const index = this.plugin.settings.indexOf(data);
+	disableToggle(data: SettingOption, pattern?: Pattern) {
+		const index = this.plugin.settings.mark.indexOf(data);
 		const toggle = document.querySelectorAll<HTMLElement>(".group-toggle")[index];
-		const verify = (!hasToHide(data.regex) && !isValidRegex(data.regex, false)) || data.regex.trim().length === 0;
+		const verify =
+			(!hasToHide(data.regex, pattern) && !isValidRegex(data.regex, false, pattern)) || data.regex.trim().length === 0;
 		if (toggle) toggle.toggleClass("is-disabled-manually", verify);
 		if (!verify) {
 			toggle.removeAttribute("disabled");
@@ -296,14 +384,14 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 		}[] = [];
 		//remove all is-invalid class
 		document.querySelectorAll(".is-invalid").forEach((d) => d.removeClass("is-invalid"));
-		for (const data of this.plugin.settings) {
+		for (const data of this.plugin.settings.mark) {
 			const index = duplicateIndex.findIndex((d) => d.regex === data.regex);
 			if (index >= 0) {
-				duplicateIndex[index].index.push(this.plugin.settings.indexOf(data));
+				duplicateIndex[index].index.push(this.plugin.settings.mark.indexOf(data));
 			} else {
 				duplicateIndex.push({
 					regex: data.regex,
-					index: [this.plugin.settings.indexOf(data)],
+					index: [this.plugin.settings.mark.indexOf(data)],
 				});
 			}
 		}
@@ -313,7 +401,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 		for (const duplicate of allDuplicateIndex) {
 			const cb = document.querySelectorAll(".regex-input")[duplicate];
 			if (cb) cb.addClass("is-invalid");
-			const regex = this.plugin.settings[duplicate].regex;
+			const regex = this.plugin.settings.mark[duplicate].regex;
 			new Notice(`Duplicate regex: ${regex}.`);
 		}
 		return false;

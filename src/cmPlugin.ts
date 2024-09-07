@@ -1,5 +1,5 @@
 import { RegExpCursor } from "@codemirror/search";
-import { combineConfig, type EditorSelection, type Extension, Facet } from "@codemirror/state";
+import { type EditorSelection, type Extension, Facet, combineConfig } from "@codemirror/state";
 import {
 	Decoration,
 	type DecorationSet,
@@ -12,13 +12,14 @@ import {
 } from "@codemirror/view";
 import { cloneDeep } from "lodash";
 
-import type { SettingOption, SettingOptions } from "./interface";
+import { Notice, sanitizeHTMLToDom } from "obsidian";
+import { DEFAULT_PATTERN, type Mark, type Pattern, type SettingOption, type SettingOptions } from "./interface";
 import type RegexMark from "./main";
 import { isValidRegex, removeTags } from "./utils";
 
 const Config = Facet.define<SettingOptions, Required<SettingOptions>>({
 	combine(options) {
-		return combineConfig(options, []);
+		return combineConfig(options, {});
 	},
 });
 
@@ -50,32 +51,45 @@ class CMPlugin implements PluginValue {
 
 	buildDecorations(view: EditorView) {
 		const decorations = [];
-		const data: SettingOptions = Object.values(view.state.facet(Config));
+		const data: Mark = Object.values(view.state.facet(Config).mark);
+		const pattern: Pattern = view.state.facet(Config).pattern ?? cloneDeep(DEFAULT_PATTERN);
+
 		const mode = this.viewMode(view);
 		for (const part of view.visibleRanges) {
 			for (const d of data) {
 				const displayMode = mode === "Live" ? d.viewMode?.live : d.viewMode?.source;
-				if (!d.regex || !d.class || d.regex === "" || d.class === "" || !isValidRegex(d.regex) || displayMode === false)
+				if (
+					!d.regex ||
+					!d.class ||
+					d.regex === "" ||
+					d.class === "" ||
+					!isValidRegex(d.regex, true, pattern) ||
+					displayMode === false
+				)
 					continue;
+				try {
+					const cursor = new RegExpCursor(view.state.doc, removeTags(d.regex, pattern), {}, part.from, part.to);
+					while (!cursor.next().done) {
+						const { from, to } = cursor.value;
+						const insideBlock = disableInBlock(d, view, cursor, part, from, to);
+						if (insideBlock) continue;
 
-				const cursor = new RegExpCursor(view.state.doc, removeTags(d.regex), {}, part.from, part.to);
-				while (!cursor.next().done) {
-					const { from, to } = cursor.value;
-					const insideBlock = disableInBlock(d, view, cursor, part, from, to);
-					if (insideBlock) continue;
-
-					//don't add the decoration if the cursor (selection in the editor) is inside the decoration
-					if (checkSelectionOverlap(view.state.selection, from, to)) {
-						//just apply the decoration to the whole line
-						const markup = Decoration.mark({ class: d.class });
-						decorations.push(markup.range(from, to));
-						continue;
+						//don't add the decoration if the cursor (selection in the editor) is inside the decoration
+						if (checkSelectionOverlap(view.state.selection, from, to)) {
+							//just apply the decoration to the whole line
+							const markup = Decoration.mark({ class: d.class });
+							decorations.push(markup.range(from, to));
+							continue;
+						}
+						const string = view.state.sliceDoc(from, to).trim();
+						const markDeco = Decoration.replace({
+							widget: new LivePreviewWidget(string, d, view, pattern),
+						});
+						decorations.push(markDeco.range(from, to));
 					}
-					const string = view.state.sliceDoc(from, to).trim();
-					const markDeco = Decoration.replace({
-						widget: new LivePreviewWidget(string, d, view),
-					});
-					decorations.push(markDeco.range(from, to));
+				} catch (e) {
+					console.error(e);
+					new Notice(sanitizeHTMLToDom(`<span class="error RegexMark"><code>${d.regex}</code>: <b>${e}</b></span>`));
 				}
 			}
 		}
@@ -92,22 +106,25 @@ const cmPlugin = ViewPlugin.fromClass(CMPlugin, pluginSpec);
 class LivePreviewWidget extends WidgetType {
 	data: SettingOption;
 	view: EditorView;
+	pattern: Pattern;
 
 	constructor(
 		readonly value: string,
 		data: SettingOption,
-		view: EditorView
+		view: EditorView,
+		pattern?: Pattern
 	) {
 		super();
 		this.data = data;
 		this.view = view;
+		this.pattern = pattern ?? cloneDeep(DEFAULT_PATTERN);
 	}
 
 	//Widget is only updated when the raw text is changed / the elements get focus and loses it
 
 	eq(other: LivePreviewWidget) {
 		//return false if the regex is edited
-		const regex = new RegExp(removeTags(this.data.regex));
+		const regex = new RegExp(removeTags(this.data.regex, this.pattern));
 		if (this.value.match(regex) === null) return false;
 
 		return other.value == this.value;
@@ -125,8 +142,8 @@ class LivePreviewWidget extends WidgetType {
 
 			const newContent = wrap.createEl("span");
 			if (
-				(openTag && !isValidRegex(openTag as string, true)) ||
-				(closeTag && !isValidRegex(closeTag as string, true))
+				(openTag && !isValidRegex(openTag as string, true, this.pattern)) ||
+				(closeTag && !isValidRegex(closeTag as string, true, this.pattern))
 			) {
 				return wrap;
 			}

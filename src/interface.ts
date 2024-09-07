@@ -28,7 +28,27 @@ export interface SettingOption {
 	viewMode?: ViewMode;
 }
 
-export type SettingOptions = SettingOption[];
+export type SettingOptions = {
+	mark: Mark;
+	pattern?: Pattern;
+};
+
+export type Pattern = {
+	open: string;
+	close: string;
+};
+
+export const DEFAULT_PATTERN: Pattern = {
+	open: "{{open:(.*?)}}",
+	close: "{{close:(.*?)}}",
+};
+
+export const DEFAULT_SETTINGS: SettingOptions = {
+	mark: [],
+	pattern: DEFAULT_PATTERN,
+};
+
+export type Mark = SettingOption[];
 
 export type ViewMode = {
 	reading: boolean;
