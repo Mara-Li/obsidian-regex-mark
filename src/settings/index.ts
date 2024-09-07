@@ -99,8 +99,8 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 			})
 			.addButton((button) => {
 				button
-					.setButtonText("Change open/close pattern")
-					.setTooltip("Advanced user only! Allow to change the pattern for hiding element")
+					.setButtonText("Change open/close tags")
+					.setTooltip("Advanced user only! Allow to change the tags for hiding element")
 					.onClick(async () => {
 						new RemarkPatternTab(this.app, this.clonePattern(this.settings), async (result) => {
 							this.updateRegex(result);
@@ -340,12 +340,14 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 		}
 		if (!pattern) pattern = this.plugin.settings.pattern ?? DEFAULT_PATTERN;
 		if (data.hide && !isValidRegex(removeTags(regex, pattern))) {
-			new Notice("The open/close pattern is not recognized");
+			new Notice(sanitizeHTMLToDom(`<span class="RegexMark error">The open/close pattern is not recognized</span>`));
 			if (cb) cb.addClass("is-invalid");
 			return false;
 		}
 		if (isInvalid(data.regex)) {
-			new Notice("You need to add a new line after the [^] regex.");
+			new Notice(
+				sanitizeHTMLToDom(`<span class="RegexMark error">You need to add a new line after the [^] regex</span>`)
+			);
 			if (cb) cb.addClass("is-invalid");
 			return false;
 		}

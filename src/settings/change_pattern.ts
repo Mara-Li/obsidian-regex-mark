@@ -31,10 +31,10 @@ export class RemarkPatternTab extends Modal {
 		this.contentEl.addClasses(["RegexMark", "pattern-change"]);
 		this.result = this.oldPattern ?? DEFAULT_PATTERN;
 
-		new Setting(contentEl).setHeading().setName("Change open/close pattern");
+		new Setting(contentEl).setHeading().setName("Change open/close tags");
 
 		const desc = dedent(`
-			<p dir="auto">Allow to change the <code>{{open:}}</code> and <code>{{close:}}</code> pattern.</p>
+			<p dir="auto">Allow to change the <code>{{open:}}</code> and <code>{{close:}}</code> tags.</p>
 			<div data-callout-metadata="" data-callout-fold="" data-callout="warning" class="callout">
 				<div class="callout-title" dir="auto">
 					<div class="callout-icon">
@@ -47,11 +47,11 @@ export class RemarkPatternTab extends Modal {
 					<div class="callout-title-inner">Warning</div>
 				</div>
 				<div class="callout-content">
-					<p dir="auto">Any character used in the pattern will disable the character in it.<br>
+					<p dir="auto">Any character used in the tag will disable the character in it.<br>
 					For example: <code>[[open:]]]]</code> can't work if open is set on <code>[[open:]]</code>.</p>
 				</div>
 			</div>
-			<p>Your regex will be manually ported using the new settings. If an error is found during the conversion, the regex will be disabled in all view and you will need to fix it manually.</p>
+			<p>Your regex will be manually ported using the new settings. If an error is found during the conversion, the regex will be disabled in all view, and you will need to fix it manually.</p>
 			<div data-callout-metadata="" data-callout-fold="" data-callout="note" class="callout">
 				<div class="callout-title" dir="auto">
 					<div class="callout-icon">
@@ -64,7 +64,7 @@ export class RemarkPatternTab extends Modal {
 				</div>
 				<div class="callout-content">
 					<p dir="auto">The open/close needs to be registered in the regex format, so don't forget to escape the characters!<br>
-					For example: <code>[[open:(.*)]]</code> needs to be saved as <code>\\[\\[open:(.*)\\]\\]</code><br>Also, you can't use <code>\\</code> for the pattern (reserved for escape only)!</p>
+					For example: <code>[[open:(.*)]]</code> needs to be saved as <code>\\[\\[open:(.*)\\]\\]</code><br>Also, you can't use <code>\\</code> for the tag (reserved for escape only)!</p>
 				</div>
 			</div>
 			<p dir="auto">For the moment, based on your settings:</p>
