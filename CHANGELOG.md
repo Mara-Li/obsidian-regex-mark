@@ -1,3 +1,5 @@
+## [1.9.2](https://github.com/Lisandra-dev/obsidian-regex-mark/compare/1.9.1...1.9.2) (2024-09-07)
+
 ## [1.9.1](https://github.com/Lisandra-dev/obsidian-regex-mark/compare/1.9.0...1.9.1) (2024-09-07)
 ### Bug Fixes
 
