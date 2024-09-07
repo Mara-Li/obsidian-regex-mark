@@ -72,6 +72,16 @@ Each toggle are independent, so you can disable for reading mode, but enable for
 
 You can also disable/enable a snippet within code (code-block or inline, between backticks), with toggle "Code".
 
+## Change open/close tags (advanced user only!)
+
+This setting allow to change the default `{{open:}}` and `{{close:}}` tags to something else, allowing to use the `}` (for example) as an opening/closing (ie `{regex}` can be recognized and stylized). When the tags are changed, the regex are automatically updated to use the new tags. If a regex is broken, it will be disabled in all view, and a warning will be displayed in a Notice.
+
+## Import / export
+
+You can share your regexes with other people without manually sharing the `data.json` using the import / export feature. You can also use it to back up your regexes.
+
+The settings also port the open/close tags, so you can share the settings with the tags you use. Manual regex in object format can also be imported, and they will be added to the list.
+
 # Next steps
 
 You can then use the CSS class to style the text in your CSS snippet or any other usages. You can even import or export settings from others!
