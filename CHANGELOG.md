@@ -1,3 +1,8 @@
+## [1.9.1](https://github.com/Lisandra-dev/obsidian-regex-mark/compare/1.9.0...1.9.1) (2024-09-07)
+### Bug Fixes
+
+* **pattern:** DEFAULT_PATTERN not escaped properly ([e6088f5](https://github.com/Lisandra-dev/obsidian-regex-mark/commit/e6088f5ef395f01bc448a9215462f010a4396657))
+
 ## [1.9.0](https://github.com/Lisandra-dev/obsidian-regex-mark/compare/1.8.0...1.9.0) (2024-09-07)
 ### Features
 
