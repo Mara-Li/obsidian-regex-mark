@@ -64,7 +64,7 @@ export class RemarkPatternTab extends Modal {
 				</div>
 				<div class="callout-content">
 					<p dir="auto">The open/close needs to be registered in the regex format, so don't forget to escape the characters!<br>
-					For example: <code>{{open:(.*)}}</code> needs to be saved as <code>\\{\\{open:(.*)\\}\\}</code><br>Also, you can't use <code>\\</code> for the pattern (reserved for escape only)!</p>
+					For example: <code>[[open:(.*)]]</code> needs to be saved as <code>\\[\\[open:(.*)\\]\\]</code><br>Also, you can't use <code>\\</code> for the pattern (reserved for escape only)!</p>
 				</div>
 			</div>
 			<p dir="auto">For the moment, based on your settings:</p>
@@ -147,13 +147,14 @@ export class RemarkPatternTab extends Modal {
 			const result = this.verifyRegexPattern(value, which);
 			if (result !== true) {
 				el.addClass("error");
-				errors.push(`${value}: ${result}`);
+				errors.push(`<code>${value}</code>: <u>${result}</u>`);
 			} else {
 				el.removeClass("error");
 			}
 		});
 		if (errors.length > 0) {
-			new Notice(`Error in the pattern:\n• ${errors.join("\n• ")}`);
+			const html = errors.map((d) => `<li class="error">${d}</li>`).join("");
+			new Notice(sanitizeHTMLToDom(`<span class="RegexMark error">Errors found:<ul>${html}</ul></span>`));
 			return false;
 		}
 		return true;

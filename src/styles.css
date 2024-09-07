@@ -16,6 +16,10 @@
   user-select: text;
 }
 
+.RegexMark li.error::marker {
+    color: #FAFAFA;
+}
+
 .regex-setting .setting-item-info {
   display: none;
 }
@@ -36,15 +40,14 @@
   opacity: 0.5;
 }
 
-.RegexMark .error {
-  background-color: var(--background-modifier-error);
-  color: var(--text-error);
-}
-
 .regex-mark-callout {
   border-left: 2px solid var(--color-blue);
   padding-left: 1em;
   background-color: rgba(var(--color-blue-rgb), 0.1);
+}
+
+.notice:has(.RegexMark.success) {
+  background-color: rgba(var(--color-green-rgb), 0.6);
 }
 
 .RegexMark input,

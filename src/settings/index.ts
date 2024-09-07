@@ -46,6 +46,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 
 	updateRegex(newPattern: Pattern) {
 		const oldPattern = this.settings.pattern ?? DEFAULT_PATTERN;
+		const notValid = [];
 		for (const data of this.settings.mark) {
 			const newAsString: Pattern = {
 				open: newPattern.open.replace("(.*?)", "$1").replaceAll(/\\/g, ""),
@@ -62,8 +63,15 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 					source: false,
 					live: false,
 				};
+				notValid.push(newData.regex);
 			}
 		}
+		const html = notValid.map((d) => `<li class="error"><code>${d}</code></li>`).join("");
+		if (notValid.length > 0)
+			new Notice(
+				sanitizeHTMLToDom(`<span class="RegexMark error">The following regexes are invalid: <ul>${html}</ul></span>`),
+				0
+			);
 	}
 
 	stringifyPattern(pattern: Pattern) {
@@ -288,15 +296,18 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 								return;
 							}
 							this.display();
-							new Notice("Regexes are valid and applied.");
+							new Notice(
+								sanitizeHTMLToDom(`<span class="RegexMark success">🎉 Regexes applied successfully</span>`),
+								0
+							);
 							return;
 						}
-						let msg = "Found: ";
+						let msg = "Found ";
 						if (!validRegex) msg += "invalid regexes";
 						if (!validRegex && !validCss) msg += " and ";
 						if (!validCss) msg += "empty css ";
 						msg += ". Please fix them before applying.";
-						new Notice(msg);
+						new Notice(sanitizeHTMLToDom(`<span class="RegexMark error">${msg}</span>`));
 					});
 			});
 	}
