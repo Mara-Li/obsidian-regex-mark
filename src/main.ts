@@ -17,7 +17,7 @@ export default class RegexMark extends Plugin {
 		const hasDisable = this.settings.mark.filter((data) => data.disable);
 		for (const data of hasDisable) {
 			if (data.disable) {
-				console.warn(`Deprecated disable option found for ${data.class}, removing it and ajust the viewMode option.`);
+				console.warn(`Deprecated disable option found for ${data.class}, removing it and adjust the viewMode option.`);
 				data.viewMode = {
 					reading: false,
 					source: false,
