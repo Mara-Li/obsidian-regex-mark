@@ -130,15 +130,18 @@ class LivePreviewWidget extends WidgetType {
 		return other.value == this.value;
 	}
 
+	constructTag(pattern: string) {
+		const regex = new RegExp(pattern);
+		return this.data.regex.match(regex)?.[1] ?? null;
+	}
+
 	toDOM() {
 		const wrap = document.createElement("span");
 		wrap.addClass(this.data.class);
 		const text = this.value;
 		if (this.data.hide) {
-			let openTag = null;
-			let closeTag = null;
-			if (this.data.regex.match("{{open")) openTag = this.data.regex.match(/{{open:(.*?)}}/)?.[1];
-			if (this.data.regex.match("{{close")) closeTag = this.data.regex.match(/{{close:(.*?)}}/)?.[1];
+			const openTag = this.constructTag(this.pattern.open);
+			const closeTag = this.constructTag(this.pattern.close);
 
 			const newContent = wrap.createEl("span");
 			if (
