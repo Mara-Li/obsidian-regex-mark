@@ -135,7 +135,10 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 					<div class="callout-title-inner">Note</div>
 				</div>
 				<div class="callout-content">
-					<p dir="auto">"Overwriting" markdown (for example underline with underscore as <strong>underline</strong>) will not work in Reading Mode.</p>
+					<p dir="auto">
+					<li>"Overwriting" markdown (for example underline with underscore as <strong>underline</strong>) will not work in Reading Mode. But, you can escape the pattern, with a backslash (<code>\\</code>) before the mark to disable it! Don't forget it in the regex, through.</li>
+					<li>Using a group in the opening and closing pattern is not supported.</li>
+					</p>
 				</div>
 			</div>
 			`);

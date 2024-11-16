@@ -89,12 +89,13 @@ You can then use the CSS class to style the text in your CSS snippet or any othe
 ## Examples
 
 - Underline : `{{open:__}}(.*){{close:__}}`
+  Note: To make it works in Reading mode, read [this](#additional-notes)
 - SuperScript : `{{open:\^}}(.)` (Note: It works for "one" character only here, but you can use
   `^x^` syntax if you want to use for more text:
   `{{open:\^}}(.*){{close:\^}}`)
 - SubScript : `{{open:_}}([a-zA-Z\d]\b))` (As before, it works for only one element)
 
-The css for the above example is:
+The CSS for the above example is:
 
 ```css
 .superscript {
@@ -107,6 +108,26 @@ The css for the above example is:
     font-size: 90%;
 }
 ```
+
+## Additional notes
+
+In **reading mode** the plugin can't override the default mark behavior. For example, `**` and `__` will be always bold, and render without the tag. The plugin won't recognize the opening and closing pattern, and ignore it.
+
+To prevent this, you can escape the pattern using a backslash (`\`):
+
+```md
+\__hello world\__
+lorem ipsum (won't be in italic)
+```
+
+In reading view, it will render as:
+
+```text
+__hello world__
+```
+
+And the regex should be: `{{open:\\?_\\?_}}(.*){{close:\\?_\\?_}}`
+You **need** to make the backslash optional, because they don't render in the reading view.
 
 ---
 > [!WARNING]
