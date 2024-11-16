@@ -26,7 +26,7 @@ jobs:
 
     with:
       PLUGIN_NAME: regex-mark
-      CACHE: "pnpm"
+      CACHE: "bun"
     secrets:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -36,6 +36,6 @@ jobs:
     with:
       PLUGIN_NAME: regex-mark
       BETA: ${{ inputs.beta }}
-      CACHE: "pnpm"
+      CACHE: "bun"
     secrets:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
