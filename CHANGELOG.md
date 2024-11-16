@@ -1,3 +1,8 @@
+## [1.9.3](https://github.com/Lisandra-dev/obsidian-regex-mark/compare/1.9.2...1.9.3) (2024-11-16)
+### Bug Fixes
+
+* **LP:** forgot to update lp mode with open/close setting change ([55f28ac](https://github.com/Lisandra-dev/obsidian-regex-mark/commit/55f28ac3b75c50e5d02d103ed86c3bd188e8f625)), closes [#19](https://github.com/Lisandra-dev/obsidian-regex-mark/issues/19)
+
 ## [1.9.2](https://github.com/Lisandra-dev/obsidian-regex-mark/compare/1.9.1...1.9.2) (2024-09-07)
 
 ## [1.9.1](https://github.com/Lisandra-dev/obsidian-regex-mark/compare/1.9.0...1.9.1) (2024-09-07)

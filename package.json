@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-regex-mark",
-	"version": "1.9.2",
+	"version": "1.9.3",
 	"description": "Add custom CSS classes to text based on regular expressions.",
 	"main": "main.js",
 	"private": "true",
@@ -45,5 +45,7 @@
 		"dedent": "^1.5.3",
 		"dotenv": "^16.4.5"
 	},
-	"trustedDependencies": ["@biomejs/biome"]
+	"trustedDependencies": [
+		"@biomejs/biome"
+	]
 }
