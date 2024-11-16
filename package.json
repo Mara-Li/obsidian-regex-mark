@@ -3,16 +3,16 @@
 	"version": "1.9.2",
 	"description": "Add custom CSS classes to text based on regular expressions.",
 	"main": "main.js",
+	"private": "true",
 	"scripts": {
 		"prebuild": "tsc --noEmit --skipLibCheck",
 		"build": "node esbuild.config.mjs --production",
 		"dev:prod": "node esbuild.config.mjs --vault",
 		"dev": "node esbuild.config.mjs",
 		"export": "node esbuild.config.mjs --production --vault",
-		"bump": "node commit-and-tag-version.mjs",
-		"postbump": "git push --follow-tags origin master",
-		"predeploy": "bun run bump",
-		"deploy": "bun run export",
+		"prerelease": "tsc --noEmit --skipLibCheck",
+		"release": "node commit-and-tag-version.mjs",
+		"postrelease": "git push --follow-tags origin master",
 		"lint": "bun biome format --write src/"
 	},
 	"commit-and-tag-version": {
