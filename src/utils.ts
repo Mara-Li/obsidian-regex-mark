@@ -27,3 +27,16 @@ export function isValidRegex(regex: string, warn = true, pattern?: Pattern) {
 export function hasToHide(regex: string, pattern?: Pattern) {
 	return removeTags(regex, pattern).match(/\((.*?)\)/);
 }
+
+export function extractGroups(regex: string): string[] {
+	const groupPattern = /\(\?<([a-zA-Z_][a-zA-Z0-9_]*)>/g;
+	const groups: string[] = [];
+
+	let match;
+	while ((match = groupPattern.exec(regex)) !== null) {
+		// match[1] contient le nom du groupe
+		groups.push(match[1]);
+	}
+
+	return groups;
+}

@@ -1,51 +1,52 @@
 {
-	"name": "obsidian-regex-mark",
-	"version": "1.9.3",
-	"description": "Add custom CSS classes to text based on regular expressions.",
-	"main": "main.js",
-	"private": "true",
-	"scripts": {
-		"prebuild": "tsc --noEmit --skipLibCheck",
-		"build": "node esbuild.config.mjs --production",
-		"dev:prod": "node esbuild.config.mjs --vault",
-		"dev": "node esbuild.config.mjs",
-		"export": "node esbuild.config.mjs --production --vault",
-		"prerelease": "tsc --noEmit --skipLibCheck",
-		"release": "node commit-and-tag-version.mjs",
-		"postrelease": "git push --follow-tags origin master",
-		"lint": "bun biome format --write src/"
-	},
-	"commit-and-tag-version": {
-		"t": ""
-	},
-	"keywords": [],
-	"author": "",
-	"license": "MIT",
-	"devDependencies": {
-		"@biomejs/biome": "1.9.4",
-		"@codemirror/search": "^6.5.7",
-		"@codemirror/state": "^6.4.1",
-		"@codemirror/view": "^6.34.3",
-		"@types/dompurify": "^3.0.5",
-		"@types/lodash": "^4.17.13",
-		"@types/node": "^22.9.0",
-		"builtin-modules": "4.0.0",
-		"esbuild": "0.24.0",
-		"lodash": "^4.17.21",
-		"obsidian": "^1.7.2",
-		"ts-dedent": "^2.2.0",
-		"tslib": "2.8.1",
-		"typescript": "5.6.3"
-	},
-	"dependencies": {
-		"@codemirror/language": "^6.10.3",
-		"ansi-colors": "^4.1.3",
-		"commander": "^12.1.0",
-		"commit-and-tag-version": "^12.5.0",
-		"dedent": "^1.5.3",
-		"dotenv": "^16.4.5"
-	},
-	"trustedDependencies": [
-		"@biomejs/biome"
-	]
+  "name": "obsidian-regex-mark",
+  "version": "1.9.3",
+  "description": "Add custom CSS classes to text based on regular expressions.",
+  "main": "main.js",
+  "private": "true",
+  "scripts": {
+    "prebuild": "tsc --noEmit --skipLibCheck",
+    "build": "node esbuild.config.mjs --production",
+    "dev:prod": "node esbuild.config.mjs --vault",
+    "dev": "node esbuild.config.mjs",
+    "export": "node esbuild.config.mjs --production --vault",
+    "prerelease": "tsc --noEmit --skipLibCheck",
+    "release": "node commit-and-tag-version.mjs",
+    "postrelease": "git push --follow-tags origin master",
+    "lint": "bun biome format --write src/"
+  },
+  "commit-and-tag-version": {
+    "t": ""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@biomejs/biome": "1.9.4",
+    "@codemirror/search": "^6.5.8",
+    "@codemirror/state": "^6.5.0",
+    "@codemirror/view": "^6.36.1",
+    "@types/dompurify": "^3.2.0",
+    "@types/lodash": "^4.17.13",
+    "@types/node": "^22.10.2",
+    "builtin-modules": "4.0.0",
+    "esbuild": "0.24.2",
+    "lodash": "^4.17.21",
+    "obsidian": "^1.7.2",
+    "ts-dedent": "^2.2.0",
+    "tslib": "2.8.1",
+    "typescript": "5.7.2"
+  },
+  "dependencies": {
+    "@codemirror/language": "^6.10.8",
+    "ansi-colors": "^4.1.3",
+    "commander": "^12.1.0",
+    "commit-and-tag-version": "^12.5.0",
+    "dedent": "^1.5.3",
+    "dotenv": "^16.4.7"
+  },
+  "trustedDependencies": [
+    "@biomejs/biome",
+    "esbuild"
+  ]
 }
