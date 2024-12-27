@@ -1,7 +1,7 @@
 import { type App, MarkdownView, sanitizeHTMLToDom } from "obsidian";
 
 import type { Mark, Pattern } from "./interface";
-import { isValidRegex, removeTags } from "./utils";
+import { isValidRegex, matchGroups, removeTags } from "./utils";
 
 export function MarkdownProcessor(data: Mark, element: HTMLElement, app: App, pattern?: Pattern) {
 	const paragraph = element.findAll("p, li, h1, h2, h3, h4, h5, h6, td, .callout-title-inner, th, code");
@@ -41,10 +41,22 @@ export function MarkdownProcessor(data: Mark, element: HTMLElement, app: App, pa
 					if (!d.regex || !d.class || d.regex === "" || d.class === "" || enabled === false) continue;
 					const regex = new RegExp(removeTags(d.regex, pattern), d.flags?.join("") ?? "gi");
 					if (d.hide) {
-						const group = removeTags(d.regex, pattern).match(/\((.*?)\)/);
+						const group = removeTags(d.regex, pattern)
+							.match(/\((.*?)\)/)
+							?.filter((x) => x != null);
 						const dataText = regex.exec(text);
-						if (!group || !dataText || !dataText?.[1]) continue;
-						text = text.replace(regex, `<span class="${d.class}" data-contents="$1">$1</span>`);
+						//remove undefined in dataText
+						if (!group || !dataText || dataText.length < 2) continue;
+						const subgroup = matchGroups(regex.source, text);
+						if (!subgroup) text = text.replace(regex, `<span class="${d.class}" data-contents="$1">$1</span>`);
+						else {
+							let html = `<span class='${d.class}'>`;
+							for (const [css, subtxt] of Object.entries(subgroup)) {
+								html += text.replace(subtxt.input, `<span class="${css}">${subtxt.text}</span>`);
+							}
+							html += "</span>";
+							text = html;
+						}
 					} else text = text.replace(regex, `<span class="${d.class}" data-contents="$&">$&</span>`);
 				}
 				const dom = sanitizeHTMLToDom(text);

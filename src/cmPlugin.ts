@@ -15,7 +15,7 @@ import { cloneDeep } from "lodash";
 import { Notice, sanitizeHTMLToDom } from "obsidian";
 import { DEFAULT_PATTERN, type Mark, type Pattern, type SettingOption, type SettingOptions } from "./interface";
 import type RegexMark from "./main";
-import { isValidRegex, removeTags } from "./utils";
+import { isValidRegex, matchGroups, removeTags } from "./utils";
 
 const Config = Facet.define<SettingOptions, Required<SettingOptions>>({
 	combine(options) {
@@ -136,27 +136,13 @@ class LivePreviewWidget extends WidgetType {
 	}
 
 	toDOM() {
-		const wrap = document.createElement("span");
+		let wrap = document.createElement("span");
 		wrap.addClass(this.data.class);
 		const text = this.value;
 		if (this.data.hide) {
-			const openTag = this.constructTag(this.pattern.open);
-			const closeTag = this.constructTag(this.pattern.close);
-
 			const newContent = wrap.createEl("span");
-			if (
-				(openTag && !isValidRegex(openTag as string, true, this.pattern)) ||
-				(closeTag && !isValidRegex(closeTag as string, true, this.pattern))
-			) {
-				return wrap;
-			}
-			const openRegex = new RegExp(openTag as string, "g");
-			const closeRegex = new RegExp(closeTag as string, "g");
-			newContent.createEl("span", { cls: "cm-hide" }).setText(text.match(openRegex)?.[1] || "");
-			newContent
-				.createEl("span", { cls: this.data.class })
-				.setText(text.replace(openRegex, "").replace(closeRegex, "") || "");
-			newContent.createEl("span", { cls: "cm-hide" }).setText(text.match(closeRegex)?.[1] || "");
+			const res = this.subGroup(this.data.regex, text, newContent);
+			if (res) wrap = res;
 		} else wrap.innerText = text;
 
 		return wrap;
@@ -168,6 +154,45 @@ class LivePreviewWidget extends WidgetType {
 
 	destroy(_dom: HTMLElement): void {
 		//do nothing
+	}
+
+	/**
+	 * If they are (?<name>) syntax in the regex, create a different html element for each group
+	 * for example:
+	 * (.*)(?<bold>.*)(?<italic>.*) =>
+	 *   <span class="main">
+	 *     <span class="bold">text</span>
+	 *     <span class="italic">text</span>
+	 *     </span>
+	 * @param regex
+	 * @param text
+	 * @param newContent
+	 */
+	subGroup(regex: string, text: string, newContent: HTMLSpanElement) {
+		const openTag = this.constructTag(this.pattern.open);
+		const closeTag = this.constructTag(this.pattern.close);
+		if (
+			(openTag && !isValidRegex(openTag as string, true, this.pattern)) ||
+			(closeTag && !isValidRegex(closeTag as string, true, this.pattern))
+		) {
+			return newContent;
+		}
+		const openRegex = new RegExp(openTag as string, "g");
+		const closeRegex = new RegExp(closeTag as string, "g");
+		const matchSub = matchGroups(removeTags(regex, this.pattern), text);
+		if (!matchSub) {
+			newContent.createEl("span", { cls: "cm-hide" }).setText(text.match(openRegex)?.[1] || "");
+			newContent
+				.createEl("span", { cls: this.data.class })
+				.setText(text.replace(openRegex, "").replace(closeRegex, "") || "");
+			newContent.createEl("span", { cls: "cm-hide" }).setText(text.match(closeRegex)?.[1] || "");
+			return newContent;
+		}
+		newContent.addClass(this.data.class);
+		for (const [css, items] of Object.entries(matchSub)) {
+			newContent.createEl("span", { cls: css }).setText(items.text);
+		}
+		return newContent;
 	}
 }
 

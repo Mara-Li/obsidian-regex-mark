@@ -55,6 +55,17 @@ The css will after hide the `.cm-hide` class, unless you select it (only in live
 
 Selecting the text will show everything, like with other markup.
 
+## Named group
+You can also encapsulate a sub-css into a regex mark, using named group. The group name will be used as the CSS class.
+For example :
+- <u>Regex</u> : `{{open:^-# }}((@(?<bold>.*)@)?(?<other>.*))`
+- <u>Text</u> : `^-# @bold@ hello world`
+- <u>Result</u> : `<span class="small"><span data-contents="-# @bold@ hello world!" class="bold">bold</span><span data-contents="-# @bold@ hello world!" class="autre"> hello world!</span></span>`
+
+> [!important]
+> If you want to keep the rest of the text, you need to add another **named group** at the end of the regex, like `(?<other>.*)` in the example above.
+> This mean that is not possible to match multiple time the same group in the same text: `-# @bold@ hello world @bold@` will not work as expected.
+
 # Settings
 
 ![img.png](_assets/settings.png)

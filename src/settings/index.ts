@@ -122,8 +122,9 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 			
 			<p>You can create custom MarkDown Markup with using the <code>${pattern.open}</code> and <code>${pattern.close}</code>. The open and close regex will be hidden in Live-Preview. You need to use the "hide" toggle to make it work.<br><br>
 			To activate the toggle, you need to use a <b>regex group</b>. See <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_expressions/Groups_and_backreferences">here for more information</a>.<br>
-			<span class="regex-setting-secondary">Note: Named group is not implanted.</span></p>
-			
+			<div data-callout-metadata="" data-callout-fold="" data-callout="important" class="callout"><div class="callout-title" dir="auto"><div class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="svg-icon lucide-flame"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg></div><div class="callout-title-inner">Named group</div></div><div class="callout-content">
+			<p dir="auto">Named group allow to "granular" match regex. Name will be used as CSS classes. Note that it is pretty experimental so don't expect much!<br>Also, you needs to use named group for <bold>each group</bold> in the regex.</p>
+			</div></div>
 			<div data-callout-metadata="" data-callout-fold="" data-callout="note" class="callout">
 				<div class="callout-title" dir="auto">
 					<div class="callout-icon">

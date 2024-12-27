@@ -33,10 +33,32 @@ export function extractGroups(regex: string): string[] {
 	const groups: string[] = [];
 
 	let match;
+	//biome-ignore lint/suspicious/noAssignInExpressions:
 	while ((match = groupPattern.exec(regex)) !== null) {
 		// match[1] contient le nom du groupe
 		groups.push(match[1]);
 	}
 
 	return groups;
+}
+
+export function matchGroups(regex: string, text: string): Record<string, { text: string; input: string }> | null {
+	const groupPattern = new RegExp(regex);
+	const match = groupPattern.exec(text);
+
+	if (!match) return null;
+
+	const groupNames = extractGroups(regex);
+	const result: Record<string, { text: string; input: string }> = {};
+
+	groupNames.forEach((groupName) => {
+		if (match.groups && match.groups[groupName] !== undefined) {
+			result[groupName] = {
+				text: match.groups[groupName],
+				input: match[0],
+			};
+		}
+	});
+	if (Object.keys(result).length === 0) return null;
+	return result;
 }
