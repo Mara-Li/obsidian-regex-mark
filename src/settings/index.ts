@@ -538,15 +538,6 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 	}
 
 	/**
-	 * Gets the toggle element for a setting option
-	 */
-	private getToggleFromInput(data: SettingOption) {
-		const index = this.plugin.settings.mark.indexOf(data);
-		const toggle = document.querySelectorAll<HTMLElement>(".group-toggle")[index];
-		return toggle || null;
-	}
-
-	/**
 	 * Checks if the regex is valid for the hide toggle
 	 */
 	private verifyRegexFromInput(data: SettingOption) {
