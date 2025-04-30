@@ -1,3 +1,8 @@
+## [1.10.0](https://github.com/Mara-Li/obsidian-regex-mark/compare/1.10.0-0...1.10.0) (2025-04-30)
+### Bug Fixes
+
+* incorrect set of hide for non applicable regex ([#26](https://github.com/Mara-Li/obsidian-regex-mark/issues/26)) ([6f00efd](https://github.com/Mara-Li/obsidian-regex-mark/commit/6f00efdac63124351c71389fd9423a7178db0c60))
+
 ## [1.9.3](https://github.com/Lisandra-dev/obsidian-regex-mark/compare/1.9.2...1.9.3) (2024-11-16)
 ### Bug Fixes
 
