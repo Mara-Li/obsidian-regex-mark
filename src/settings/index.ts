@@ -216,7 +216,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 						});
 					toggle.toggleEl.addClass("group-toggle");
 					const verify =
-						!hasToHide(data.regex, this.plugin.settings.pattern) &&
+						!hasToHide(data.regex, this.plugin.settings.pattern) ||
 						!isValidRegex(data.regex, false, this.plugin.settings.pattern);
 					this.toggleToolTip(toggle, verify);
 				})
@@ -355,6 +355,15 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 			if (cb) cb.addClass("is-invalid");
 			return false;
 		}
+		if (data.hide && !hasToHide(data.regex, this.plugin.settings.pattern)) {
+			new Notice(
+				sanitizeHTMLToDom(`<span class="RegexMark error">You need to use a group in the regex to hide it</span>`)
+			);
+			data.hide = false;
+			this.plugin.saveSettings();
+			this.disableToggle(data, this.plugin.settings.pattern);
+			if (cb) cb.addClass("is-invalid");
+		}
 		try {
 			new RegExp(regex);
 			if (cb) cb.removeClass("is-invalid");
@@ -381,7 +390,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 		const index = this.plugin.settings.mark.indexOf(data);
 		const toggle = document.querySelectorAll<HTMLElement>(".group-toggle")[index];
 		const verify =
-			(!hasToHide(data.regex, pattern) && !isValidRegex(data.regex, false, pattern)) || data.regex.trim().length === 0;
+			(!hasToHide(data.regex, pattern) || !isValidRegex(data.regex, false, pattern)) || data.regex.trim().length === 0;
 		if (toggle) toggle.toggleClass("is-disabled-manually", verify);
 		if (!verify) {
 			toggle.removeAttribute("disabled");

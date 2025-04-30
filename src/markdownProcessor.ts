@@ -36,6 +36,7 @@ export function MarkdownProcessor(data: Mark, element: HTMLElement, app: App, pa
 			let text = node.textContent;
 			if (text) {
 				for (const d of data) {
+					if (!d.viewMode) d.viewMode = { reading: true, source: true, live: true, codeBlock: true };
 					if (node.parentNode?.nodeName === "CODE" && d.viewMode?.codeBlock === false) continue;
 					const enabled = activeMode ? d.viewMode?.live : d.viewMode?.reading;
 					if (!d.regex || !d.class || d.regex === "" || d.class === "" || enabled === false) continue;
@@ -57,7 +58,9 @@ export function MarkdownProcessor(data: Mark, element: HTMLElement, app: App, pa
 							html += "</span>";
 							text = html;
 						}
-					} else text = text.replace(regex, `<span class="${d.class}" data-contents="$&">$&</span>`);
+					} else {
+						text = text.replace(regex, `<span class="${d.class}" data-contents="$&">$&</span>`);
+					}
 				}
 				const dom = sanitizeHTMLToDom(text);
 				if (node.parentNode) node.parentNode.replaceChild(dom, node);
