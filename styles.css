@@ -12,7 +12,7 @@
 }
 
 .RegexMark {
-	/* allow to select text */
+	-webkit-user-select: text;
 	user-select: text;
 }
 
@@ -50,6 +50,10 @@
 	background-color: rgba(var(--color-green-rgb), 0.6);
 }
 
+.notice:has(.RegexMark.error) {
+	background-color: rgba(var(--color-red-rgb), 0.6);
+}
+
 .RegexMark input,
 .regex-setting input {
 	font-family: var(--font-monospace);
@@ -59,14 +63,15 @@
 	padding-bottom: 10px;
 }
 
-.RegexMark .export-import > .setting-item-info {
+.RegexMark .export-import>.setting-item-info {
 	display: flex;
 	flex-direction: row;
 	gap: 4px;
 	overflow: hidden;
 	padding: 0;
 }
-.RegexMark .setting-item.export-import > .setting-item-control {
+
+.RegexMark .setting-item.export-import>.setting-item-control {
 	padding-bottom: 10px;
 }
 
