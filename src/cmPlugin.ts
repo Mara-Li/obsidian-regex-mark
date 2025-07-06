@@ -1,5 +1,5 @@
 import { RegExpCursor } from "@codemirror/search";
-import { type EditorSelection, type Extension, Facet, combineConfig } from "@codemirror/state";
+import { combineConfig, type EditorSelection, type Extension, Facet } from "@codemirror/state";
 import {
 	Decoration,
 	type DecorationSet,
@@ -15,25 +15,37 @@ import { cloneDeep } from "lodash";
 import { Notice, sanitizeHTMLToDom } from "obsidian";
 import { DEFAULT_PATTERN, type Mark, type Pattern, type SettingOption, type SettingOptions } from "./interface";
 import type RegexMark from "./main";
-import { isValidRegex, matchGroups, removeTags } from "./utils";
+import { includeFromSettings, isValidRegex, matchGroups, removeTags } from "./utils";
 
-const Config = Facet.define<SettingOptions, Required<SettingOptions>>({
+interface ConfigWithPlugin extends Required<SettingOptions> {
+	plugin: RegexMark;
+}
+
+const Config = Facet.define<SettingOptions | (SettingOptions & { plugin: RegexMark }), ConfigWithPlugin>({
 	combine(options) {
-		return combineConfig(options, {});
+		const combined = combineConfig(options, {});
+		const pluginOption = options.find((opt) => "plugin" in opt);
+
+		return {
+			...combined,
+			plugin: pluginOption?.plugin,
+		} as ConfigWithPlugin;
 	},
 });
 
 export function cmExtension(plugin: RegexMark) {
 	const extensions: Extension[] = [cmPlugin];
-	const options = plugin.settings;
-	extensions.push(Config.of(cloneDeep(options)));
+	const options = { ...plugin.settings, plugin };
+	extensions.push(Config.of(options));
 	return extensions;
 }
 
 class CMPlugin implements PluginValue {
 	decorations: DecorationSet;
+	private plugin: RegexMark;
 
 	constructor(view: EditorView) {
+		this.plugin = view.state.facet(Config).plugin;
 		this.decorations = this.buildDecorations(view);
 	}
 
@@ -64,7 +76,8 @@ class CMPlugin implements PluginValue {
 					d.regex === "" ||
 					d.class === "" ||
 					!isValidRegex(d.regex, true, pattern) ||
-					displayMode === false
+					displayMode === false ||
+					!includeFromSettings(this.plugin.app, d.viewMode?.autoRules)
 				)
 					continue;
 				try {
@@ -222,7 +235,7 @@ function disableInBlock(
 	const blockRegex = /(```[\s\S]*?```|`[^`]*`)/g;
 	let insideBlock = false;
 	blockRegex.lastIndex = 0;
-	// biome-ignore lint/suspicious/noAssignInExpressions: <explanation>
+	// biome-ignore lint/suspicious/noAssignInExpressions: Let blockRegex be reused
 	while ((blockMatch = blockRegex.exec(view.state.doc.sliceString(part.from, part.to))) !== null) {
 		const blockFrom = blockMatch.index + part.from;
 		const blockTo = blockRegex.lastIndex + part.from;

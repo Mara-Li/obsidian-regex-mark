@@ -1,5 +1,5 @@
 {
-	"$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+	"$schema": "https://biomejs.dev/schemas/2.0.6/schema.json",
 	"assist": {
 		"actions": {
 			"source": {
@@ -14,8 +14,7 @@
 			"complexity": {
 				"noExtraBooleanCast": "error",
 				"noAdjacentSpacesInRegex": "error",
-				"noUselessCatch": "error",
-				"noWith": "error"
+				"noUselessCatch": "error"
 			},
 			"correctness": {
 				"noConstAssign": "error",
@@ -25,6 +24,7 @@
 				"noGlobalObjectCalls": "error",
 				"noInnerDeclarations": "error",
 				"noInvalidConstructorSuper": "error",
+				"useValidTypeof": "error",
 				"noInvalidBuiltinInstantiation": {
 					"level": "error"
 				},
@@ -68,8 +68,8 @@
 				"noShadowRestrictedNames": "error",
 				"noUnsafeNegation": "error",
 				"useGetterReturn": "error",
-				"useValidTypeof": "error",
-				"noVar": "error"
+				"noVar": "error",
+				"noWith": "error"
 			},
 			"style": {
 				"useFilenamingConvention": "error",
@@ -84,34 +84,17 @@
 				"useConst": "error"
 			}
 		},
-		"includes": [
-			"**",
-			"!**/npm node_modules",
-			"!**/build",
-			"!**/dist",
-			"!**/src/i18n/locales"
-		]
+		"includes": ["**", "!**/npm node_modules", "!**/build", "!**/dist", "!**/src/i18n/locales"]
 	},
 	"overrides": [
 		{
-			"includes": [
-				"**/*.ts",
-				"**/*.tsx",
-				"!**/*.js",
-				"!**/node_modules/**"
-			]
+			"includes": ["**/*.ts", "**/*.tsx", "!**/*.js", "!**/node_modules/**"]
 		},
 		{
-			"includes": [
-				"**/*.js",
-				"!**/node_modules/**"
-			]
+			"includes": ["**/*.js", "!**/node_modules/**"]
 		},
 		{
-			"includes": [
-				"**/*.json",
-				"!**/node_modules/**"
-			]
+			"includes": ["**/*.json", "!**/node_modules/**"]
 		}
 	],
 	"formatter": {

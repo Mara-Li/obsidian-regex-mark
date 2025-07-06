@@ -79,9 +79,21 @@ You can disable "per view" the regex, aka, disabling for:
 - Live Preview mode
 - Source mode
 
-Each toggle are independent, so you can disable for reading mode, but enable for live preview mode.
+Each toggle is independent, so you can disable for reading mode, but enable for live preview mode.
 
 You can also disable/enable a snippet within code (code-block or inline, between backticks), with toggle "Code".
+
+### Auto rules
+
+You can enable (or disable) a regex for a specific files, using either :
+- The file path 
+- Properties (YAML frontmatter) based on the values of the `regex_mark` key.[^1]
+
+You can choose to NOT or EQUAL : 
+- `NOT` : The regex will not be applied to all files that **not match** the rule.
+- `EQUAL` : The regex will be applied to all files that **match** the rule.
+
+In auto-rules, regex are supported, so you can use them too.
 
 ## Change open/close tags (advanced user only!)
 
@@ -155,3 +167,5 @@ You **need** to make the backslash optional, because they don't render in the re
 # Credits
 
 - [rien7](https://github.com/rien7/obsidian-regex-mark): Original work
+
+[^1]: You need to reload the file (open it again) to apply/disable the regex when the frontmatter is changed in the reading mode.

@@ -1,7 +1,7 @@
 import { type App, MarkdownView, sanitizeHTMLToDom } from "obsidian";
 
 import type { Mark, Pattern } from "./interface";
-import { isValidRegex, matchGroups, removeTags } from "./utils";
+import { includeFromSettings, isValidRegex, matchGroups, removeTags } from "./utils";
 
 export function MarkdownProcessor(data: Mark, element: HTMLElement, app: App, pattern?: Pattern) {
 	const paragraph = element.findAll("p, li, h1, h2, h3, h4, h5, h6, td, .callout-title-inner, th, code");
@@ -16,7 +16,8 @@ export function MarkdownProcessor(data: Mark, element: HTMLElement, app: App, pa
 				d.regex === "" ||
 				d.class === "" ||
 				!isValidRegex(d.regex, true, pattern) ||
-				d.viewMode?.reading === false
+				d.viewMode?.reading === false ||
+				!includeFromSettings(app, d.viewMode?.autoRules)
 			)
 				continue;
 			const regex = new RegExp(removeTags(d.regex, pattern), d.flags?.join("") ?? "gi");

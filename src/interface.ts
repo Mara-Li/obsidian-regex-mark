@@ -55,6 +55,19 @@ export type ViewMode = {
 	source: boolean;
 	live: boolean;
 	codeBlock?: boolean;
+	autoRules?: AutoRules[];
+};
+
+export type AutoRules = {
+	type: "path" | "frontmatter";
+	/**
+	 * Can be a regex or a string;
+	 */
+	value: string;
+	/**
+	 * If true, the rule will be used to exclude the regex from the view instead of including it
+	 */
+	exclude?: boolean;
 };
 
 export const DEFAULT_VIEW_MODE: ViewMode = {

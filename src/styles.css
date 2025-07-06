@@ -63,7 +63,7 @@
 	padding-bottom: 10px;
 }
 
-.RegexMark .export-import>.setting-item-info {
+.RegexMark .export-import > .setting-item-info {
 	display: flex;
 	flex-direction: row;
 	gap: 4px;
@@ -71,7 +71,7 @@
 	padding: 0;
 }
 
-.RegexMark .setting-item.export-import>.setting-item-control {
+.RegexMark .setting-item.export-import > .setting-item-control {
 	padding-bottom: 10px;
 }
 
@@ -113,7 +113,9 @@
 	text-align: center;
 	white-space: nowrap;
 	text-decoration: none;
-	transition: background-color 0.1s ease, box-shadow 0.1s ease;
+	transition:
+		background-color 0.1s ease,
+		box-shadow 0.1s ease;
 }
 
 .RegexMark .copy:hover,
@@ -165,4 +167,23 @@
 
 .RegexMark .min-width {
 	min-width: 7ch;
+}
+
+.remark-regex-options .p-4 {
+	padding-left: 1rem;
+	border-left: 1px solid var(--background-modifier-border);
+}
+
+.remark-regex-options hr {
+	border: 0;
+	border-top: 1px solid var(--background-modifier-border);
+	margin: 1rem 0;
+}
+
+.remark-regex-options .setting-item.no-info .setting-item-info {
+	display: none;
+}
+
+.remark-regex-options .setting-item.full-width input {
+	width: 100%;
 }

@@ -1,4 +1,4 @@
-import { type App, Modal, Setting } from "obsidian";
+import { type App, Modal, Setting, sanitizeHTMLToDom } from "obsidian";
 import { DEFAULT_VIEW_MODE, type ViewMode } from "../interface";
 
 export class RemarkRegexOptions extends Modal {
@@ -14,6 +14,7 @@ export class RemarkRegexOptions extends Modal {
 
 	onOpen(): void {
 		const { contentEl } = this;
+		contentEl.addClass("remark-regex-options");
 		this.result = this.regexMark || DEFAULT_VIEW_MODE;
 
 		new Setting(contentEl)
@@ -23,6 +24,7 @@ export class RemarkRegexOptions extends Modal {
 
 		new Setting(contentEl)
 			.setName("Reading mode")
+			.setClass("p-4")
 			.setDesc("Apply the regex to the reading mode")
 			.addToggle((toggle) => {
 				toggle.setValue(this.result.reading).onChange((value) => {
@@ -32,6 +34,7 @@ export class RemarkRegexOptions extends Modal {
 
 		new Setting(contentEl)
 			.setName("Source mode")
+			.setClass("p-4")
 			.setDesc("Note: In source mode, open and close tags are not hidden. It will just enable the css class.")
 			.addToggle((toggle) => {
 				toggle.setValue(this.result.source).onChange((value) => {
@@ -41,12 +44,15 @@ export class RemarkRegexOptions extends Modal {
 
 		new Setting(contentEl)
 			.setName("Live mode")
+			.setClass("p-4")
 			.setDesc("Apply the regex to the live mode")
 			.addToggle((toggle) => {
 				toggle.setValue(this.result.live).onChange((value) => {
 					this.result.live = value;
 				});
 			});
+
+		this.contentEl.createEl("hr");
 
 		new Setting(contentEl)
 			.setHeading()
@@ -57,6 +63,85 @@ export class RemarkRegexOptions extends Modal {
 					this.result.codeBlock = value;
 				});
 			});
+
+		new Setting(contentEl)
+			.setHeading()
+			.setName("Auto rules")
+			.setDesc(
+				sanitizeHTMLToDom(
+					"Define rules to automatically include or exclude the regex based on file path or the frontmatter value of <code>regex_mark</code>."
+				)
+			)
+			.addExtraButton((cb) => {
+				cb.setIcon("plus")
+					.setTooltip("Add auto rule")
+					.onClick(() => {
+						this.result.autoRules = this.result.autoRules || [];
+						this.result.autoRules.push({ type: "path", value: "", exclude: false });
+						this.contentEl.empty();
+						this.onOpen();
+					});
+			});
+
+		for (const rule of this.result.autoRules || []) {
+			new Setting(contentEl)
+				.addDropdown((dp) => {
+					dp.addOption("not", "Not")
+						.addOption("equal", "Equal")
+						.setValue(!rule.exclude ? "equal" : "not")
+						.onChange((value) => {
+							rule.exclude = value === "not";
+						});
+				})
+				.setClass("full-width")
+				.setClass("no-info")
+				.addDropdown((dropdown) => {
+					dropdown
+						.addOption("path", "Path")
+						.addOption("frontmatter", "Properties")
+						.setValue(rule.type)
+						.onChange(async (value) => {
+							rule.type = value as "path" | "frontmatter";
+						});
+				})
+				.addText((text) => {
+					text
+						.setValue(rule.value)
+						.setPlaceholder("Enter a regex or a string")
+						.onChange(async (value) => {
+							rule.value = value;
+						});
+				})
+				.addExtraButton((button) => {
+					button.setIcon("trash").onClick(async () => {
+						const index = this.result.autoRules?.findIndex((r) => r === rule);
+						if (index === undefined) return;
+						this.result.autoRules?.splice(index, 1);
+						this.contentEl.empty();
+						this.onOpen();
+					});
+				})
+				.addExtraButton((button) => {
+					button.setIcon("chevron-up").onClick(async () => {
+						const index = this.result.autoRules?.findIndex((r) => r === rule);
+						if (index === undefined || index <= 0) return;
+						this.result.autoRules?.splice(index, 1);
+						this.result.autoRules?.splice(index - 1, 0, rule);
+						this.contentEl.empty();
+						this.onOpen();
+					});
+				})
+				.addExtraButton((button) => {
+					button.setIcon("chevron-down").onClick(async () => {
+						const index = this.result.autoRules?.findIndex((r) => r === rule);
+						if (index === undefined || (this.result.autoRules && index >= this.result.autoRules.length - 1)) return;
+						this.result.autoRules?.splice(index, 1);
+						this.result.autoRules?.splice(index + 1, 0, rule);
+						this.contentEl.empty();
+						this.onOpen();
+					});
+				});
+		}
 
 		new Setting(contentEl)
 			.addButton((button) => {
