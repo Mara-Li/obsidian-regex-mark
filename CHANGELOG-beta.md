@@ -1,3 +1,8 @@
+## [1.11.0-0](https://github.com/Mara-Li/obsidian-regex-mark/compare/1.10.0...1.11.0-0) (2025-07-06)
+### Features
+
+* restrict style application to a file or properties values ([6ad9b33](https://github.com/Mara-Li/obsidian-regex-mark/commit/6ad9b3364932c8da8da9d4705d637a5181825956)), closes [#27](https://github.com/Mara-Li/obsidian-regex-mark/issues/27)
+
 ## [1.10.0-0](https://github.com/Mara-Li/obsidian-regex-mark/compare/1.9.3...1.10.0-0) (2024-12-27)
 ### Features
 
