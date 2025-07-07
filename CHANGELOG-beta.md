@@ -1,3 +1,5 @@
+## [1.11.0-1](https://github.com/Mara-Li/obsidian-regex-mark/compare/1.11.0-0...1.11.0-1) (2025-07-07)
+
 ## [1.11.0-0](https://github.com/Mara-Li/obsidian-regex-mark/compare/1.10.0...1.11.0-0) (2025-07-06)
 ### Features
 
