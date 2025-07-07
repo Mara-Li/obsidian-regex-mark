@@ -1,25 +1,16 @@
 import { type App, MarkdownView, sanitizeHTMLToDom } from "obsidian";
 
 import type { Mark, Pattern } from "./interface";
-import { includeFromSettings, isValidRegex, matchGroups, removeTags } from "./utils";
+import { matchGroups, removeTags, shouldSkip } from "./utils";
 
-export function MarkdownProcessor(data: Mark, element: HTMLElement, app: App, pattern?: Pattern) {
+export function MarkdownProcessor(data: Mark, element: HTMLElement, app: App, propertyName: string, pattern?: Pattern) {
 	const paragraph = element.findAll("p, li, h1, h2, h3, h4, h5, h6, td, .callout-title-inner, th, code");
 	paragraph.push(...element.findAllSelf(".table-cell-wrapper"));
 	const activeMode = app.workspace.getActiveViewOfType(MarkdownView)?.getMode() === "source";
 	for (const p of paragraph) {
 		let ignore = true;
 		for (const d of data) {
-			if (
-				!d.regex ||
-				!d.class ||
-				d.regex === "" ||
-				d.class === "" ||
-				!isValidRegex(d.regex, true, pattern) ||
-				d.viewMode?.reading === false ||
-				!includeFromSettings(app, d.viewMode?.autoRules)
-			)
-				continue;
+			if (d.viewMode?.reading === false || shouldSkip(d, app, propertyName, pattern)) continue;
 			const regex = new RegExp(removeTags(d.regex, pattern), d.flags?.join("") ?? "gi");
 			if (regex.test(p.textContent || "")) {
 				ignore = false;

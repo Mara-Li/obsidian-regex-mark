@@ -6,7 +6,12 @@ export class RemarkRegexOptions extends Modal {
 	regexMark: ViewMode | undefined;
 	onSubmit: (result: ViewMode) => void;
 
-	constructor(app: App, regexMark: ViewMode | undefined, onSubmit: (result: ViewMode) => void) {
+	constructor(
+		app: App,
+		regexMark: ViewMode | undefined,
+		private propertyName: string,
+		onSubmit: (result: ViewMode) => void
+	) {
 		super(app);
 		this.onSubmit = onSubmit;
 		this.regexMark = regexMark;
@@ -69,7 +74,7 @@ export class RemarkRegexOptions extends Modal {
 			.setName("Auto rules")
 			.setDesc(
 				sanitizeHTMLToDom(
-					"Define rules to automatically include or exclude the regex based on file path or the frontmatter value of <code>regex_mark</code>."
+					`Define rules to automatically include or exclude the regex based on file path or the frontmatter value of <code>${this.propertyName}</code>.`
 				)
 			)
 			.addExtraButton((cb) => {

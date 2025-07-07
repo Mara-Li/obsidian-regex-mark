@@ -87,7 +87,7 @@ You can also disable/enable a snippet within code (code-block or inline, between
 
 You can enable (or disable) a regex for a specific files, using either :
 - The file path 
-- Properties (YAML frontmatter) based on the values of the `regex_mark` key.[^1]
+- Properties (YAML frontmatter) based on the values of a configurable frontmatter key (`regex_mark` by default)[^1].
 
 You can choose to NOT or EQUAL : 
 - `NOT` : The regex will not be applied to all files that **not match** the rule.

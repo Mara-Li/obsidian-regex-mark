@@ -1,12 +1,12 @@
 import { cloneDeep } from "lodash";
 import {
 	type App,
+	MarkdownRenderer,
 	Notice,
 	PluginSettingTab,
 	Setting,
-	type ToggleComponent,
 	sanitizeHTMLToDom,
-	MarkdownRenderer,
+	type ToggleComponent,
 } from "obsidian";
 import { dedent } from "ts-dedent";
 import {
@@ -22,6 +22,7 @@ import type RegexMark from "../main";
 import { hasToHide, isInvalid, isValidRegex, removeTags } from "../utils";
 import { RemarkPatternTab } from "./change_pattern";
 import { ExportSettings, ImportSettings } from "./import_export";
+import { PropertyModal } from "./property_name";
 import { RemarkRegexOptions } from "./viewModal";
 
 export class RemarkRegexSettingTab extends PluginSettingTab {
@@ -177,6 +178,17 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 							await this.display();
 						}).open();
 					});
+			})
+			.addButton((button) => {
+				button
+					.setButtonText("Change property name")
+					.setTooltip("Change the property name to search in the frontmatter for view mode autorules options.")
+					.onClick(async () => {
+						new PropertyModal(this.app, this.settings.propertyName, async (result) => {
+							this.plugin.settings.propertyName = result;
+							await this.plugin.saveSettings();
+						}).open();
+					});
 			});
 	}
 
@@ -222,7 +234,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 					.setIcon("eye")
 					.setTooltip("Edit the view mode")
 					.onClick(async () => {
-						new RemarkRegexOptions(this.app, this.cloneViewMode(data), async (result) => {
+						new RemarkRegexOptions(this.app, this.cloneViewMode(data), this.settings.propertyName, async (result) => {
 							data.viewMode = result;
 							await this.plugin.saveSettings();
 							this.plugin.updateCmExtension();

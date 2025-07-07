@@ -31,6 +31,10 @@ export interface SettingOption {
 export type SettingOptions = {
 	mark: Mark;
 	pattern?: Pattern;
+	/**
+	 * Property name to search in the frontmatter
+	 */
+	propertyName: string;
 };
 
 export type Pattern = {
@@ -46,6 +50,7 @@ export const DEFAULT_PATTERN: Pattern = {
 export const DEFAULT_SETTINGS: SettingOptions = {
 	mark: [],
 	pattern: DEFAULT_PATTERN,
+	propertyName: "regex_mark",
 };
 
 export type Mark = SettingOption[];

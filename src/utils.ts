@@ -1,6 +1,6 @@
 import { cloneDeep } from "lodash";
 import type { App, TFile } from "obsidian";
-import type { AutoRules, Pattern } from "./interface";
+import type { AutoRules, Pattern, SettingOption } from "./interface";
 
 export function removeTags(regex: string, pattern?: Pattern) {
 	if (!pattern) return regex.replace(/{{open:(.*?)}}/, "$1").replace(/{{close:(.*?)}}/, "$1");
@@ -68,7 +68,7 @@ function isNotExist(value: unknown, frontmatter?: Record<string, unknown> | null
 	return !frontmatter || value == null || (Array.isArray(value) && value.length === 0);
 }
 
-export function includeFromSettings(app: App, autoRules?: AutoRules[]): boolean {
+export function includeFromSettings(app: App, propertyName: string, autoRules?: AutoRules[]): boolean {
 	const filePath = getFile(app);
 	const frontmatter = getFrontmatter(filePath, app);
 	if (!filePath || !autoRules || autoRules.length === 0) return true;
@@ -79,7 +79,7 @@ export function includeFromSettings(app: App, autoRules?: AutoRules[]): boolean 
 				return !rule.exclude; // If exclude is true, return false
 			}
 		} else if (rule.type === "frontmatter") {
-			const value = frontmatter?.["regex_mark"];
+			const value = frontmatter?.[propertyName];
 			if (isNotExist(value, frontmatter) && rule.exclude) return true;
 			if (value != null) {
 				const regex = new RegExp(rule.value);
@@ -110,4 +110,15 @@ export function matchGroups(regex: string, text: string): Record<string, { text:
 	});
 	if (Object.keys(result).length === 0) return null;
 	return result;
+}
+
+export function shouldSkip(d: SettingOption, app: App, propertyName: string, pattern?: Pattern): boolean {
+	return (
+		!d.regex ||
+		!d.class ||
+		d.regex === "" ||
+		d.class === "" ||
+		!isValidRegex(d.regex, true, pattern) ||
+		!includeFromSettings(app, propertyName, d.viewMode?.autoRules)
+	);
 }

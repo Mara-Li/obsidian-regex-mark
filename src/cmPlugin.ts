@@ -15,7 +15,7 @@ import { cloneDeep } from "lodash";
 import { Notice, sanitizeHTMLToDom } from "obsidian";
 import { DEFAULT_PATTERN, type Mark, type Pattern, type SettingOption, type SettingOptions } from "./interface";
 import type RegexMark from "./main";
-import { includeFromSettings, isValidRegex, matchGroups, removeTags } from "./utils";
+import { isValidRegex, matchGroups, removeTags, shouldSkip } from "./utils";
 
 interface ConfigWithPlugin extends Required<SettingOptions> {
 	plugin: RegexMark;
@@ -70,15 +70,7 @@ class CMPlugin implements PluginValue {
 		for (const part of view.visibleRanges) {
 			for (const d of data) {
 				const displayMode = mode === "Live" ? d.viewMode?.live : d.viewMode?.source;
-				if (
-					!d.regex ||
-					!d.class ||
-					d.regex === "" ||
-					d.class === "" ||
-					!isValidRegex(d.regex, true, pattern) ||
-					displayMode === false ||
-					!includeFromSettings(this.plugin.app, d.viewMode?.autoRules)
-				)
+				if (displayMode === false || shouldSkip(d, this.plugin.app, this.plugin.settings.propertyName, pattern))
 					continue;
 				try {
 					const cursor = new RegExpCursor(view.state.doc, removeTags(d.regex, pattern), {}, part.from, part.to);
