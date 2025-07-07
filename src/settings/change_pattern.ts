@@ -1,4 +1,4 @@
-import { type App, Modal, Notice, Setting, sanitizeHTMLToDom } from "obsidian";
+import { type App, Component, MarkdownRenderer, Modal, Notice, Setting, sanitizeHTMLToDom } from "obsidian";
 import { dedent } from "ts-dedent";
 import { DEFAULT_PATTERN, type Pattern } from "../interface";
 
@@ -33,47 +33,28 @@ export class RemarkPatternTab extends Modal {
 
 		new Setting(contentEl).setHeading().setName("Change open/close tags");
 
+		const component = new Component();
+		component.load();
+
 		const desc = dedent(`
-			<p dir="auto">Allow to change the <code>{{open:}}</code> and <code>{{close:}}</code> tags.</p>
-			<div data-callout-metadata="" data-callout-fold="" data-callout="warning" class="callout">
-				<div class="callout-title" dir="auto">
-					<div class="callout-icon">
-						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="svg-icon lucide-alert-triangle">
-							<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
-							<path d="M12 9v4"></path>
-							<path d="M12 17h.01"></path>
-						</svg>
-					</div>
-					<div class="callout-title-inner">Warning</div>
-				</div>
-				<div class="callout-content">
-					<p dir="auto">Any character used in the tag will disable the character in it.<br>
-					For example: <code>[[open:]]]]</code> can't work if open is set on <code>[[open:]]</code>.</p>
-				</div>
-			</div>
-			<p>Your regex will be manually ported using the new settings. If an error is found during the conversion, the regex will be disabled in all view, and you will need to fix it manually.</p>
-			<div data-callout-metadata="" data-callout-fold="" data-callout="note" class="callout">
-				<div class="callout-title" dir="auto">
-					<div class="callout-icon">
-						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="svg-icon lucide-pencil">
-							<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
-							<path d="m15 5 4 4"></path>
-						</svg>
-					</div>
-					<div class="callout-title-inner">Note</div>
-				</div>
-				<div class="callout-content">
-					<p dir="auto">The open/close needs to be registered in the regex format, so don't forget to escape the characters!<br>
-					For example: <code>[[open:(.*)]]</code> needs to be saved as <code>\\[\\[open:(.*)\\]\\]</code><br>Also, you can't use <code>\\</code> for the tag (reserved for escape only)!</p>
-				</div>
-			</div>
-			<p dir="auto">For the moment, based on your settings:</p>
-			<ul class="has-list-bullet">
-				<li data-line="0" dir="auto"><u>Open</u>: <code>${this.exampleRegex(this.oldPattern?.open ?? DEFAULT_PATTERN.open)}</code></li>
-				<li data-line="1" dir="auto"><u>Close</u>: <code>${this.exampleRegex(this.oldPattern?.close ?? DEFAULT_PATTERN.close)}</code></li>
-			</ul>
+      Allow to change the \`{{open:}}\` and \`{{close:}}\` tags.
+      > [!WARNING]
+      > Any character used in the tag will disable the character in it.
+      > For example: \`[[open:]]]]\` can't work if open is set on \`[[open:]]\`.
+
+      Your regex will be manually ported using the new settings. If an error is found during the conversion, the regex will be disabled in all view, and you will need to fix it manually.
+
+      > [!NOTE]
+      > The open/close needs to be registered in the regex format, so don't forget to escape the characters!
+      > For example: \`[[open:(.*)]]\` needs to be saved as \`\\[\\[open:(.*)\\]\\]\`
+      > Also, you can't use \`\\\` for the tag (reserved for escape only)!
+    
+      For the moment, based on your settings:
+      - <u>Open</u>: \`${this.exampleRegex(this.oldPattern?.open ?? DEFAULT_PATTERN.open)}\`
+      - <u>Close</u>: \`${this.exampleRegex(this.oldPattern?.close ?? DEFAULT_PATTERN.close)}\`.
 		`);
-		contentEl.appendChild(sanitizeHTMLToDom(desc));
+
+		MarkdownRenderer.render(this.app, desc, contentEl, "", component);
 
 		new Setting(contentEl)
 			.setName("Pattern")

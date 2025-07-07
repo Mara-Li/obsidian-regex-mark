@@ -1,6 +1,7 @@
 import { cloneDeep } from "lodash";
 import {
 	type App,
+	Component,
 	MarkdownRenderer,
 	Notice,
 	PluginSettingTab,
@@ -198,6 +199,9 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 	private async renderDocumentation(containerEl: HTMLElement) {
 		const pattern = this.stringifyPattern(this.plugin.settings.pattern ?? DEFAULT_PATTERN);
 
+		const component = new Component();
+		component.load();
+
 		await MarkdownRenderer.render(
 			this.app,
 			dedent(`Regex Mark allows to add custom CSS class to text that matches a regex.
@@ -219,7 +223,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 			`),
 			containerEl,
 			"",
-			this.plugin
+			component
 		);
 	}
 
