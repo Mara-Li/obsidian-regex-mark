@@ -74,7 +74,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 	/**
 	 * Updates all regex patterns when the open/close tags are changed
 	 */
-	updateRegex(newPattern: Pattern) {
+	async updateRegex(newPattern: Pattern) {
 		const oldPattern = this.settings.pattern ?? DEFAULT_PATTERN;
 		const notValid = [];
 
@@ -94,7 +94,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 			Object.assign(data, { regex: updatedRegex });
 
 			// Verify if the new regex is valid
-			const isValid = this.verifyRegex(data, newPattern);
+			const isValid = await this.verifyRegex(data, newPattern);
 			if (!isValid) {
 				data.viewMode = {
 					reading: false,
@@ -173,7 +173,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 					.setTooltip("Advanced user only! Allow to change the tags for hiding element")
 					.onClick(async () => {
 						new RemarkPatternTab(this.app, this.clonePattern(this.settings), async (result) => {
-							this.updateRegex(result);
+							await this.updateRegex(result);
 							this.plugin.settings.pattern = result;
 							await this.plugin.saveSettings();
 							await this.display();
@@ -415,7 +415,9 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 	 */
 	private async verifyAndApplySettings() {
 		if (this.findDuplicate()) {
-			const validRegex = this.plugin.settings.mark.every((d) => this.verifyRegex(d, this.plugin.settings.pattern));
+			const validRegex = this.plugin.settings.mark.every(
+				async (d) => await this.verifyRegex(d, this.plugin.settings.pattern)
+			);
 			const validCss = this.plugin.settings.mark.every((d) => this.verifyClass(d));
 
 			if (validRegex && validCss) {
@@ -469,7 +471,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 	/**
 	 * Verifies if a regex is valid
 	 */
-	verifyRegex(data: SettingOption, pattern?: Pattern) {
+	async verifyRegex(data: SettingOption, pattern?: Pattern) {
 		const index = this.plugin.settings.mark.indexOf(data);
 		const regex = data.regex;
 		const inputElement = document.querySelectorAll(".regex-input")[index];
@@ -505,7 +507,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 				sanitizeHTMLToDom(`<span class="RegexMark error">You need to use a group in the regex to hide it</span>`)
 			);
 			data.hide = false;
-			this.plugin.saveSettings();
+			await this.plugin.saveSettings();
 			this.disableToggle(data);
 			inputElement?.addClass("is-invalid");
 		}
