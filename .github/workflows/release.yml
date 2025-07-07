@@ -35,7 +35,7 @@ jobs:
     uses: mara-li/reusable-workflows/.github/workflows/obsidian-plugin-bump-version.yaml@main
     with:
       PLUGIN_NAME: regex-mark
-      BETA: ${{ inputs.beta }}
+      BETA: ${{ inputs.beta || false }}
       CACHE: "bun"
     secrets:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
