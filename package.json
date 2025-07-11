@@ -22,15 +22,15 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "@biomejs/biome": "^2.0.6",
+    "@biomejs/biome": "^2.1.1",
     "@codemirror/search": "^6.5.11",
     "@codemirror/state": "^6.5.2",
     "@codemirror/view": "^6.38.0",
     "@types/dompurify": "^3.2.0",
     "@types/lodash": "^4.17.20",
-    "@types/node": "^24.0.10",
+    "@types/node": "^24.0.13",
     "builtin-modules": "5.0.0",
-    "esbuild": "0.25.5",
+    "esbuild": "0.25.6",
     "lodash": "^4.17.21",
     "obsidian": "^1.8.7",
     "ts-dedent": "^2.2.0",
@@ -43,7 +43,7 @@
     "commander": "^14.0.0",
     "commit-and-tag-version": "^12.5.1",
     "dedent": "^1.6.0",
-    "dotenv": "^17.0.1"
+    "dotenv": "^17.2.0"
   },
   "trustedDependencies": [
     "@biomejs/biome",
