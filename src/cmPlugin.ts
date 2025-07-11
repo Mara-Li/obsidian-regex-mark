@@ -86,7 +86,7 @@ class CMPlugin implements PluginValue {
 							decorations.push(markup.range(from, to));
 							continue;
 						}
-						const string = view.state.sliceDoc(from, to).trim();
+						const string = view.state.sliceDoc(from, to);
 						const markDeco = Decoration.replace({
 							widget: new LivePreviewWidget(string, d, view, pattern),
 						});
