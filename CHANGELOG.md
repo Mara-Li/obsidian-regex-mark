@@ -1,3 +1,8 @@
+## [1.11.0](https://github.com/Mara-Li/obsidian-regex-mark/compare/1.11.0-3...1.11.0) (2025-07-11)
+### Bug Fixes
+
+* should not trim the string as space can be in the regex. ([15dada6](https://github.com/Mara-Li/obsidian-regex-mark/commit/15dada6798a27244a48c22e34d882fc52717c392)), closes [#29](https://github.com/Mara-Li/obsidian-regex-mark/issues/29)
+
 ## [1.10.0](https://github.com/Mara-Li/obsidian-regex-mark/compare/1.10.0-0...1.10.0) (2025-04-30)
 ### Bug Fixes
 
