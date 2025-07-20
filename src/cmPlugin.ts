@@ -80,7 +80,7 @@ class CMPlugin implements PluginValue {
 						if (insideBlock) continue;
 
 						//don't add the decoration if the cursor (selection in the editor) is inside the decoration
-						if (checkSelectionOverlap(view.state.selection, from, to)) {
+						if (checkSelectionOverlap(view.state.selection, from, to) || this.viewMode(view) === "Source") {
 							//just apply the decoration to the whole line
 							const markup = Decoration.mark({ class: d.class });
 							decorations.push(markup.range(from, to));
