@@ -1,3 +1,10 @@
+## [1.11.1-0](https://github.com/Mara-Li/obsidian-regex-mark/compare/1.11.0...1.11.1-0) (2025-07-20)
+### Bug Fixes
+
+*  Named group don't apply if not using open/close regex ([f80ad60](https://github.com/Mara-Li/obsidian-regex-mark/commit/f80ad605ed527bf36d41859fcdef3b17d107886f)), closes [#31](https://github.com/Mara-Li/obsidian-regex-mark/issues/31)
+* data-contents not applied when using subgroups ([dd0a137](https://github.com/Mara-Li/obsidian-regex-mark/commit/dd0a13723fb338f58d1130588c82319472f539c2)), closes [#32](https://github.com/Mara-Li/obsidian-regex-mark/issues/32)
+* in source-mode, the hiden groups should be displayed ([d50488b](https://github.com/Mara-Li/obsidian-regex-mark/commit/d50488b2b6b31668b7449cbdaea27d4b37c094ff))
+
 ## [1.11.0-3](https://github.com/Mara-Li/obsidian-regex-mark/compare/1.11.0-2...1.11.0-3) (2025-07-07)
 
 ## [1.11.0-2](https://github.com/Mara-Li/obsidian-regex-mark/compare/1.11.0-1...1.11.0-2) (2025-07-07)
