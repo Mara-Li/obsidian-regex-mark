@@ -216,6 +216,8 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 			> Named group allows to "granular" match regex. The name will be used as a CSS classes.
 			> **Note** : It's pretty experimental so don't expect much!
 			> Also, you need to use a named group for **each group** in the regex.
+			> Moreover, the named group won't be displayed when the cursor is on the line or in source mode.
+			> When the cursor is on the line (or in source mode), only the main class will be displayed.
 			
 			> [!note]
 			> - "Overwriting" markdown (for example in \`__underline__\`) won't work in reading mode. But, you can escape the pattern with a backslash: \`\\\` before the mark to disable it! Don't forget it in the regex too.
@@ -225,6 +227,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 			"",
 			component
 		);
+		component.unload();
 	}
 
 	/**

@@ -203,6 +203,7 @@ class LivePreviewWidget extends WidgetType {
 			return newContent;
 		}
 		newContent.addClass(this.data.class);
+		newContent.setAttribute("data-contents", text);
 		for (const [css, items] of Object.entries(matchSub)) {
 			newContent.createEl("span", { cls: css }).setText(items.text);
 		}
