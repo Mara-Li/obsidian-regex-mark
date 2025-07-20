@@ -82,3 +82,4 @@ export const DEFAULT_VIEW_MODE: ViewMode = {
 };
 
 export type RegexFlags = "g" | "i" | "m" | "s" | "u" | "y";
+export type SubGroups = Record<string, { text: string; input: string }>;

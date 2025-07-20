@@ -148,7 +148,14 @@ class LivePreviewWidget extends WidgetType {
 			const newContent = wrap.createEl("span");
 			const res = this.subGroup(this.data.regex, text, newContent);
 			if (res) wrap = res;
-		} else wrap.innerText = text;
+		} else {
+			const matchSub = matchGroups(removeTags(this.data.regex, this.pattern), text);
+			if (matchSub) {
+				for (const [css, items] of Object.entries(matchSub)) {
+					wrap.createEl("span", { cls: css }).setText(items.text);
+				}
+			} else wrap.innerText = text;
+		}
 
 		return wrap;
 	}
@@ -180,6 +187,7 @@ class LivePreviewWidget extends WidgetType {
 			(openTag && !isValidRegex(openTag as string, true, this.pattern)) ||
 			(closeTag && !isValidRegex(closeTag as string, true, this.pattern))
 		) {
+			console.error("Invalid open or close tag regex:", openTag, closeTag);
 			return newContent;
 		}
 		const openRegex = new RegExp(openTag as string, "g");

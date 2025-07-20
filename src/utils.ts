@@ -1,6 +1,6 @@
 import { cloneDeep } from "lodash";
 import type { App, TFile } from "obsidian";
-import type { AutoRules, Pattern, SettingOption } from "./interface";
+import type { AutoRules, Pattern, SettingOption, SubGroups } from "./interface";
 
 export function removeTags(regex: string, pattern?: Pattern) {
 	if (!pattern) return regex.replace(/{{open:(.*?)}}/, "$1").replace(/{{close:(.*?)}}/, "$1");
@@ -91,7 +91,7 @@ export function includeFromSettings(app: App, propertyName: string, autoRules?: 
 	return false;
 }
 
-export function matchGroups(regex: string, text: string): Record<string, { text: string; input: string }> | null {
+export function matchGroups(regex: string, text: string): SubGroups | null {
 	const groupPattern = new RegExp(regex);
 	const match = groupPattern.exec(text);
 
@@ -121,4 +121,14 @@ export function shouldSkip(d: SettingOption, app: App, propertyName: string, pat
 		!isValidRegex(d.regex, true, pattern) ||
 		!includeFromSettings(app, propertyName, d.viewMode?.autoRules)
 	);
+}
+
+export function addGroupText(text: string, subgroup: SubGroups, d: SettingOption) {
+	let html = `<span class='${d.class}'>`;
+	for (const [css, subtxt] of Object.entries(subgroup)) {
+		html += text.replace(subtxt.input, `<span class="${css}">${subtxt.text}</span>`);
+	}
+	html += "</span>";
+	text = html;
+	return text;
 }
