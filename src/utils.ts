@@ -98,7 +98,7 @@ export function matchGroups(regex: string, text: string): SubGroups | null {
 	if (!match) return null;
 
 	const groupNames = extractGroups(regex);
-	const result: Record<string, { text: string; input: string }> = {};
+	const result: SubGroups = {};
 
 	groupNames.forEach((groupName) => {
 		if (match.groups && match.groups[groupName] !== undefined) {
@@ -123,12 +123,30 @@ export function shouldSkip(d: SettingOption, app: App, propertyName: string, pat
 	);
 }
 
-export function addGroupText(text: string, subgroup: SubGroups, d: SettingOption) {
-	let html = `<span class='${d.class}'>`;
-	for (const [css, subtxt] of Object.entries(subgroup)) {
-		html += text.replace(subtxt.input, `<span class="${css}">${subtxt.text}</span>`);
+export function addGroupText(text: string, subgroup: SubGroups, d: SettingOption, nodeContent: string): HTMLElement {
+	const mainSpan = document.createElement("span");
+	mainSpan.setAttribute("data-group", "false");
+	mainSpan.setAttribute("class", d.class);
+	mainSpan.setAttribute("data-contents", nodeContent);
+	mainSpan.setAttribute("data-processed", "true");
+	let processedText = nodeContent;
+	const fullMatch = Object.values(subgroup)[0]?.input; // Le match complet
+
+	if (fullMatch) {
+		let replacement = fullMatch;
+		if (d.hide) {
+			let hiddenReplacement = "";
+			for (const [css, subtxt] of Object.entries(subgroup)) {
+				hiddenReplacement += `<span data-group="true" class="${css}">${subtxt.text}</span>`;
+			}
+			replacement = hiddenReplacement;
+		} else {
+			for (const [css, subtxt] of Object.entries(subgroup)) {
+				replacement = replacement.replace(subtxt.text, `<span data-group="true" class="${css}">${subtxt.text}</span>`);
+			}
+		}
+		processedText = processedText.replace(fullMatch, replacement);
 	}
-	html += "</span>";
-	text = html;
-	return text;
+	mainSpan.innerHTML = processedText.trimStart();
+	return mainSpan;
 }

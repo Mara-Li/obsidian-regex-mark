@@ -22,11 +22,23 @@ export function MarkdownProcessor(data: Mark, element: HTMLElement, app: App, pr
 		const treeWalker = document.createTreeWalker(p, NodeFilter.SHOW_TEXT);
 		const textNodes = [];
 		while (treeWalker.nextNode()) {
+			const parentSpan = (treeWalker.currentNode as Node).parentElement;
+			if (
+				parentSpan?.hasAttribute("data-processed") ||
+				parentSpan?.hasAttribute("data-group") ||
+				parentSpan?.closest("[data-processed]")
+			) {
+				continue;
+			}
 			textNodes.push(treeWalker.currentNode);
 		}
 		for (const node of textNodes) {
 			let text = node.textContent;
 			if (text) {
+				const originalText = `${text}`;
+				let hasChanges = false;
+				let finalElement = null;
+
 				for (const d of data) {
 					if (!d.viewMode) d.viewMode = { reading: true, source: true, live: true, codeBlock: true };
 					if (node.parentNode?.nodeName === "CODE" && d.viewMode?.codeBlock === false) continue;
@@ -41,16 +53,37 @@ export function MarkdownProcessor(data: Mark, element: HTMLElement, app: App, pr
 						//remove undefined in dataText
 						if (!group || !dataText || dataText.length < 2) continue;
 						const subgroup = matchGroups(regex.source, text);
-						if (!subgroup) text = text.replace(regex, `<span class="${d.class}" data-contents="$1">$1</span>`);
-						else text = addGroupText(text, subgroup, d);
+						if (!subgroup) {
+							text = text.replace(regex, `<span class="${d.class}" data-contents="$1">$1</span>`);
+							hasChanges = true;
+						} else {
+							finalElement = addGroupText(text, subgroup, d, originalText.trim());
+							hasChanges = true;
+							break; // Arrêter ici car on a créé l'élément final
+						}
 					} else {
 						const subgroup = matchGroups(regex.source, text);
-						if (!subgroup) text = text.replace(regex, `<span class="${d.class}" data-contents="$&">$&</span>`);
-						else text = addGroupText(text, subgroup, d);
+						if (!subgroup) {
+							text = text.replace(regex, `<span class="${d.class}" data-contents="$&">$&</span>`);
+							hasChanges = true;
+						} else {
+							finalElement = addGroupText(text, subgroup, d, originalText.trim());
+							hasChanges = true;
+							break; // Arrêter ici car on a créé l'élément final
+						}
 					}
 				}
-				const dom = sanitizeHTMLToDom(text);
-				if (node.parentNode) node.parentNode.replaceChild(dom, node);
+
+				if (hasChanges && node.parentNode) {
+					if (finalElement) {
+						// Remplacer directement par l'élément DOM
+						node.parentNode.replaceChild(finalElement, node);
+					} else {
+						// Utiliser la méthode existante pour le HTML string
+						const dom = sanitizeHTMLToDom(text);
+						node.parentNode.replaceChild(dom, node);
+					}
+				}
 			}
 		}
 	}

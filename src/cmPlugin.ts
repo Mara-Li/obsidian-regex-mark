@@ -144,6 +144,7 @@ class LivePreviewWidget extends WidgetType {
 		let wrap = document.createElement("span");
 		wrap.addClass(this.data.class);
 		const text = this.value;
+		wrap.setAttribute("data-contents", text);
 		if (this.data.hide) {
 			const newContent = wrap.createEl("span");
 			const res = this.subGroup(this.data.regex, text, newContent);
