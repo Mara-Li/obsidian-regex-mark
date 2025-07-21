@@ -140,19 +140,37 @@ export function addGroupText(text: string, subgroup: SubGroups, d: SettingOption
 	const fullMatch = Object.values(subgroup)[0]?.input; // Le match complet
 
 	if (fullMatch) {
-		let replacement = fullMatch;
 		if (d.hide) {
 			let hiddenReplacement = "";
 			for (const [css, subtxt] of Object.entries(subgroup)) {
 				hiddenReplacement += `<span data-group="true" class="${css}">${subtxt.text}</span>`;
 			}
-			replacement = hiddenReplacement;
+			processedText = processedText.replace(fullMatch, hiddenReplacement);
 		} else {
+			const groupsWithPositions: Array<{ name: string; text: string; start: number; end: number }> = [];
+
 			for (const [css, subtxt] of Object.entries(subgroup)) {
-				replacement = replacement.replace(subtxt.text, `<span data-group="true" class="${css}">${subtxt.text}</span>`);
+				const groupStart = fullMatch.indexOf(subtxt.text);
+				if (groupStart !== -1) {
+					groupsWithPositions.push({
+						name: css,
+						text: subtxt.text,
+						start: groupStart,
+						end: groupStart + subtxt.text.length,
+					});
+				}
 			}
+			groupsWithPositions.sort((a, b) => b.start - a.start);
+
+			let replacement = fullMatch;
+			for (const group of groupsWithPositions) {
+				const before = replacement.substring(0, group.start);
+				const after = replacement.substring(group.end);
+				replacement = `${before}<span data-group="true" class="${group.name}">${group.text}</span>${after}`;
+			}
+
+			processedText = processedText.replace(fullMatch, replacement);
 		}
-		processedText = processedText.replace(fullMatch, replacement);
 	}
 	mainSpan.innerHTML = processedText.trimStart();
 	return mainSpan;
