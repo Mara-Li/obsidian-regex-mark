@@ -27,7 +27,14 @@ export function isValidRegex(regex: string, warn = true, pattern?: Pattern) {
 }
 
 export function hasToHide(regex: string, pattern?: Pattern) {
-	return removeTags(regex, pattern).match(/\((.*?)\)/);
+	return removeTags(regex, pattern).match(/\((.*?)\)/) && hasPattern(regex, pattern);
+}
+
+export function hasPattern(regex: string, pattern?: Pattern) {
+	if (!pattern) return false;
+	const open = new RegExp(pattern.open);
+	const close = new RegExp(pattern.close);
+	return open.test(regex) && close.test(regex);
 }
 
 export function extractGroups(regex: string): string[] {
