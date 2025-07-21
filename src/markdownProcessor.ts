@@ -59,7 +59,7 @@ export function MarkdownProcessor(data: Mark, element: HTMLElement, app: App, pr
 						} else {
 							finalElement = addGroupText(text, subgroup, d, originalText.trim());
 							hasChanges = true;
-							break; // Arrêter ici car on a créé l'élément final
+							break;
 						}
 					} else {
 						const subgroup = matchGroups(regex.source, text);
@@ -69,17 +69,15 @@ export function MarkdownProcessor(data: Mark, element: HTMLElement, app: App, pr
 						} else {
 							finalElement = addGroupText(text, subgroup, d, originalText.trim());
 							hasChanges = true;
-							break; // Arrêter ici car on a créé l'élément final
+							break;
 						}
 					}
 				}
 
 				if (hasChanges && node.parentNode) {
 					if (finalElement) {
-						// Remplacer directement par l'élément DOM
 						node.parentNode.replaceChild(finalElement, node);
 					} else {
-						// Utiliser la méthode existante pour le HTML string
 						const dom = sanitizeHTMLToDom(text);
 						node.parentNode.replaceChild(dom, node);
 					}
