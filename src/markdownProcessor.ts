@@ -1,3 +1,4 @@
+/** Reading mode processor .*/
 import { type App, MarkdownView, sanitizeHTMLToDom } from "obsidian";
 
 import type { Mark, Pattern } from "./interface";
