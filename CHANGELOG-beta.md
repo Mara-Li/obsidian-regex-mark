@@ -1,3 +1,9 @@
+## [1.11.1-1](https://github.com/Mara-Li/obsidian-regex-mark/compare/1.11.1-0...1.11.1-1) (2025-07-21)
+### Bug Fixes
+
+* broken subgroups in reading mode ([07c0c52](https://github.com/Mara-Li/obsidian-regex-mark/commit/07c0c52c91943b5d56feb5b49cadfa30f4e2f704)), closes [#33](https://github.com/Mara-Li/obsidian-regex-mark/issues/33)
+* only allow the toggle when open/close pattern has been used ([a90d591](https://github.com/Mara-Li/obsidian-regex-mark/commit/a90d591d2b8a226bfb0b29a22bde527f822842c6))
+
 ## [1.11.1-0](https://github.com/Mara-Li/obsidian-regex-mark/compare/1.11.0...1.11.1-0) (2025-07-20)
 ### Bug Fixes
 
