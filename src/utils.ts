@@ -3,175 +3,213 @@ import type { App, TFile } from "obsidian";
 import type { AutoRules, Pattern, SettingOption, SubGroups } from "./interface";
 
 export function removeTags(regex: string, pattern?: Pattern) {
-	if (!pattern) return regex.replace(/{{open:(.*?)}}/, "$1").replace(/{{close:(.*?)}}/, "$1");
-	const open = new RegExp(pattern.open);
-	const close = new RegExp(pattern.close);
-	return regex.replace(open, "$1").replace(close, "$1");
+  if (!pattern) return regex.replace(/{{open:(.*?)}}/, "$1").replace(/{{close:(.*?)}}/, "$1");
+  const open = new RegExp(pattern.open);
+  const close = new RegExp(pattern.close);
+  return regex.replace(open, "$1").replace(close, "$1");
 }
 
 export const isInvalid = (regex: string) => {
-	return regex.match(/(.*)\[\^(.*)\](.*)/) && !regex.match(/(.*)\[\^(.*)\\n(.*)\](.*)/);
+  return regex.match(/(.*)\[\^(.*)\](.*)/) && !regex.match(/(.*)\[\^(.*)\\n(.*)\](.*)/);
 };
 
 export function isValidRegex(regex: string, warn = true, pattern?: Pattern) {
-	if (isInvalid(regex)) {
-		return false;
-	}
-	try {
-		new RegExp(removeTags(regex, pattern), "gmu");
-		return true;
-	} catch (_e) {
-		if (warn) console.warn(`Invalid regex: ${regex}`);
-		return false;
-	}
+  if (isInvalid(regex)) {
+    return false;
+  }
+  try {
+    new RegExp(removeTags(regex, pattern), "gmu");
+    return true;
+  } catch (_e) {
+    if (warn) console.warn(`Invalid regex: ${regex}`);
+    return false;
+  }
 }
 
 export function hasToHide(regex: string, pattern?: Pattern) {
-	return removeTags(regex, pattern).match(/\((.*?)\)/) && hasPattern(regex, pattern);
+  return removeTags(regex, pattern).match(/\((.*?)\)/) && hasPattern(regex, pattern);
 }
 
 export function hasPattern(regex: string, pattern?: Pattern) {
-	if (!pattern) return false;
-	const open = new RegExp(pattern.open);
-	const close = new RegExp(pattern.close);
-	return open.test(regex) && close.test(regex);
+  if (!pattern) return false;
+  const open = new RegExp(pattern.open);
+  const close = new RegExp(pattern.close);
+  return open.test(regex) && close.test(regex);
 }
 
 export function extractGroups(regex: string): string[] {
-	const groupPattern = /\(\?<([a-zA-Z_][a-zA-Z0-9_]*)>/g;
-	const groups: string[] = [];
+  const groupPattern = /\(\?<([a-zA-Z_][a-zA-Z0-9_]*)>/g;
+  const groups: string[] = [];
 
-	let match;
-	//biome-ignore lint/suspicious/noAssignInExpressions: let match be reused
-	while ((match = groupPattern.exec(regex)) !== null) {
-		// match[1] contient le nom du groupe
-		groups.push(match[1]);
-	}
+  let match;
+  //biome-ignore lint/suspicious/noAssignInExpressions: let match be reused
+  while ((match = groupPattern.exec(regex)) !== null) {
+    // match[1] contient le nom du groupe
+    groups.push(match[1]);
+  }
 
-	return groups;
+  return groups;
 }
 
 export function getFile(app: App): TFile | null {
-	const file = app.workspace.getActiveFile();
-	return file ? file : null;
+  const file = app.workspace.getActiveFile();
+  return file ? file : null;
 }
 
 function checkValue(value: unknown, regex: RegExp, rule: AutoRules): boolean | "none" {
-	if ((typeof value === "string" || typeof value === "number") && regex.test(value.toString())) return !rule.exclude;
-	else if (Array.isArray(value) && value.length > 0) return value.some((v) => checkValue(v, regex, rule));
-	else if (typeof value === "object" && value != null)
-		return Object.values(value).some((v) => checkValue(v, regex, rule));
-	return "none";
+  if ((typeof value === "string" || typeof value === "number") && regex.test(value.toString())) return !rule.exclude;
+  else if (Array.isArray(value) && value.length > 0) return value.some((v) => checkValue(v, regex, rule));
+  else if (typeof value === "object" && value != null)
+    return Object.values(value).some((v) => checkValue(v, regex, rule));
+  return "none";
 }
 
 export function getFrontmatter(file: TFile | null, app: App): Record<string, unknown> | null {
-	if (!file) return null;
+  if (!file) return null;
 
-	const frontmatter = app.metadataCache.getFileCache(file)?.frontmatter;
-	return frontmatter ? cloneDeep(frontmatter) : null;
+  const frontmatter = app.metadataCache.getFileCache(file)?.frontmatter;
+  return frontmatter ? cloneDeep(frontmatter) : null;
 }
 
 function isNotExist(value: unknown, frontmatter?: Record<string, unknown> | null) {
-	return !frontmatter || value == null || (Array.isArray(value) && value.length === 0);
+  return !frontmatter || value == null || (Array.isArray(value) && value.length === 0);
 }
 
 export function includeFromSettings(app: App, propertyName: string, autoRules?: AutoRules[]): boolean {
-	const filePath = getFile(app);
-	const frontmatter = getFrontmatter(filePath, app);
-	if (!filePath || !autoRules || autoRules.length === 0) return true;
-	for (const rule of autoRules) {
-		if (rule.type === "path") {
-			const regex = new RegExp(rule.value);
-			if (regex.test(filePath.path)) {
-				return !rule.exclude; // If exclude is true, return false
-			}
-		} else if (rule.type === "frontmatter") {
-			const value = frontmatter?.[propertyName];
-			if (isNotExist(value, frontmatter) && rule.exclude) return true;
-			if (value != null) {
-				const regex = new RegExp(rule.value);
-				const checked = checkValue(value, regex, rule);
-				if (checked !== "none") return checked;
-			}
-		}
-	}
-	return false;
+  const filePath = getFile(app);
+  const frontmatter = getFrontmatter(filePath, app);
+  if (!filePath || !autoRules || autoRules.length === 0) return true;
+  for (const rule of autoRules) {
+    if (rule.type === "path") {
+      const regex = new RegExp(rule.value);
+      if (regex.test(filePath.path)) {
+        return !rule.exclude; // If exclude is true, return false
+      }
+    } else if (rule.type === "frontmatter") {
+      const value = frontmatter?.[propertyName];
+      if (isNotExist(value, frontmatter) && rule.exclude) return true;
+      if (value != null) {
+        const regex = new RegExp(rule.value);
+        const checked = checkValue(value, regex, rule);
+        if (checked !== "none") return checked;
+      }
+    }
+  }
+  return false;
 }
 
 export function matchGroups(regex: string, text: string): SubGroups | null {
-	const groupPattern = new RegExp(regex);
-	const match = groupPattern.exec(text);
+  const groupPattern = new RegExp(regex);
+  const match = groupPattern.exec(text);
 
-	if (!match) return null;
+  if (!match) return null;
 
-	const groupNames = extractGroups(regex);
-	const result: SubGroups = {};
+  const groupNames = extractGroups(regex);
+  const result: SubGroups = {};
 
-	groupNames.forEach((groupName) => {
-		if (match.groups && match.groups[groupName] !== undefined) {
-			result[groupName] = {
-				text: match.groups[groupName],
-				input: match[0],
-			};
-		}
-	});
-	if (Object.keys(result).length === 0) return null;
-	return result;
+  groupNames.forEach((groupName) => {
+    if (match.groups && match.groups[groupName] !== undefined) {
+      result[groupName] = {
+        text: match.groups[groupName],
+        input: match[0],
+      };
+    }
+  });
+  if (Object.keys(result).length === 0) return null;
+  return result;
 }
 
 export function shouldSkip(d: SettingOption, app: App, propertyName: string, pattern?: Pattern): boolean {
-	return (
-		!d.regex ||
-		!d.class ||
-		d.regex === "" ||
-		d.class === "" ||
-		!isValidRegex(d.regex, true, pattern) ||
-		!includeFromSettings(app, propertyName, d.viewMode?.autoRules)
-	);
+  return (
+    !d.regex ||
+    !d.class ||
+    d.regex === "" ||
+    d.class === "" ||
+    !isValidRegex(d.regex, true, pattern) ||
+    !includeFromSettings(app, propertyName, d.viewMode?.autoRules)
+  );
 }
 
-export function addGroupText(text: string, subgroup: SubGroups, d: SettingOption, nodeContent: string): HTMLElement {
-	const mainSpan = document.createElement("span");
-	mainSpan.setAttribute("data-group", "false");
-	mainSpan.setAttribute("class", d.class);
-	mainSpan.setAttribute("data-contents", nodeContent);
-	mainSpan.setAttribute("data-processed", "true");
-	let processedText = nodeContent;
-	const fullMatch = Object.values(subgroup)[0]?.input; // Le match complet
+export function addGroupText(text: string, subgroup: SubGroups, d: SettingOption, match: RegExpExecArray): Array<HTMLElement|Text> {
+  const mainSpan = document.createElement("span");
+  mainSpan.setAttribute("data-group", "false");
+  mainSpan.setAttribute("class", d.class);
+  mainSpan.setAttribute("data-contents", match[0]);
+  mainSpan.setAttribute("data-processed", "true");
 
-	if (fullMatch) {
-		if (d.hide) {
-			let hiddenReplacement = "";
-			for (const [css, subtxt] of Object.entries(subgroup)) {
-				hiddenReplacement += `<span data-group="true" class="${css}">${subtxt.text}</span>`;
-			}
-			processedText = processedText.replace(fullMatch, hiddenReplacement);
-		} else {
-			const groupsWithPositions: Array<{ name: string; text: string; start: number; end: number }> = [];
+  const preNode = document.createTextNode(text.substring(0, match.index));
+  const afterNode = document.createTextNode(text.substring(0, match.index));
 
-			for (const [css, subtxt] of Object.entries(subgroup)) {
-				const groupStart = fullMatch.indexOf(subtxt.text);
-				if (groupStart !== -1) {
-					groupsWithPositions.push({
-						name: css,
-						text: subtxt.text,
-						start: groupStart,
-						end: groupStart + subtxt.text.length,
-					});
-				}
-			}
-			groupsWithPositions.sort((a, b) => b.start - a.start);
+  let processedText = match[0];
+  let hideMask = Array.from({length: text.length}).fill(true);
 
-			let replacement = fullMatch;
-			for (const group of groupsWithPositions) {
-				const before = replacement.substring(0, group.start);
-				const after = replacement.substring(group.end);
-				replacement = `${before}<span data-group="true" class="${group.name}">${group.text}</span>${after}`;
-			}
+  const fullMatch = Object.values(subgroup)[0]?.input; // Le match complet
 
-			processedText = processedText.replace(fullMatch, replacement);
-		}
-	}
-	mainSpan.innerHTML = processedText.trimStart();
-	return mainSpan;
+  if (fullMatch) {
+    const groups: ({name: string, pos: [number, number], children: (number[]), subtxt: string, replacement?: string})[] = Object.entries(match?.indices?.groups ?? []).map(
+      ([name, pos]) =>
+        ({
+          name,
+          pos: <[number,number]>pos.map(i => i-match.index), //Match internal Indexes
+          children: [],
+          subtxt: match.groups?.[name] ?? "",
+        })
+    ); //already sorted by position, no need to sort
+
+    //collect nested groups
+    for(let i = 0; i < groups.length; i++){
+      const {pos: pos1} = groups[i];
+
+      if(d.hide)
+        hideMask = hideMask.fill(false, pos1[0], pos1[1]);
+
+      let lastChildrensEnd = -1;
+      for(let j = i+1; j < groups.length; j++){
+        const {pos:pos2} = groups[j];
+        if(pos2[0] <= pos1[1]){
+          if(pos2[0] <= lastChildrensEnd){ // sub-sub-children
+            continue; // handled by sub-children
+          }
+          else{
+            groups[i].children?.push(j);
+            lastChildrensEnd = pos2[1];
+          }
+        }
+        else{
+          break;
+        }
+      }
+    }
+
+    const MARKER = '\uF8FF'
+
+    if(d.hide) processedText = processedText
+      .split('')
+      .map((char, i) => hideMask[i] ? MARKER : char)
+      .join('');
+
+
+    //walk backwards
+    for (let i = groups.length -1; i>=0; i--) {
+      const {name:css, pos, children, subtxt} = groups[i];
+      const mappedChildren = children.map(j => groups[j]);
+
+      const evaluatedEnd = mappedChildren.reduce((full,{subtxt, replacement}) => full + (replacement?.length ?? subtxt.length) - subtxt.length, pos[1]);
+
+      const
+        before = processedText.substring(0, pos[0]),
+        after = processedText.substring(evaluatedEnd),
+        cursubtxt = processedText.substring(pos[0], evaluatedEnd),
+        replacement = groups[i].replacement = `<span data-group="true" class="${css}">${cursubtxt}</span>`;
+
+      processedText = `${before}${replacement}${after}`;
+
+    }
+
+    if(d.hide){
+      processedText = processedText.replace(/\uF8FF+/g,"");
+    }
+  }
+  mainSpan.innerHTML = processedText.trimStart();
+  return [preNode,mainSpan,afterNode];
 }
