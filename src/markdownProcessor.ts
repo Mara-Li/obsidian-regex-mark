@@ -46,7 +46,10 @@ export function MarkdownProcessor(data: Mark, element: HTMLElement, app: App, pr
           const enabled = activeMode ? d.viewMode?.live : d.viewMode?.reading;
           if (!d.regex || !d.class || d.regex === "" || d.class === "" || !enabled) continue;
 
-          const regex = new RegExp(removeTags(d.regex, pattern), d.flags ? [...d.flags, "d"].join("") : "gid");
+          const flags = d.flags
+                        ? [...d.flags, "d"].join("")
+                        : "gid";
+          const regex = new RegExp(removeTags(d.regex, pattern), flags);
 
           if (d.hide) {
             const group = removeTags(d.regex, pattern)
@@ -54,7 +57,7 @@ export function MarkdownProcessor(data: Mark, element: HTMLElement, app: App, pr
               ?.filter((x) => x != null);
             const dataText = regex.exec(text);
             //remove undefined in dataText
-            if (!group || !dataText || dataText.length < 2) continue;
+            if (!group || !dataText || /* $1 defines visible content */ dataText.length < 2 ) continue;
             const subgroup = matchGroups(regex.source, text);
             if (!subgroup) {
               text = text.replace(regex, `<span class="${d.class}" data-contents="$1">$1</span>`);

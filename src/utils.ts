@@ -3,16 +3,6 @@ import { type App, type TFile, sanitizeHTMLToDom } from "obsidian";
 import type { AutoRules, Pattern, SettingOption, SubGroups } from "./interface";
 import { DEFAULT_PATTERN } from "./interface";
 
-export function subsitudeTags(regex: string, pattern = DEFAULT_PATTERN, d: SettingOption){
-
-  if(d.hide){
-    return regex.replace(new RegExp(pattern.open + "(.*?)" + pattern.close), `$1$2$3`)
-  }
-  else{
-    return regex.replace(new RegExp(pattern.open + "(.*?)" + pattern.close), `($1)$2($3)`)
-  }
-}
-
 export function removeTags(regex: string, pattern?: Pattern) {
   if (!pattern) return regex.replace(/{{open:(.*?)}}/, "$1").replace(/{{close:(.*?)}}/, "$1");
   const open = new RegExp(pattern.open);
@@ -181,27 +171,30 @@ export function addGroupText(text: string, subgroup: SubGroups, d: SettingOption
       for(let j = i+1; j < groups.length; j++){
         const {pos:pos2} = groups[j];
         if(pos2[0] < pos1[1]){
-          if(pos2[0] < lastChildrensEnd){ // sub-sub-children
-            continue; // handled by sub-children
-          }
-          else{
+          if(pos2[0] >= lastChildrensEnd){
             groups[i].children?.push(j);
             lastChildrensEnd = pos2[1];
           }
+          // sub-sub-children handled by sub-children
         }
-        else{
-          break;
-        }
+        else break;
       }
     }
 
-    const MARKER = '\uF8FF'
+    let MARKER = 0xE000;
+    if(d.hide) {
+      while(processedText.includes(String.fromCharCode(MARKER)) && MARKER < 0xF8FF){
+        MARKER++
+      }
 
-    if(d.hide) processedText = processedText
-      .split('')
-      .map((char, i) => hideMask[i] ? MARKER : char)
-      .join('');
+      const [,...indices] = match.indices;
+      indices.forEach(([start,end]) => hideMask.fill(false, start, end));
 
+      processedText = processedText
+        .split('')
+        .map((char, i) => hideMask[i] ? String.fromCharCode(MARKER) : char)
+        .join('');
+    }
 
     //walk backwards
     for (let i = groups.length -1; i>=0; i--) {
@@ -221,7 +214,7 @@ export function addGroupText(text: string, subgroup: SubGroups, d: SettingOption
     }
 
     if(d.hide){
-      processedText = processedText.replace(/\uF8FF+/g,"");
+      processedText = processedText.replace(new RegExp(`${String.fromCharCode(MARKER)}+`, "g"),"");
     }
   }
   mainSpan.innerHTML = processedText.trimStart();
