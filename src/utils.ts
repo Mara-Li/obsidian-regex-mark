@@ -1,6 +1,17 @@
 import { cloneDeep } from "lodash";
-import type { App, TFile } from "obsidian";
+import { type App, type TFile, sanitizeHTMLToDom } from "obsidian";
 import type { AutoRules, Pattern, SettingOption, SubGroups } from "./interface";
+import { DEFAULT_PATTERN } from "./interface";
+
+export function subsitudeTags(regex: string, pattern = DEFAULT_PATTERN, d: SettingOption){
+
+  if(d.hide){
+    return regex.replace(new RegExp(pattern.open + "(.*?)" + pattern.close), `$1$2$3`)
+  }
+  else{
+    return regex.replace(new RegExp(pattern.open + "(.*?)" + pattern.close), `($1)$2($3)`)
+  }
+}
 
 export function removeTags(regex: string, pattern?: Pattern) {
   if (!pattern) return regex.replace(/{{open:(.*?)}}/, "$1").replace(/{{close:(.*?)}}/, "$1");
@@ -130,29 +141,32 @@ export function shouldSkip(d: SettingOption, app: App, propertyName: string, pat
   );
 }
 
-export function addGroupText(text: string, subgroup: SubGroups, d: SettingOption, match: RegExpExecArray): Array<HTMLElement|Text> {
+export function addGroupText(text: string, subgroup: SubGroups, d: SettingOption, match: RegExpExecArray): DocumentFragment {
+  const parent = new DocumentFragment();
   const mainSpan = document.createElement("span");
   mainSpan.setAttribute("data-group", "false");
   mainSpan.setAttribute("class", d.class);
   mainSpan.setAttribute("data-contents", match[0]);
   mainSpan.setAttribute("data-processed", "true");
 
-  const preNode = document.createTextNode(text.substring(0, match.index));
-  const afterNode = document.createTextNode(text.substring(0, match.index));
+  const preNode = sanitizeHTMLToDom(text.substring(0, match.index));
+  const afterNode = sanitizeHTMLToDom(text.substring(match.index + match[0].length));
+
+  parent.append(preNode,mainSpan,afterNode);
 
   let processedText = match[0];
-  let hideMask = Array.from({length: text.length}).fill(true);
+  let hideMask = Array.from({length: processedText.length}).fill(true);
 
   const fullMatch = Object.values(subgroup)[0]?.input; // Le match complet
 
   if (fullMatch) {
-    const groups: ({name: string, pos: [number, number], children: (number[]), subtxt: string, replacement?: string})[] = Object.entries(match?.indices?.groups ?? []).map(
-      ([name, pos]) =>
+    const groups: ({name: string, pos: [number, number], children: (number[]), subtxt: string, replacement?: string})[] = Object.entries(match?.groups ?? []).map(
+      ([name, subtxt]) =>
         ({
           name,
-          pos: <[number,number]>pos.map(i => i-match.index), //Match internal Indexes
+          pos: <[number,number]>match?.indices?.groups?.[name]?.map(i => i-match.index), //Match internal Indexes
           children: [],
-          subtxt: match.groups?.[name] ?? "",
+          subtxt,
         })
     ); //already sorted by position, no need to sort
 
@@ -166,8 +180,8 @@ export function addGroupText(text: string, subgroup: SubGroups, d: SettingOption
       let lastChildrensEnd = -1;
       for(let j = i+1; j < groups.length; j++){
         const {pos:pos2} = groups[j];
-        if(pos2[0] <= pos1[1]){
-          if(pos2[0] <= lastChildrensEnd){ // sub-sub-children
+        if(pos2[0] < pos1[1]){
+          if(pos2[0] < lastChildrensEnd){ // sub-sub-children
             continue; // handled by sub-children
           }
           else{
@@ -194,7 +208,7 @@ export function addGroupText(text: string, subgroup: SubGroups, d: SettingOption
       const {name:css, pos, children, subtxt} = groups[i];
       const mappedChildren = children.map(j => groups[j]);
 
-      const evaluatedEnd = mappedChildren.reduce((full,{subtxt, replacement}) => full + (replacement?.length ?? subtxt.length) - subtxt.length, pos[1]);
+      const evaluatedEnd = mappedChildren.reduce((full,{subtxt, replacement}) => full + (replacement?.length ?? NaN) - subtxt.length, pos[1]);
 
       const
         before = processedText.substring(0, pos[0]),
@@ -211,5 +225,5 @@ export function addGroupText(text: string, subgroup: SubGroups, d: SettingOption
     }
   }
   mainSpan.innerHTML = processedText.trimStart();
-  return [preNode,mainSpan,afterNode];
+  return parent;
 }

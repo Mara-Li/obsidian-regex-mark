@@ -38,7 +38,7 @@ export function MarkdownProcessor(data: Mark, element: HTMLElement, app: App, pr
       if (text) {
         const originalText = `${text}`;
         let hasChanges = false;
-        let finalElements: Array<HTMLElement|Text>|undefined;
+        let finalElement: DocumentFragment|undefined;
 
         for (const d of data) {
           if (!d.viewMode) d.viewMode = { reading: true, source: true, live: true, codeBlock: true };
@@ -60,7 +60,7 @@ export function MarkdownProcessor(data: Mark, element: HTMLElement, app: App, pr
               text = text.replace(regex, `<span class="${d.class}" data-contents="$1">$1</span>`);
               hasChanges = true;
             } else {
-              finalElements = addGroupText(text, subgroup, d, dataText);
+              finalElement = addGroupText(text, subgroup, d, dataText);
               hasChanges = true;
               break;
             }
@@ -72,7 +72,7 @@ export function MarkdownProcessor(data: Mark, element: HTMLElement, app: App, pr
               text = text.replace(regex, `<span class="${d.class}" data-contents="$&">$&</span>`);
               hasChanges = true;
             } else {
-              finalElements = addGroupText(text, subgroup, d, dataText);
+              finalElement = addGroupText(text, subgroup, d, dataText);
               hasChanges = true;
               break;
             }
@@ -80,13 +80,8 @@ export function MarkdownProcessor(data: Mark, element: HTMLElement, app: App, pr
         }
 
         if (hasChanges && node.parentNode) {
-          if (finalElements) {
-            const parent = node.parentNode;
-            parent.replaceChild(finalElements[finalElements.length-1], node);
-            for(let i = finalElements.length-2; i>=0; i--){
-              parent.insertBefore(finalElements[i], finalElements[i+1])
-            }
-
+          if (finalElement) {
+            node.parentNode.replaceChild(finalElement, node);
           } else {
             const dom = sanitizeHTMLToDom(text);
             node.parentNode.replaceChild(dom, node);
