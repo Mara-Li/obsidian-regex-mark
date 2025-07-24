@@ -36,13 +36,13 @@ export function MarkdownProcessor(data: Mark, element: HTMLElement, app: App, pr
     for (const node of textNodes) {
       let text = node.textContent;
       if (text) {
-        const originalText = `${text}`;
         let hasChanges = false;
         let finalElement: DocumentFragment|undefined;
 
         for (const d of data) {
           if (!d.viewMode) d.viewMode = { reading: true, source: true, live: true, codeBlock: true };
           if (node.parentNode?.nodeName === "CODE" && d.viewMode?.codeBlock === false) continue;
+
           const enabled = activeMode ? d.viewMode?.live : d.viewMode?.reading;
           if (!d.regex || !d.class || d.regex === "" || d.class === "" || !enabled) continue;
 
@@ -63,7 +63,7 @@ export function MarkdownProcessor(data: Mark, element: HTMLElement, app: App, pr
               text = text.replace(regex, `<span class="${d.class}" data-contents="$1">$1</span>`);
               hasChanges = true;
             } else {
-              finalElement = addGroupText(text, subgroup, d, dataText);
+              finalElement = addGroupText(text, d, dataText);
               hasChanges = true;
               break;
             }
@@ -75,7 +75,7 @@ export function MarkdownProcessor(data: Mark, element: HTMLElement, app: App, pr
               text = text.replace(regex, `<span class="${d.class}" data-contents="$&">$&</span>`);
               hasChanges = true;
             } else {
-              finalElement = addGroupText(text, subgroup, d, dataText);
+              finalElement = addGroupText(text, d, dataText);
               hasChanges = true;
               break;
             }

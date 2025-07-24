@@ -131,7 +131,7 @@ export function shouldSkip(d: SettingOption, app: App, propertyName: string, pat
   );
 }
 
-export function addGroupText(text: string, subgroup: SubGroups, d: SettingOption, match: RegExpExecArray): DocumentFragment {
+export function addGroupText(text: string, d: SettingOption, match: RegExpExecArray): DocumentFragment {
   const parent = new DocumentFragment();
   const mainSpan = document.createElement("span");
   mainSpan.setAttribute("data-group", "false");
@@ -147,9 +147,7 @@ export function addGroupText(text: string, subgroup: SubGroups, d: SettingOption
   let processedText = match[0];
   let hideMask = Array.from({length: processedText.length}).fill(true);
 
-  const fullMatch = Object.values(subgroup)[0]?.input; // Le match complet
-
-  if (fullMatch) {
+  if (processedText) {
     const groups: ({name: string, pos: [number, number], children: (number[]), subtxt: string, replacement?: string})[] = Object.entries(match?.groups ?? []).map(
       ([name, subtxt]) =>
         ({
