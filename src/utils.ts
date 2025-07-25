@@ -34,7 +34,7 @@ export function hasPattern(regex: string, pattern?: Pattern) {
 	if (!pattern) return false;
 	const open = new RegExp(pattern.open);
 	const close = new RegExp(pattern.close);
-	return open.test(regex) && close.test(regex);
+	return open.test(regex) || close.test(regex);
 }
 
 export function extractGroups(regex: string): string[] {
