@@ -43,11 +43,7 @@ export function extractGroups(regex: string): string[] {
 
 	let match;
 	//biome-ignore lint/suspicious/noAssignInExpressions: let match be reused
-	while ((match = groupPattern.exec(regex)) !== null) {
-		// match[1] contient le nom du groupe
-		groups.push(match[1]);
-	}
-
+	while ((match = groupPattern.exec(regex)) !== null) groups.push(match[1]);
 	return groups;
 }
 
@@ -188,9 +184,7 @@ export function addGroupText(
 			const [, ...indices] = match.indices ?? [];
 			indices.forEach(([start, end]) => hideMask.fill(false, start, end));
 
-			// Masquer les patterns d'ouverture et de fermeture
 			if (d.hide && pattern && d.regex.includes("{{open:") && d.regex.includes("{{close:")) {
-				// Extraire les parties open et close de la regex originale
 				const openMatch = d.regex.match(/{{open:(.*?)}}/);
 				const closeMatch = d.regex.match(/{{close:(.*?)}}/);
 
@@ -198,7 +192,6 @@ export function addGroupText(
 					const openTag = openMatch[1];
 					const closeTag = closeMatch[1];
 
-					// Créer des regex pour trouver les patterns dans le texte matché
 					try {
 						const openTagRegex = new RegExp(openTag, "g");
 						const closeTagRegex = new RegExp(closeTag, "g");
@@ -215,7 +208,6 @@ export function addGroupText(
 							closeTagMatch = closeTagRegex.exec(processedText);
 						}
 					} catch (e) {
-						// Si les patterns ne sont pas des regex valides, les échapper
 						const escapedOpenTag = openTag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 						const escapedCloseTag = closeTag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 

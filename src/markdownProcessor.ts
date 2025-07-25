@@ -48,13 +48,11 @@ export function MarkdownProcessor(data: Mark, element: HTMLElement, app: App, pr
 
 					const flags = d.flags ? [...d.flags, "d"].join("") : "gid";
 
-					// Utiliser la regex originale (avec patterns) si on a des groupes nommés et l'option hide
 					const hasPatterns = pattern && d.regex.includes("{{open:") && d.regex.includes("{{close:");
 					const hasNamedGroups = extractGroups(d.regex).length > 0;
 
 					let regex: RegExp;
 					if (hasPatterns && hasNamedGroups && d.hide) {
-						// Convertir les patterns en regex valide
 						let regexStr = d.regex;
 						const openMatch = regexStr.match(/{{open:(.*?)}}/);
 						const closeMatch = regexStr.match(/{{close:(.*?)}}/);
@@ -72,10 +70,8 @@ export function MarkdownProcessor(data: Mark, element: HTMLElement, app: App, pr
 							.match(/\((.*?)\)/)
 							?.filter((x) => x != null);
 						const dataText = regex.exec(text);
-						//remove undefined in dataText
 						if (!group || !dataText || /* $1 defines visible content */ dataText.length < 2) continue;
 						const subgroup = matchGroups(regex.source, text);
-						// Toujours utiliser addGroupText quand on a des patterns avec hide
 						if (!subgroup && !(hasPatterns && hasNamedGroups)) {
 							text = text.replace(regex, `<span class="${d.class}" data-contents="$1">$1</span>`);
 							hasChanges = true;
