@@ -1,7 +1,7 @@
 /** Reading mode processor .*/
 import { type App, MarkdownView, sanitizeHTMLToDom } from "obsidian";
 
-import type { Mark, Pattern, RegexFlags } from "./interface";
+import type { Mark, Pattern } from "./interface";
 import { addGroupText, extractGroups, matchGroups, removeTags, shouldSkip } from "./utils";
 
 export function MarkdownProcessor(data: Mark, element: HTMLElement, app: App, propertyName: string, pattern?: Pattern) {
