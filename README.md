@@ -177,4 +177,14 @@ You **need** to make the backslash optional, because they don't render in the re
 
 - [rien7](https://github.com/rien7/obsidian-regex-mark): Original work
 
+---
+# Transparency
+
+I use some IA (with Copilot in Agent) on some part of the code, mainly for the experimental features like the named group.
+I already standed against the use of AI for code generation, but I think that using it for some parts of the code is not a problem, as long as I don't use it for the main part of the plugin, and I uderstand the results.
+I also, sometimes, ask question to ChatGPT to help me to "think" (as a [duckduck debugging](https://en.wikipedia.org/wiki/Rubber_duck_debugging)) about the code, but I don't use it to write the code (or only some little snippets).
+
+If you like, you can help me, correct the code generation, or even help me with pair programming! My discord is `mara__li` (yes, simple likes that, with two underscore). You can also find me on the official Obsidian Discord Server.
+I'm (mostly) chill >:)
+
 [^1]: You need to reload the file (open it again) to apply/disable the regex when the frontmatter is changed in the reading mode.
