@@ -15,7 +15,7 @@ import { cloneDeep } from "lodash";
 import { Notice, sanitizeHTMLToDom } from "obsidian";
 import { DEFAULT_PATTERN, type Mark, type Pattern, type SettingOption, type SettingOptions } from "./interface";
 import type RegexMark from "./main";
-import { isValidRegex, matchGroups, removeTags, shouldSkip } from "./utils";
+import { isValidRegex, matchGroups, removeTags, shouldSkip, addGroupText } from "./utils";
 
 interface ConfigWithPlugin extends Required<SettingOptions> {
 	plugin: RegexMark;
@@ -147,14 +147,15 @@ class LivePreviewWidget extends WidgetType {
 		wrap.setAttribute("data-contents", text);
 		if (this.data.hide) {
 			const newContent = wrap.createEl("span");
+      //TODO: Named Group implementation
 			const res = this.subGroup(this.data.regex, text, newContent);
 			if (res) wrap = res;
 		} else {
-			const matchSub = matchGroups(removeTags(this.data.regex, this.pattern), text);
-			if (matchSub) {
-				for (const [css, items] of Object.entries(matchSub)) {
-					wrap.createEl("span", { cls: css }).setText(items.text);
-				}
+      const regex = new RegExp(removeTags(this.data.regex, this.pattern), this.data.flags ? [...this.data.flags, "d"].join("") : "gid");
+      const dataText = regex.exec(text);
+			if (dataText) {
+        const el = addGroupText(text, this.data, dataText);
+        wrap.append(el);
 			} else wrap.innerText = text;
 		}
 
@@ -193,21 +194,25 @@ class LivePreviewWidget extends WidgetType {
 		}
 		const openRegex = new RegExp(openTag as string, "g");
 		const closeRegex = new RegExp(closeTag as string, "g");
-		const matchSub = matchGroups(removeTags(regex, this.pattern), text);
-		if (!matchSub) {
+		//const matchSub = matchGroups(removeTags(regex, this.pattern), text);
+		//if (!matchSub) {
 			newContent.createEl("span", { cls: "cm-hide" }).setText(text.match(openRegex)?.[1] || "");
 			newContent
 				.createEl("span", { cls: this.data.class })
 				.setText(text.replace(openRegex, "").replace(closeRegex, "") || "");
 			newContent.createEl("span", { cls: "cm-hide" }).setText(text.match(closeRegex)?.[1] || "");
 			return newContent;
-		}
-		newContent.addClass(this.data.class);
-		newContent.setAttribute("data-contents", text);
-		for (const [css, items] of Object.entries(matchSub)) {
-			newContent.createEl("span", { cls: css }).setText(items.text);
-		}
-		return newContent;
+    /*
+    }
+    else{
+        newContent.addClass(this.data.class);
+        newContent.setAttribute("data-contents", text);
+        for (const [css, items] of Object.entries(matchSub)) {
+          newContent.createEl("span", { cls: css }).setText(items.text);
+        }
+        return newContent;
+    }
+    */
 	}
 }
 

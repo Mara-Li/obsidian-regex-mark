@@ -1,5 +1,5 @@
 import { cloneDeep } from "lodash";
-import type { App, TFile } from "obsidian";
+import { type App, sanitizeHTMLToDom, type TFile } from "obsidian";
 import type { AutoRules, Pattern, SettingOption, SubGroups } from "./interface";
 
 export function removeTags(regex: string, pattern?: Pattern) {
@@ -130,48 +130,144 @@ export function shouldSkip(d: SettingOption, app: App, propertyName: string, pat
 	);
 }
 
-export function addGroupText(text: string, subgroup: SubGroups, d: SettingOption, nodeContent: string): HTMLElement {
+export function addGroupText(
+	text: string,
+	d: SettingOption,
+	match: RegExpExecArray,
+	pattern?: Pattern
+): DocumentFragment {
+	const parent = new DocumentFragment();
 	const mainSpan = document.createElement("span");
 	mainSpan.setAttribute("data-group", "false");
 	mainSpan.setAttribute("class", d.class);
-	mainSpan.setAttribute("data-contents", nodeContent);
+	mainSpan.setAttribute("data-contents", match[0]);
 	mainSpan.setAttribute("data-processed", "true");
-	let processedText = nodeContent;
-	const fullMatch = Object.values(subgroup)[0]?.input; // Le match complet
 
-	if (fullMatch) {
-		if (d.hide) {
-			let hiddenReplacement = "";
-			for (const [css, subtxt] of Object.entries(subgroup)) {
-				hiddenReplacement += `<span data-group="true" class="${css}">${subtxt.text}</span>`;
+	const preNode = sanitizeHTMLToDom(text.substring(0, match.index));
+	const afterNode = sanitizeHTMLToDom(text.substring(match.index + match[0].length));
+
+	parent.append(preNode, mainSpan, afterNode);
+
+	let processedText = match[0];
+	let hideMask = Array.from({ length: processedText.length }).fill(true);
+
+	if (processedText) {
+		const groups: { name: string; pos: [number, number]; children: number[]; subtxt: string; replacement?: string }[] =
+			Object.entries(match?.groups ?? []).map(([name, subtxt]) => ({
+				name,
+				pos: <[number, number]>match?.indices?.groups?.[name]?.map((i) => i - match.index), //Match internal Indexes
+				children: [],
+				subtxt,
+			})); //already sorted by position, no need to sort
+
+		//collect nested groups
+		for (let i = 0; i < groups.length; i++) {
+			const { pos: pos1 } = groups[i];
+
+			if (d.hide) hideMask = hideMask.fill(false, pos1[0], pos1[1]);
+
+			let lastChildrensEnd = -1;
+			for (let j = i + 1; j < groups.length; j++) {
+				const { pos: pos2 } = groups[j];
+				if (pos2[0] < pos1[1]) {
+					if (pos2[0] >= lastChildrensEnd) {
+						groups[i].children?.push(j);
+						lastChildrensEnd = pos2[1];
+					}
+					// sub-sub-children handled by sub-children
+				} else break;
 			}
-			processedText = processedText.replace(fullMatch, hiddenReplacement);
-		} else {
-			const groupsWithPositions: Array<{ name: string; text: string; start: number; end: number }> = [];
+		}
 
-			for (const [css, subtxt] of Object.entries(subgroup)) {
-				const groupStart = fullMatch.indexOf(subtxt.text);
-				if (groupStart !== -1) {
-					groupsWithPositions.push({
-						name: css,
-						text: subtxt.text,
-						start: groupStart,
-						end: groupStart + subtxt.text.length,
-					});
+		let marker = 0xe000;
+		if (d.hide) {
+			while (processedText.includes(String.fromCharCode(marker)) && marker < 0xf8ff) {
+				marker++;
+			}
+
+			const [, ...indices] = match.indices ?? [];
+			indices.forEach(([start, end]) => hideMask.fill(false, start, end));
+
+			// Masquer les patterns d'ouverture et de fermeture
+			if (d.hide && pattern && d.regex.includes("{{open:") && d.regex.includes("{{close:")) {
+				// Extraire les parties open et close de la regex originale
+				const openMatch = d.regex.match(/{{open:(.*?)}}/);
+				const closeMatch = d.regex.match(/{{close:(.*?)}}/);
+
+				if (openMatch && closeMatch) {
+					const openTag = openMatch[1];
+					const closeTag = closeMatch[1];
+
+					// Créer des regex pour trouver les patterns dans le texte matché
+					try {
+						const openTagRegex = new RegExp(openTag, "g");
+						const closeTagRegex = new RegExp(closeTag, "g");
+
+						let openTagMatch = openTagRegex.exec(processedText);
+						while (openTagMatch !== null) {
+							hideMask.fill(true, openTagMatch.index, openTagMatch.index + openTagMatch[0].length);
+							openTagMatch = openTagRegex.exec(processedText);
+						}
+
+						let closeTagMatch = closeTagRegex.exec(processedText);
+						while (closeTagMatch !== null) {
+							hideMask.fill(true, closeTagMatch.index, closeTagMatch.index + closeTagMatch[0].length);
+							closeTagMatch = closeTagRegex.exec(processedText);
+						}
+					} catch (e) {
+						// Si les patterns ne sont pas des regex valides, les échapper
+						const escapedOpenTag = openTag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+						const escapedCloseTag = closeTag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+						const openTagRegex = new RegExp(escapedOpenTag, "g");
+						const closeTagRegex = new RegExp(escapedCloseTag, "g");
+
+						let openTagMatch = openTagRegex.exec(processedText);
+						while (openTagMatch !== null) {
+							hideMask.fill(true, openTagMatch.index, openTagMatch.index + openTagMatch[0].length);
+							openTagMatch = openTagRegex.exec(processedText);
+						}
+
+						let closeTagMatch = closeTagRegex.exec(processedText);
+						while (closeTagMatch !== null) {
+							hideMask.fill(true, closeTagMatch.index, closeTagMatch.index + closeTagMatch[0].length);
+							closeTagMatch = closeTagRegex.exec(processedText);
+						}
+					}
 				}
 			}
-			groupsWithPositions.sort((a, b) => b.start - a.start);
 
-			let replacement = fullMatch;
-			for (const group of groupsWithPositions) {
-				const before = replacement.substring(0, group.start);
-				const after = replacement.substring(group.end);
-				replacement = `${before}<span data-group="true" class="${group.name}">${group.text}</span>${after}`;
-			}
+			processedText = processedText
+				.split("")
+				.map((char, i) => (hideMask[i] ? String.fromCharCode(marker) : char))
+				.join("");
+		}
 
-			processedText = processedText.replace(fullMatch, replacement);
+		//walk backwards
+		for (let i = groups.length - 1; i >= 0; i--) {
+			const { name: css, pos, children } = groups[i];
+			const mappedChildren = children.map((j) => groups[j]);
+
+			const evaluatedEnd = mappedChildren.reduce(
+				(full, { subtxt, replacement }) => full + (replacement?.length ?? NaN) - subtxt.length,
+				pos[1]
+			);
+
+			const before = processedText.substring(0, pos[0]),
+				after = processedText.substring(evaluatedEnd),
+				cursubtxt = processedText.substring(pos[0], evaluatedEnd);
+
+			const replacement = `<span data-group="true" class="${css}">${cursubtxt}</span>`;
+			groups[i].replacement = replacement;
+
+			processedText = `${before}${replacement}${after}`;
+		}
+
+		if (d.hide) {
+			const regex = new RegExp(`${String.fromCharCode(marker)}+`, "g");
+			processedText = processedText.replace(regex, "");
 		}
 	}
 	mainSpan.innerHTML = processedText.trimStart();
-	return mainSpan;
+	return parent;
 }

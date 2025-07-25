@@ -50,8 +50,8 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 			toggleComponent.setDisabled(isRegexInvalid);
 
 			const tooltip = isRegexInvalid
-				? "The regex cannot be hidden if it doesn't contain a group or opening/closing tags."
-				: "Hide the opening/closing tags in Live-Preview, only keeping the content.";
+				? "Can't hide the regex if no group is found in it."
+				: "Hide the regex in Live-Preview, only keeping the content.";
 
 			toggleComponent.setTooltip(tooltip);
 		}
