@@ -1,7 +1,6 @@
 import { cloneDeep } from "lodash";
 import { type App, sanitizeHTMLToDom, type TFile } from "obsidian";
 import type { AutoRules, Pattern, SettingOption, SubGroups } from "./interface";
-import { DEFAULT_PATTERN } from "./interface";
 
 export function removeTags(regex: string, pattern?: Pattern) {
 	if (!pattern) return regex.replace(/{{open:(.*?)}}/, "$1").replace(/{{close:(.*?)}}/, "$1");
@@ -131,7 +130,12 @@ export function shouldSkip(d: SettingOption, app: App, propertyName: string, pat
 	);
 }
 
-export function addGroupText(text: string, d: SettingOption, match: RegExpExecArray): DocumentFragment {
+export function addGroupText(
+	text: string,
+	d: SettingOption,
+	match: RegExpExecArray,
+	pattern?: Pattern
+): DocumentFragment {
 	const parent = new DocumentFragment();
 	const mainSpan = document.createElement("span");
 	mainSpan.setAttribute("data-group", "false");
@@ -184,6 +188,55 @@ export function addGroupText(text: string, d: SettingOption, match: RegExpExecAr
 			const [, ...indices] = match.indices ?? [];
 			indices.forEach(([start, end]) => hideMask.fill(false, start, end));
 
+			// Masquer les patterns d'ouverture et de fermeture
+			if (d.hide && pattern && d.regex.includes("{{open:") && d.regex.includes("{{close:")) {
+				// Extraire les parties open et close de la regex originale
+				const openMatch = d.regex.match(/{{open:(.*?)}}/);
+				const closeMatch = d.regex.match(/{{close:(.*?)}}/);
+
+				if (openMatch && closeMatch) {
+					const openTag = openMatch[1];
+					const closeTag = closeMatch[1];
+
+					// Créer des regex pour trouver les patterns dans le texte matché
+					try {
+						const openTagRegex = new RegExp(openTag, "g");
+						const closeTagRegex = new RegExp(closeTag, "g");
+
+						let openTagMatch = openTagRegex.exec(processedText);
+						while (openTagMatch !== null) {
+							hideMask.fill(true, openTagMatch.index, openTagMatch.index + openTagMatch[0].length);
+							openTagMatch = openTagRegex.exec(processedText);
+						}
+
+						let closeTagMatch = closeTagRegex.exec(processedText);
+						while (closeTagMatch !== null) {
+							hideMask.fill(true, closeTagMatch.index, closeTagMatch.index + closeTagMatch[0].length);
+							closeTagMatch = closeTagRegex.exec(processedText);
+						}
+					} catch (e) {
+						// Si les patterns ne sont pas des regex valides, les échapper
+						const escapedOpenTag = openTag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+						const escapedCloseTag = closeTag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+						const openTagRegex = new RegExp(escapedOpenTag, "g");
+						const closeTagRegex = new RegExp(escapedCloseTag, "g");
+
+						let openTagMatch = openTagRegex.exec(processedText);
+						while (openTagMatch !== null) {
+							hideMask.fill(true, openTagMatch.index, openTagMatch.index + openTagMatch[0].length);
+							openTagMatch = openTagRegex.exec(processedText);
+						}
+
+						let closeTagMatch = closeTagRegex.exec(processedText);
+						while (closeTagMatch !== null) {
+							hideMask.fill(true, closeTagMatch.index, closeTagMatch.index + closeTagMatch[0].length);
+							closeTagMatch = closeTagRegex.exec(processedText);
+						}
+					}
+				}
+			}
+
 			processedText = processedText
 				.split("")
 				.map((char, i) => (hideMask[i] ? String.fromCharCode(marker) : char))
@@ -192,7 +245,7 @@ export function addGroupText(text: string, d: SettingOption, match: RegExpExecAr
 
 		//walk backwards
 		for (let i = groups.length - 1; i >= 0; i--) {
-			const { name: css, pos, children, subtxt } = groups[i];
+			const { name: css, pos, children } = groups[i];
 			const mappedChildren = children.map((j) => groups[j]);
 
 			const evaluatedEnd = mappedChildren.reduce(
@@ -202,8 +255,10 @@ export function addGroupText(text: string, d: SettingOption, match: RegExpExecAr
 
 			const before = processedText.substring(0, pos[0]),
 				after = processedText.substring(evaluatedEnd),
-				cursubtxt = processedText.substring(pos[0], evaluatedEnd),
-				replacement = (groups[i].replacement = `<span data-group="true" class="${css}">${cursubtxt}</span>`);
+				cursubtxt = processedText.substring(pos[0], evaluatedEnd);
+
+			const replacement = `<span data-group="true" class="${css}">${cursubtxt}</span>`;
+			groups[i].replacement = replacement;
 
 			processedText = `${before}${replacement}${after}`;
 		}
