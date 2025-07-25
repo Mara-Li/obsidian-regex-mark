@@ -1,3 +1,9 @@
+## [1.11.1-3](https://github.com/Mara-Li/obsidian-regex-mark/compare/1.11.1-2...1.11.1-3) (2025-07-25)
+### Bug Fixes
+
+* ending pattern doesn't hide ([eb90d60](https://github.com/Mara-Li/obsidian-regex-mark/commit/eb90d609a7a7da5dbbd022e2e05ca32eb08a86b0))
+* replacement are made inside HTML-tags in group in some edge case ([fb51ea6](https://github.com/Mara-Li/obsidian-regex-mark/commit/fb51ea60137755e24ffc5daae5a385cb219799fe)), closes [#34](https://github.com/Mara-Li/obsidian-regex-mark/issues/34) [#35](https://github.com/Mara-Li/obsidian-regex-mark/issues/35)
+
 ## [1.11.1-2](https://github.com/Mara-Li/obsidian-regex-mark/compare/1.11.1-1...1.11.1-2) (2025-07-25)
 ### Bug Fixes
 
