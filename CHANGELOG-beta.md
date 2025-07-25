@@ -1,3 +1,8 @@
+## [1.11.1-2](https://github.com/Mara-Li/obsidian-regex-mark/compare/1.11.1-1...1.11.1-2) (2025-07-25)
+### Bug Fixes
+
+* should allow only open or close tags. ([7648dd1](https://github.com/Mara-Li/obsidian-regex-mark/commit/7648dd1b7277562a42a00c6d23cd1e4dde8e4eae))
+
 ## [1.11.1-1](https://github.com/Mara-Li/obsidian-regex-mark/compare/1.11.1-0...1.11.1-1) (2025-07-21)
 ### Bug Fixes
 
