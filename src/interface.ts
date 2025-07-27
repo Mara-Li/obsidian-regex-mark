@@ -1,4 +1,6 @@
-export interface SettingOption {
+import {MarkRule} from "./model";
+
+export interface MarkRuleObj {
 	/**
 	 * Regex to match the text
 	 */
@@ -28,8 +30,13 @@ export interface SettingOption {
 	viewMode?: ViewMode;
 }
 
-export type SettingOptions = {
-	mark: Mark;
+/**
+ * @deprecated
+ */
+export type SettingOptionsObj0 = MarkRuleObj[];
+
+export type SettingOptionsObj = {
+	mark: MarkRuleObj[];
 	pattern?: Pattern;
 	/**
 	 * Property name to search in the frontmatter
@@ -47,13 +54,11 @@ export const DEFAULT_PATTERN: Pattern = {
 	close: `{{close:(.*?)}}`,
 };
 
-export const DEFAULT_SETTINGS: SettingOptions = {
+export const DEFAULT_SETTINGS: SettingOptionsObj = {
 	mark: [],
 	pattern: DEFAULT_PATTERN,
 	propertyName: "regex_mark",
 };
-
-export type Mark = SettingOption[];
 
 export type ViewMode = {
 	reading: boolean;

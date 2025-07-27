@@ -1,6 +1,7 @@
 import { cloneDeep } from "lodash";
 import { type App, sanitizeHTMLToDom, type TFile } from "obsidian";
-import type { AutoRules, Pattern, SettingOption, SubGroups } from "./interface";
+import type { AutoRules, Pattern, MarkRuleObj, SubGroups } from "./interface";
+import {MarkRule} from "./model";
 
 export function removeTags(regex: string, pattern?: Pattern) {
 	if (!pattern) return regex.replace(/{{open:(.*?)}}/, "$1").replace(/{{close:(.*?)}}/, "$1");
@@ -115,20 +116,9 @@ export function matchGroups(regex: string, text: string): SubGroups | null {
 	return result;
 }
 
-export function shouldSkip(d: SettingOption, app: App, propertyName: string, pattern?: Pattern): boolean {
-	return (
-		!d.regex ||
-		!d.class ||
-		d.regex === "" ||
-		d.class === "" ||
-		!isValidRegex(d.regex, true, pattern) ||
-		!includeFromSettings(app, propertyName, d.viewMode?.autoRules)
-	);
-}
-
 export function addGroupText(
 	text: string,
-	d: SettingOption,
+	d: MarkRule,
 	match: RegExpExecArray,
 	pattern?: Pattern
 ): DocumentFragment {
@@ -184,9 +174,9 @@ export function addGroupText(
 			const [, ...indices] = match.indices ?? [];
 			indices.forEach(([start, end]) => hideMask.fill(false, start, end));
 
-			if (d.hide && pattern && d.regex.includes("{{open:") && d.regex.includes("{{close:")) {
-				const openMatch = d.regex.match(/{{open:(.*?)}}/);
-				const closeMatch = d.regex.match(/{{close:(.*?)}}/);
+			if (d.hide && pattern && d._regex.includes("{{open:") && d._regex.includes("{{close:")) {
+				const openMatch = d._regex.match(/{{open:(.*?)}}/);
+				const closeMatch = d._regex.match(/{{close:(.*?)}}/);
 
 				if (openMatch && closeMatch) {
 					const openTag = openMatch[1];

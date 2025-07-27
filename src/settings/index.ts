@@ -1,13 +1,13 @@
 import { cloneDeep } from "lodash";
 import {
-	type App,
-	Component,
-	MarkdownRenderer,
-	Notice,
-	PluginSettingTab,
-	Setting,
-	sanitizeHTMLToDom,
-	type ToggleComponent,
+  type App,
+  Component,
+  MarkdownRenderer,
+  Notice,
+  PluginSettingTab,
+  Setting,
+  sanitizeHTMLToDom,
+  type ToggleComponent, TextComponent,
 } from "obsidian";
 import { dedent } from "ts-dedent";
 import {
@@ -15,10 +15,13 @@ import {
 	DEFAULT_VIEW_MODE,
 	type Pattern,
 	type RegexFlags,
-	type SettingOption,
-	type SettingOptions,
+	type MarkRuleObj,
 	type ViewMode,
 } from "../interface";
+import {
+  MarkRule,
+  SettingOptions
+} from "../model";
 import type RegexMark from "../main";
 import { hasToHide, isInvalid, isValidRegex, removeTags } from "../utils";
 import { RemarkPatternTab } from "./change_pattern";
@@ -29,7 +32,7 @@ import { RemarkRegexOptions } from "./viewModal";
 export class RemarkRegexSettingTab extends PluginSettingTab {
 	plugin: RegexMark;
 	settings: SettingOptions;
-	toggles: Map<SettingOption, ToggleComponent> = new Map();
+	toggles: Map<MarkRule, ToggleComponent> = new Map();
 
 	constructor(app: App, plugin: RegexMark) {
 		super(app, plugin);
@@ -41,7 +44,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 	 * Disable the toggle option if the regex doesn't contain any group
 	 * @param data - The setting option containing regex information
 	 */
-	disableToggle(data: SettingOption) {
+	disableToggle(data: MarkRule) {
 		const isRegexInvalid = this.verifyRegexFromInput(data);
 		const toggleComponent = this.toggles.get(data);
 
@@ -60,22 +63,23 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 	/**
 	 * Create a deep copy of the view mode
 	 */
-	cloneViewMode(mode: SettingOption): ViewMode {
+	cloneViewMode(mode: MarkRuleObj): ViewMode {
 		return cloneDeep(mode.viewMode ?? DEFAULT_VIEW_MODE);
 	}
 
 	/**
 	 * Create a deep copy of the pattern configuration
 	 */
-	clonePattern(pattern: SettingOptions): Pattern {
-		return cloneDeep(pattern.pattern ?? { open: "{{open:}}", close: "{{close:}}" });
+	clonePattern(options: SettingOptions): Pattern {
+		return cloneDeep(options.pattern);
 	}
 
 	/**
 	 * Updates all regex patterns when the open/close tags are changed
 	 */
 	async updateRegex(newPattern: Pattern) {
-		const oldPattern = this.settings.pattern ?? DEFAULT_PATTERN;
+
+		const oldPattern = this.settings.pattern;
 		const notValid = [];
 
 		// Create a simplified pattern without escaping characters
@@ -86,12 +90,12 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 
 		// Update each regex with the new pattern
 		for (const data of this.settings.mark) {
-			const updatedRegex = data.regex
+			const updatedRegex = data._regex
 				.replace(new RegExp(oldPattern.open), simplifiedPattern.open)
 				.replace(new RegExp(oldPattern.close), simplifiedPattern.close);
 
 			// Apply changes to the data object
-			Object.assign(data, { regex: updatedRegex });
+      data._regex = updatedRegex;
 
 			// Verify if the new regex is valid
 			const isValid = await this.verifyRegex(data, newPattern);
@@ -233,7 +237,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 	/**
 	 * Renders a single regex setting item
 	 */
-	private renderRegexSetting(containerEl: HTMLElement, data: SettingOption) {
+	private renderRegexSetting(containerEl: HTMLElement, data: MarkRule) {
 		new Setting(containerEl)
 			.setClass("regex-setting")
 			.addExtraButton((button) => {
@@ -241,7 +245,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 					.setIcon("eye")
 					.setTooltip("Edit the view mode")
 					.onClick(async () => {
-						new RemarkRegexOptions(this.app, this.cloneViewMode(data), this.settings.propertyName, async (result) => {
+						new RemarkRegexOptions(this.app, cloneDeep(data.viewMode), this.settings.propertyName, async (result) => {
 							data.viewMode = result;
 							await this.plugin.saveSettings();
 							this.plugin.updateCmExtension();
@@ -262,13 +266,15 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 	/**
 	 * Creates the regex text input field
 	 */
-	private createRegexInput(text: any, data: SettingOption) {
-		text.inputEl.setAttribute("regex-value", data.regex);
+	private createRegexInput(text: TextComponent, data: MarkRule) {
+		text.inputEl.setAttribute("regex-value", data._regex);
 
-		text.setValue(data.regex).onChange(async (value: string) => {
-			data.regex = value;
+		text
+      .setValue(data._regex)
+      .onChange(async (value: string) => {
+			data._regex = value;
 			await this.plugin.saveSettings();
-			text.inputEl.setAttribute("regex-value", data.regex);
+			text.inputEl.setAttribute("regex-value", data._regex);
 			this.disableToggle(data);
 		});
 
@@ -279,8 +285,10 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 	/**
 	 * Creates the flags text input field
 	 */
-	private createFlagsInput(text: any, data: SettingOption) {
-		text.setValue(data.flags?.join("").toLowerCase() ?? "gi").onChange(async (value: string) => {
+	private createFlagsInput(text: TextComponent, data: MarkRule) {
+		text
+      .setValue(data.flags?.join("").toLowerCase() ?? "gi")
+      .onChange(async (value: string) => {
 			text.inputEl.removeClass("is-invalid");
 			this.addTooltip("Regex flags", text.inputEl);
 
@@ -312,7 +320,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 	/**
 	 * Creates the CSS class input field
 	 */
-	private createClassInput(text: any, data: SettingOption) {
+	private createClassInput(text: any, data: MarkRule) {
 		text.setValue(data.class).onChange(async (value: string) => {
 			data.class = value;
 			await this.plugin.saveSettings();
@@ -326,7 +334,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 	/**
 	 * Creates the hide toggle button
 	 */
-	private createHideToggle(toggle: ToggleComponent, data: SettingOption) {
+	private createHideToggle(toggle: ToggleComponent, data: MarkRule) {
 		toggle.toggleEl.addClass("group-toggle");
 		this.disableToggle(data);
 
@@ -341,7 +349,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 	/**
 	 * Creates the delete button
 	 */
-	private createDeleteButton(button: any, data: SettingOption) {
+	private createDeleteButton(button: any, data: MarkRule) {
 		button
 			.setIcon("trash")
 			.setTooltip("Delete this regex")
@@ -355,7 +363,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 	/**
 	 * Creates the move up button
 	 */
-	private createMoveUpButton(button: any, data: SettingOption) {
+	private createMoveUpButton(button: any, data: MarkRule) {
 		button
 			.setIcon("arrow-up")
 			.setTooltip("Move this regex up")
@@ -372,7 +380,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 	/**
 	 * Creates the move down button
 	 */
-	private createMoveDownButton(button: any, data: SettingOption) {
+	private createMoveDownButton(button: any, data: MarkRule) {
 		button
 			.setIcon("arrow-down")
 			.setTooltip("Move this regex down")
@@ -396,11 +404,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 					.setButtonText("Add Regex")
 					.setTooltip("Add a new regex")
 					.onClick(async () => {
-						this.plugin.settings.mark.push({
-							regex: "",
-							class: "",
-							hide: false,
-						});
+						this.plugin.settings.addNewMark();
 						await this.plugin.saveSettings();
 						await this.display();
 					});
@@ -474,9 +478,9 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 	/**
 	 * Verifies if a regex is valid
 	 */
-	async verifyRegex(data: SettingOption, pattern?: Pattern) {
+	async verifyRegex(data: MarkRule, pattern?: Pattern) {
 		const index = this.plugin.settings.mark.indexOf(data);
-		const regex = data.regex;
+		const regex = data._regex;
 		const inputElement = document.querySelectorAll(".regex-input")[index];
 
 		// Check if regex is empty
@@ -496,7 +500,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 		}
 
 		// Check for newline after [^] regex
-		if (isInvalid(data.regex)) {
+		if (isInvalid(data._regex)) {
 			new Notice(
 				sanitizeHTMLToDom(`<span class="RegexMark error">You need to add a new line after the [^] regex</span>`)
 			);
@@ -505,7 +509,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 		}
 
 		// Verify if regex has groups for hiding
-		if (data.hide && !hasToHide(data.regex, this.plugin.settings.pattern)) {
+		if (data.hide && !hasToHide(data._regex, this.plugin.settings.pattern)) {
 			new Notice(
 				sanitizeHTMLToDom(`<span class="RegexMark error">You need to use a group in the regex to hide it</span>`)
 			);
@@ -530,7 +534,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 	/**
 	 * Verifies if a CSS class is not empty
 	 */
-	verifyClass(data: SettingOption) {
+	verifyClass(data: MarkRule) {
 		const css = data.class;
 		const inputElement = document.querySelectorAll(".css-input")[this.plugin.settings.mark.indexOf(data)];
 
@@ -546,7 +550,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 	/**
 	 * Gets the regex value from input element
 	 */
-	private getRegexFromInput(data: SettingOption) {
+	private getRegexFromInput(data: MarkRule) {
 		const index = this.plugin.settings.mark.indexOf(data);
 		const input = document.querySelectorAll<HTMLElement>(".regex-input")[index];
 
@@ -555,13 +559,13 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 			if (regex) return regex;
 		}
 
-		return data.regex;
+		return data._regex;
 	}
 
 	/**
 	 * Checks if the regex is valid for the hide toggle
 	 */
-	private verifyRegexFromInput(data: SettingOption) {
+	private verifyRegexFromInput(data: MarkRule) {
 		const regex = this.getRegexFromInput(data);
 
 		if (regex.trim().length === 0) {
@@ -586,13 +590,13 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 
 		// Find duplicates
 		for (const data of this.plugin.settings.mark) {
-			const index = duplicateIndex.findIndex((d) => d.regex === data.regex);
+			const index = duplicateIndex.findIndex((d) => d.regex === data._regex);
 
 			if (index >= 0) {
 				duplicateIndex[index].index.push(this.plugin.settings.mark.indexOf(data));
 			} else {
 				duplicateIndex.push({
-					regex: data.regex,
+					regex: data._regex,
 					index: [this.plugin.settings.mark.indexOf(data)],
 				});
 			}

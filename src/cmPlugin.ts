@@ -11,32 +11,36 @@ import {
 	WidgetType,
 } from "@codemirror/view";
 import { cloneDeep } from "lodash";
-
+import {MarkRule, SettingOptions} from "./model";
 import { Notice, sanitizeHTMLToDom } from "obsidian";
-import { DEFAULT_PATTERN, type Mark, type Pattern, type SettingOption, type SettingOptions } from "./interface";
+import {DEFAULT_PATTERN, type Pattern} from "./interface";
 import type RegexMark from "./main";
-import { isValidRegex, matchGroups, removeTags, shouldSkip, addGroupText } from "./utils";
+import { isValidRegex, removeTags, addGroupText } from "./utils";
 
-interface ConfigWithPlugin extends Required<SettingOptions> {
+interface ConfigWithPlugin {
+  settings: SettingOptions,
 	plugin: RegexMark;
 }
 
-const Config = Facet.define<SettingOptions | (SettingOptions & { plugin: RegexMark }), ConfigWithPlugin>({
+const Config = Facet.define<{ settings: SettingOptions, plugin: RegexMark }, ConfigWithPlugin>({
 	combine(options) {
 		const combined = combineConfig(options, {});
-		const pluginOption = options.find((opt) => "plugin" in opt);
+		const plugin = options.find((opt) => "plugin" in opt)?.plugin;
+    const settings = options.find((opt) => "settings" in opt)?.settings;
 
 		return {
 			...combined,
-			plugin: pluginOption?.plugin,
+      plugin,
+      settings,
 		} as ConfigWithPlugin;
 	},
 });
 
 export function cmExtension(plugin: RegexMark) {
-	const extensions: Extension[] = [cmPlugin];
-	const options = { ...plugin.settings, plugin };
-	extensions.push(Config.of(options));
+	const extensions: Extension[] = [
+    cmPlugin,
+    Config.of({plugin, settings: plugin.settings})
+  ];
 	return extensions;
 }
 
@@ -63,17 +67,19 @@ class CMPlugin implements PluginValue {
 
 	buildDecorations(view: EditorView) {
 		const decorations = [];
-		const data: Mark = Object.values(view.state.facet(Config).mark);
-		const pattern: Pattern = view.state.facet(Config).pattern ?? cloneDeep(DEFAULT_PATTERN);
+
+    const {settings, plugin} = view.state.facet(Config);
+		const data: MarkRule[] = settings.mark;
+		const pattern: Pattern = settings.pattern ?? cloneDeep(DEFAULT_PATTERN);
 
 		const mode = this.viewMode(view);
 		for (const part of view.visibleRanges) {
 			for (const d of data) {
 				const displayMode = mode === "Live" ? d.viewMode?.live : d.viewMode?.source;
-				if (displayMode === false || shouldSkip(d, this.plugin.app, this.plugin.settings.propertyName, pattern))
+				if (displayMode === false || d.shouldSkip(this.plugin.app, settings.propertyName))
 					continue;
 				try {
-					const cursor = new RegExpCursor(view.state.doc, removeTags(d.regex, pattern), {}, part.from, part.to);
+					const cursor = new RegExpCursor(view.state.doc, removeTags(d.regexString, pattern), {}, part.from, part.to);
 					while (!cursor.next().done) {
 						const { from, to } = cursor.value;
 						const insideBlock = disableInBlock(d, view, cursor, part, from, to);
@@ -109,13 +115,13 @@ const pluginSpec: PluginSpec<CMPlugin> = {
 const cmPlugin = ViewPlugin.fromClass(CMPlugin, pluginSpec);
 
 class LivePreviewWidget extends WidgetType {
-	data: SettingOption;
+	data: MarkRule;
 	view: EditorView;
 	pattern: Pattern;
 
 	constructor(
 		readonly value: string,
-		data: SettingOption,
+		data: MarkRule,
 		view: EditorView,
 		pattern?: Pattern
 	) {
@@ -129,7 +135,7 @@ class LivePreviewWidget extends WidgetType {
 
 	eq(other: LivePreviewWidget) {
 		//return false if the regex is edited
-		const regex = new RegExp(removeTags(this.data.regex, this.pattern));
+		const regex = this.data.regex;
 		if (this.value.match(regex) === null) return false;
 
 		return other.value == this.value;
@@ -137,7 +143,7 @@ class LivePreviewWidget extends WidgetType {
 
 	constructTag(pattern: string) {
 		const regex = new RegExp(pattern);
-		return this.data.regex.match(regex)?.[1] ?? null;
+		return this.data._regex.match(regex)?.[1] ?? null;
 	}
 
 	toDOM() {
@@ -151,7 +157,7 @@ class LivePreviewWidget extends WidgetType {
 			const res = this.subGroup(this.data.regex, text, newContent);
 			if (res) wrap = res;
 		} else {
-      const regex = new RegExp(removeTags(this.data.regex, this.pattern), this.data.flags ? [...this.data.flags, "d"].join("") : "gid");
+      const regex = this.data.regex;
       const dataText = regex.exec(text);
 			if (dataText) {
         const el = addGroupText(text, this.data, dataText);
@@ -182,7 +188,7 @@ class LivePreviewWidget extends WidgetType {
 	 * @param text
 	 * @param newContent
 	 */
-	subGroup(regex: string, text: string, newContent: HTMLSpanElement) {
+	subGroup(regex: RegExp, text: string, newContent: HTMLSpanElement) {
 		const openTag = this.constructTag(this.pattern.open);
 		const closeTag = this.constructTag(this.pattern.close);
 		if (
@@ -231,7 +237,7 @@ function checkSelectionOverlap(selection: EditorSelection | undefined, from: num
 }
 
 function disableInBlock(
-	data: SettingOption,
+	data: MarkRule,
 	view: EditorView,
 	blockMatch: any,
 	part: { from: number; to: number },

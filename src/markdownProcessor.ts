@@ -1,18 +1,19 @@
 /** Reading mode processor .*/
 import { type App, MarkdownView, sanitizeHTMLToDom } from "obsidian";
 
-import type { Mark, Pattern } from "./interface";
-import { addGroupText, extractGroups, matchGroups, removeTags, shouldSkip } from "./utils";
+import type { Pattern } from "./interface";
+import { addGroupText, extractGroups, matchGroups } from "./utils";
+import {MarkRule} from "./model";
 
-export function MarkdownProcessor(data: Mark, element: HTMLElement, app: App, propertyName: string, pattern?: Pattern) {
+export function MarkdownProcessor(data: MarkRule[], element: HTMLElement, app: App, propertyName: string, pattern?: Pattern) {
 	const paragraph = element.findAll("p, li, h1, h2, h3, h4, h5, h6, td, .callout-title-inner, th, code");
 	paragraph.push(...element.findAllSelf(".table-cell-wrapper"));
 	const activeMode = app.workspace.getActiveViewOfType(MarkdownView)?.getMode() === "source";
 	for (const p of paragraph) {
 		let ignore = true;
 		for (const d of data) {
-			if (d.viewMode?.reading === false || shouldSkip(d, app, propertyName, pattern)) continue;
-			const regex = new RegExp(removeTags(d.regex, pattern), d.flags?.join("") ?? "gi");
+			if (d.viewMode?.reading === false || d.shouldSkip(app, propertyName)) continue;
+			const regex = d.regex;
 			if (regex.test(p.textContent || "")) {
 				ignore = false;
 				break;
@@ -44,16 +45,16 @@ export function MarkdownProcessor(data: Mark, element: HTMLElement, app: App, pr
 					if (node.parentNode?.nodeName === "CODE" && d.viewMode?.codeBlock === false) continue;
 
 					const enabled = activeMode ? d.viewMode?.live : d.viewMode?.reading;
-					if (!d.regex || !d.class || d.regex === "" || d.class === "" || !enabled) continue;
+					if (!d.regex || !d.class || d.regexString === "" || d.class === "" || !enabled) continue;
 
 					const flags = d.flags ? [...d.flags, "d"].join("") : "gid";
 
-					const hasPatterns = pattern && d.regex.includes("{{open:") && d.regex.includes("{{close:");
-					const hasNamedGroups = extractGroups(d.regex).length > 0;
+					const hasPatterns = pattern && d._regex.includes("{{open:") && d._regex.includes("{{close:");
+					const hasNamedGroups = extractGroups(d.regexString).length > 0;
 
 					let regex: RegExp;
 					if (hasPatterns && hasNamedGroups && d.hide) {
-						let regexStr = d.regex;
+						let regexStr = d._regex;
 						const openMatch = regexStr.match(/{{open:(.*?)}}/);
 						const closeMatch = regexStr.match(/{{close:(.*?)}}/);
 						if (openMatch && closeMatch) {
@@ -62,11 +63,11 @@ export function MarkdownProcessor(data: Mark, element: HTMLElement, app: App, pr
 						}
 						regex = new RegExp(regexStr, flags);
 					} else {
-						regex = new RegExp(removeTags(d.regex, pattern), flags);
+						regex = new RegExp(d.regexString, flags);
 					}
 
 					if (d.hide) {
-						const group = removeTags(d.regex, pattern)
+						const group = d.regexString
 							.match(/\((.*?)\)/)
 							?.filter((x) => x != null);
 						const dataText = regex.exec(text);
