@@ -2,7 +2,7 @@ import { cloneDeep } from "lodash";
 import { ButtonComponent, Modal, Platform, Setting, TextAreaComponent } from "obsidian";
 import type { RemarkRegexSettingTab } from ".";
 import type { SettingOptionsObj, MarkRuleObj } from "../interface";
-import {MarkRule, SettingOptions} from "../model";
+import {SettingOptions} from "../model";
 import type RegexMark from "../main";
 
 export class ImportSettings extends Modal {
@@ -58,7 +58,7 @@ export class ImportSettings extends Modal {
 									return !oldSettings.mark.find((oldSetting: MarkRuleObj) => oldSetting.regex === setting.regex);
 								});
 								oldSettings.mark.push(...imported);
-								this.settings = SettingOptions.from(oldSettings);
+								this.settings = SettingOptions.from(this.plugin,oldSettings);
 							} else if (importSettings instanceof Object && !Object.hasOwn(importSettings, "mark")) {
 								if (!Object.hasOwn(importSettings, "regex") || !Object.hasOwn(importSettings, "class")) {
 									throw new Error("Invalid importation");
@@ -66,7 +66,7 @@ export class ImportSettings extends Modal {
 								const imported = importSettings as MarkRuleObj;
 								if (!oldSettings.mark.find((oldSetting: MarkRuleObj) => oldSetting.regex === imported.regex)) {
 									oldSettings.mark.push(importSettings as MarkRuleObj);
-									this.settings = SettingOptions.from(oldSettings);
+									this.settings = SettingOptions.from(this.plugin,oldSettings);
 								} else {
 									throw new Error("Already in the settings");
 								}

@@ -1,33 +1,31 @@
-import { cloneDeep } from "lodash";
+import {cloneDeep} from "lodash";
 import {
   type App,
   Component,
   MarkdownRenderer,
   Notice,
   PluginSettingTab,
-  Setting,
   sanitizeHTMLToDom,
-  type ToggleComponent, TextComponent,
+  Setting,
+  TextComponent,
+  type ToggleComponent,
 } from "obsidian";
-import { dedent } from "ts-dedent";
+import {dedent} from "ts-dedent";
 import {
-	DEFAULT_PATTERN,
-	DEFAULT_VIEW_MODE,
-	type Pattern,
-	type RegexFlags,
-	type MarkRuleObj,
-	type ViewMode,
+  DEFAULT_PATTERN,
+  DEFAULT_VIEW_MODE,
+  type MarkRuleObj,
+  type Pattern,
+  type RegexFlags,
+  type ViewMode,
 } from "../interface";
-import {
-  MarkRule,
-  SettingOptions
-} from "../model";
+import {MarkRule, MarkRuleErrors, SettingOptions} from "../model";
 import type RegexMark from "../main";
-import { hasToHide, isInvalid, isValidRegex, removeTags } from "../utils";
-import { RemarkPatternTab } from "./change_pattern";
-import { ExportSettings, ImportSettings } from "./import_export";
-import { PropertyModal } from "./property_name";
-import { RemarkRegexOptions } from "./viewModal";
+import {hasToHide, isInvalid, isValidRegex, removeTags} from "../utils";
+import {RemarkPatternTab} from "./change_pattern";
+import {ExportSettings, ImportSettings} from "./import_export";
+import {PropertyModal} from "./property_name";
+import {RemarkRegexOptions} from "./viewModal";
 
 export class RemarkRegexSettingTab extends PluginSettingTab {
 	plugin: RegexMark;
@@ -76,6 +74,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 
 	/**
 	 * Updates all regex patterns when the open/close tags are changed
+   * TODO: Refactor, make Settings and MarkRule internal
 	 */
 	async updateRegex(newPattern: Pattern) {
 
@@ -84,7 +83,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 
 		// Create a simplified pattern without escaping characters
 		const simplifiedPattern: Pattern = {
-			open: newPattern.open.replace("(.*?)", "$1").replaceAll(/\\/g, ""),
+			open:  newPattern.open.replace("(.*?)", "$1").replaceAll(/\\/g, ""),
 			close: newPattern.close.replace("(.*?)", "$1").replaceAll(/\\/g, ""),
 		};
 
@@ -108,6 +107,8 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 				notValid.push(data.regex);
 			}
 		}
+
+    this.settings.pattern = newPattern;
 
 		// Show notification for invalid regexes
 		if (notValid.length > 0) {
@@ -477,6 +478,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 
 	/**
 	 * Verifies if a regex is valid
+   * TODO: Refactor (The rules if it is valid or not do not change. Especially if it saves it anyway puting it here is confusing)
 	 */
 	async verifyRegex(data: MarkRule, pattern?: Pattern) {
 		const index = this.plugin.settings.mark.indexOf(data);
@@ -485,7 +487,6 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 
 		// Check if regex is empty
 		if (regex.trim().length === 0) {
-			inputElement?.addClass("is-invalid");
 			return false;
 		}
 

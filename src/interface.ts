@@ -84,7 +84,9 @@ export const DEFAULT_VIEW_MODE: ViewMode = {
 	reading: true,
 	source: true,
 	live: true,
+  codeBlock: true,
 };
 
 export type RegexFlags = "g" | "i" | "m" | "s" | "u" | "y"; // "d" intentionally unusable
-export type SubGroups = Record<string, { text: string; input: string }>;
+
+

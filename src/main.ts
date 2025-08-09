@@ -2,7 +2,7 @@ import type { Extension } from "@codemirror/state";
 import { Plugin } from "obsidian";
 
 import { cmExtension } from "./cmPlugin";
-import { DEFAULT_SETTINGS, SettingOptionsObj } from "./interface";
+import { SettingOptionsObj } from "./interface";
 import { SettingOptions } from "./model";
 import { MarkdownProcessor } from "./markdownProcessor";
 import { RemarkRegexSettingTab } from "./settings";
@@ -43,7 +43,7 @@ export default class RegexMark extends Plugin {
 
 	async loadSettings() {
 		const settingsData = await this.loadData();
-    this.settings = SettingOptions.from(settingsData);
+    this.settings = SettingOptions.from(this, settingsData);
 	}
 
 	async saveSettings() {
@@ -51,7 +51,7 @@ export default class RegexMark extends Plugin {
 	}
 
 	async overrideSettings(settings: SettingOptionsObj) {
-		this.settings = SettingOptions.from(settings);
+		this.settings = SettingOptions.from(this, settings);
 		await this.saveSettings();
 		this.updateCmExtension();
 	}

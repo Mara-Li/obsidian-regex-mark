@@ -76,7 +76,7 @@ class CMPlugin implements PluginValue {
 		for (const part of view.visibleRanges) {
 			for (const d of data) {
 				const displayMode = mode === "Live" ? d.viewMode?.live : d.viewMode?.source;
-				if (displayMode === false || d.shouldSkip(this.plugin.app, settings.propertyName))
+				if (displayMode === false || d.shouldSkip())
 					continue;
 				try {
 					const cursor = new RegExpCursor(view.state.doc, removeTags(d.regexString, pattern), {}, part.from, part.to);
@@ -200,7 +200,7 @@ class LivePreviewWidget extends WidgetType {
 		}
 		const openRegex = new RegExp(openTag as string, "g");
 		const closeRegex = new RegExp(closeTag as string, "g");
-		//const matchSub = matchGroups(removeTags(regex, this.pattern), text);
+		//const matchSub = matchNamedGroups(removeTags(regex, this.pattern), text);
 		//if (!matchSub) {
 			newContent.createEl("span", { cls: "cm-hide" }).setText(text.match(openRegex)?.[1] || "");
 			newContent
