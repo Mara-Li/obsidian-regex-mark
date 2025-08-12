@@ -19,7 +19,7 @@ export function MarkdownProcessor(data: MarkRule[], element: HTMLElement, app: A
 		if (data.every( markRule => !markRule.regex.test(p.textContent || "") )) continue;
 
 		const treeWalker = document.createTreeWalker(p, NodeFilter.SHOW_TEXT);
-		const textNodes = [];
+		const textNodes: Node[] = [];
 		while (treeWalker.nextNode()) {
 			const parentSpan = (treeWalker.currentNode as Node).parentElement;
 			if (
@@ -32,7 +32,8 @@ export function MarkdownProcessor(data: MarkRule[], element: HTMLElement, app: A
 			textNodes.push(treeWalker.currentNode);
 		}
 
-		for (const node of textNodes) {
+		for (let i = 0; i < textNodes.length; i++) {
+      const node = textNodes[i];
 			let text = node.textContent;
 			if (text) {
 				let hasChanges = false;
@@ -61,6 +62,10 @@ export function MarkdownProcessor(data: MarkRule[], element: HTMLElement, app: A
           }
           else{
             finalElement = addGroupText(text, markRule, dataMatch, pattern);
+            textNodes.push( // Attach Unprocessed Text Nodes
+              finalElement.childNodes[0],
+              finalElement.childNodes[2]
+            )
             hasChanges = true;
             break;
           }
