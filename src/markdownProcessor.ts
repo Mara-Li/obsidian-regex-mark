@@ -1,11 +1,11 @@
 /** Reading mode processor .*/
 import { type App, MarkdownView, sanitizeHTMLToDom } from "obsidian";
 
-import type { Pattern } from "./interface";
-import { addGroupText } from "./utils";
+import type { PatternObj } from "./interface";
+import { applyRuleClasses } from "./utils";
 import {MarkRule} from "./model";
 
-export function MarkdownProcessor(data: MarkRule[], element: HTMLElement, app: App, propertyName: string, pattern?: Pattern) {
+export function MarkdownProcessor(data: MarkRule[], element: HTMLElement, app: App, propertyName: string, pattern?: PatternObj) {
 	const paragraph = element.findAll("p, li, h1, h2, h3, h4, h5, h6, td, .callout-title-inner, th, code");
 	paragraph.push(...element.findAllSelf(".table-cell-wrapper"));
 
@@ -34,7 +34,8 @@ export function MarkdownProcessor(data: MarkRule[], element: HTMLElement, app: A
 
 		for (let i = 0; i < textNodes.length; i++) {
       const node = textNodes[i];
-			let text = node.textContent;
+      let text = node.textContent;
+
 			if (text) {
 				let hasChanges = false;
 				let finalElement: DocumentFragment | undefined;
@@ -45,27 +46,20 @@ export function MarkdownProcessor(data: MarkRule[], element: HTMLElement, app: A
 					const regex: RegExp = markRule.regex;
           const dataMatch = regex.exec(text);
 
-          if(!dataMatch) continue;
-          if(dataMatch[0].includes("\n")){
-            console.warn(`Regex Mark with regex: ${regex}; class: ${markRule.class} matched with newline. No class applied`);
-            continue;
-          }
+          if(dataMatch) {
+            if (dataMatch[0].includes("\n")) {
+              console.warn(`Regex Mark with regex: ${regex}; class: ${markRule.class} matched with newline. No class applied`);
+              continue;
+            }
 
-          if(!dataMatch.groups){
-            if (markRule.hide) {
-              text = text.replace(regex, `<span class="${markRule.class}" data-contents="$1">$1</span>`);
+            finalElement = applyRuleClasses(text, markRule, dataMatch);
+
+            if (markRule.hasFlag("g")){
+              textNodes.push( // Attach Unprocessed Text Nodes
+                ...[...finalElement.childNodes].filter(e => e.nodeType === Node.TEXT_NODE)
+              )
             }
-            else{
-              text = text.replace(regex, `<span class="${markRule.class}" data-contents="$&">$&</span>`);
-            }
-            hasChanges = true;
-          }
-          else{
-            finalElement = addGroupText(text, markRule, dataMatch, pattern);
-            textNodes.push( // Attach Unprocessed Text Nodes
-              finalElement.childNodes[0],
-              finalElement.childNodes[2]
-            )
+
             hasChanges = true;
             break;
           }

@@ -10,12 +10,10 @@ import {
 	type ViewUpdate,
 	WidgetType,
 } from "@codemirror/view";
-import { cloneDeep } from "lodash";
-import {MarkRule, SettingOptions} from "./model";
+import {MarkRule, Pattern, SettingOptions} from "./model";
 import { Notice, sanitizeHTMLToDom } from "obsidian";
-import {DEFAULT_PATTERN, type Pattern} from "./interface";
 import type RegexMark from "./main";
-import { isValidRegex, removeTags, addGroupText } from "./utils";
+import { applyRuleClasses } from "./utils";
 
 interface ConfigWithPlugin {
   settings: SettingOptions,
@@ -25,8 +23,8 @@ interface ConfigWithPlugin {
 const Config = Facet.define<{ settings: SettingOptions, plugin: RegexMark }, ConfigWithPlugin>({
 	combine(options) {
 		const combined = combineConfig(options, {});
-		const plugin = options.find((opt) => "plugin" in opt)?.plugin;
-    const settings = options.find((opt) => "settings" in opt)?.settings;
+		const plugin = options.findLast((opt) => "plugin" in opt)?.plugin;
+    const settings = options.findLast((opt) => "settings" in opt)?.settings;
 
 		return {
 			...combined,
@@ -70,16 +68,15 @@ class CMPlugin implements PluginValue {
 
     const {settings, plugin} = view.state.facet(Config);
 		const data: MarkRule[] = settings.mark;
-		const pattern: Pattern = settings.pattern ?? cloneDeep(DEFAULT_PATTERN);
+		const pattern = settings._pattern;
 
 		const mode = this.viewMode(view);
 		for (const part of view.visibleRanges) {
 			for (const d of data) {
-				const displayMode = mode === "Live" ? d.viewMode?.live : d.viewMode?.source;
-				if (displayMode === false || d.shouldSkip())
+				if (d.shouldSkip(mode))
 					continue;
 				try {
-					const cursor = new RegExpCursor(view.state.doc, removeTags(d.regexString, pattern), {}, part.from, part.to);
+					const cursor = new RegExpCursor(view.state.doc, d.regexString, {}, part.from, part.to);
 					while (!cursor.next().done) {
 						const { from, to } = cursor.value;
 						const insideBlock = disableInBlock(d, view, cursor, part, from, to);
@@ -123,12 +120,12 @@ class LivePreviewWidget extends WidgetType {
 		readonly value: string,
 		data: MarkRule,
 		view: EditorView,
-		pattern?: Pattern
+		pattern: Pattern
 	) {
 		super();
 		this.data = data;
 		this.view = view;
-		this.pattern = pattern ?? cloneDeep(DEFAULT_PATTERN);
+		this.pattern = pattern;
 	}
 
 	//Widget is only updated when the raw text is changed / the elements get focus and loses it
@@ -141,31 +138,24 @@ class LivePreviewWidget extends WidgetType {
 		return other.value == this.value;
 	}
 
-	constructTag(pattern: string) {
-		const regex = new RegExp(pattern);
-		return this.data._regex.match(regex)?.[1] ?? null;
-	}
-
 	toDOM() {
 		let wrap = document.createElement("span");
-		wrap.addClass(this.data.class);
 		const text = this.value;
-		wrap.setAttribute("data-contents", text);
-		if (this.data.hide) {
-			const newContent = wrap.createEl("span");
-      //TODO: Named Group implementation
-			const res = this.subGroup(this.data.regex, text, newContent);
-			if (res) wrap = res;
-		} else {
-      const regex = this.data.regex;
-      const dataText = regex.exec(text);
-			if (dataText) {
-        const el = addGroupText(text, this.data, dataText);
-        wrap.append(el);
-			} else wrap.innerText = text;
-		}
 
-		return wrap;
+    const regex = this.data.regex;
+    const dataText = regex.exec(text);
+    if (dataText) {
+      wrap.append(
+        applyRuleClasses(text, this.data, dataText,
+          (substring) => `<span class="cm-hide">${substring}</span>`
+        )
+      )
+      return wrap;
+    } else {
+      wrap.addClass(this.data.class);
+      wrap.innerText = text;
+      return wrap;
+    }
 	}
 
 	ignoreEvent(_event: Event) {
@@ -176,50 +166,6 @@ class LivePreviewWidget extends WidgetType {
 		//do nothing
 	}
 
-	/**
-	 * If they are (?<name>) syntax in the regex, create a different html element for each group
-	 * for example:
-	 * (.*)(?<bold>.*)(?<italic>.*) =>
-	 *   <span class="main">
-	 *     <span class="bold">text</span>
-	 *     <span class="italic">text</span>
-	 *     </span>
-	 * @param regex
-	 * @param text
-	 * @param newContent
-	 */
-	subGroup(regex: RegExp, text: string, newContent: HTMLSpanElement) {
-		const openTag = this.constructTag(this.pattern.open);
-		const closeTag = this.constructTag(this.pattern.close);
-		if (
-			(openTag && !isValidRegex(openTag as string, true, this.pattern)) ||
-			(closeTag && !isValidRegex(closeTag as string, true, this.pattern))
-		) {
-			console.error("Invalid open or close tag regex:", openTag, closeTag);
-			return newContent;
-		}
-		const openRegex = new RegExp(openTag as string, "g");
-		const closeRegex = new RegExp(closeTag as string, "g");
-		//const matchSub = matchNamedGroups(removeTags(regex, this.pattern), text);
-		//if (!matchSub) {
-			newContent.createEl("span", { cls: "cm-hide" }).setText(text.match(openRegex)?.[1] || "");
-			newContent
-				.createEl("span", { cls: this.data.class })
-				.setText(text.replace(openRegex, "").replace(closeRegex, "") || "");
-			newContent.createEl("span", { cls: "cm-hide" }).setText(text.match(closeRegex)?.[1] || "");
-			return newContent;
-    /*
-    }
-    else{
-        newContent.addClass(this.data.class);
-        newContent.setAttribute("data-contents", text);
-        for (const [css, items] of Object.entries(matchSub)) {
-          newContent.createEl("span", { cls: css }).setText(items.text);
-        }
-        return newContent;
-    }
-    */
-	}
 }
 
 function checkSelectionOverlap(selection: EditorSelection | undefined, from: number, to: number): boolean {

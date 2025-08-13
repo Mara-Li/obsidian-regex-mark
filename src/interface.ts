@@ -6,7 +6,7 @@ export interface MarkRuleObj {
 	 */
 	regex: string;
 	/**
-	 * Regex flags
+	 * Regex _flags
 	 * @default ['g', 'i']
 	 */
 	flags?: RegexFlags[];
@@ -37,19 +37,19 @@ export type SettingOptionsObj0 = MarkRuleObj[];
 
 export type SettingOptionsObj = {
 	mark: MarkRuleObj[];
-	pattern?: Pattern;
+	pattern?: PatternObj;
 	/**
 	 * Property name to search in the frontmatter
 	 */
 	propertyName: string;
 };
 
-export type Pattern = {
+export type PatternObj = {
 	open: string;
 	close: string;
 };
 
-export const DEFAULT_PATTERN: Pattern = {
+export const DEFAULT_PATTERN: PatternObj = {
 	open: `{{open:(.*?)}}`,
 	close: `{{close:(.*?)}}`,
 };

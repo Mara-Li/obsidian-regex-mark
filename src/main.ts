@@ -30,11 +30,12 @@ export default class RegexMark extends Plugin {
 		}*/
 		this.addSettingTab(new RemarkRegexSettingTab(this.app, this));
 		this.registerMarkdownPostProcessor((element: HTMLElement) => {
-			MarkdownProcessor(this.settings.mark, element, this.app, this.settings.propertyName, this.settings.pattern);
+			MarkdownProcessor(this.settings.mark, element, this.app, this.settings.propertyName, this.settings._pattern);
 		});
 		this.extensions = [];
 		this.updateCmExtension();
-		this.registerEditorExtension(this.extensions);
+    this.extensions.forEach(e => this.registerEditorExtension(e))
+		;
 	}
 
 	onunload() {
@@ -59,7 +60,7 @@ export default class RegexMark extends Plugin {
 	updateCmExtension() {
 		if(this.cmExtension) this.extensions.remove(this.cmExtension);
 		this.cmExtension = cmExtension(this);
-		this.extensions.push(this.cmExtension);
+		this.extensions.push(...this.cmExtension);
 		this.app.workspace.updateOptions();
 	}
 }
