@@ -56,7 +56,7 @@
 
 .RegexMark input,
 .regex-setting input {
-	font-family: var(--font-monospace);
+	font-family: monospace /*var(--font-monospace)*/;
 }
 
 .setting-item.import-export {

@@ -1,8 +1,7 @@
 import { type App, Component, MarkdownRenderer, Modal, Notice, Setting, sanitizeHTMLToDom } from "obsidian";
 import { dedent } from "ts-dedent";
 import { DEFAULT_PATTERN, type PatternObj } from "../interface";
-import {Pattern} from "../model";
-
+import { Pattern } from "../model";
 
 export class RemarkPatternTab extends Modal {
 	result: PatternObj;
@@ -21,7 +20,7 @@ export class RemarkPatternTab extends Modal {
 
 	onOpen(): void {
 		const { contentEl } = this;
-		this.contentEl.addClasses(["RegexMark", "_pattern-change"]);
+		this.contentEl.addClasses(["RegexMark", "_patternRegex-change"]);
 		this.result = this.oldPattern ?? DEFAULT_PATTERN;
 
 		new Setting(contentEl).setHeading().setName("Change open/close tags");
@@ -51,7 +50,7 @@ export class RemarkPatternTab extends Modal {
 
 		new Setting(contentEl)
 			.setName("Pattern")
-			.setDesc("Define the _pattern to be used")
+			.setDesc("Define the _patternRegex to be used")
 			.addText((text) => {
 				text.inputEl.addClass("pattern");
 				text.inputEl.setAttribute("data-type", "open");
@@ -63,8 +62,8 @@ export class RemarkPatternTab extends Modal {
 			});
 
 		new Setting(contentEl)
-			.setName("Close _pattern")
-			.setDesc("Define the close _pattern to be used")
+			.setName("Close _patternRegex")
+			.setDesc("Define the close _patternRegex to be used")
 			.addText((text) => {
 				text.inputEl.addClass("pattern");
 				text.inputEl.setAttribute("data-type", "close");
@@ -100,16 +99,16 @@ export class RemarkPatternTab extends Modal {
 
 	verifyAllPattern(): boolean {
 		const errors: string[] = [];
-		this.contentEl.querySelectorAll("input._pattern").forEach((el) => {
+		this.contentEl.querySelectorAll("input._patternRegex").forEach((el) => {
 			const which = el.getAttribute("data-type") as "open" | "close";
 			const value = el.getAttribute("data-value") ?? "";
-      const pattern = Pattern.from({[which]: value} as PatternObj)
+			const pattern = Pattern.from({ [which]: value } as PatternObj);
 			const result = [...pattern.getErrorsSingle(which)];
-      if (result.length>0) {
-        for (const patternErrorCode of result) {
-          el.addClass("error");
-          errors.push(`<code>${value}</code>: <u>${patternErrorCode}</u>`);
-        }
+			if (result.length > 0) {
+				for (const patternErrorCode of result) {
+					el.addClass("error");
+					errors.push(`<code>${value}</code>: <u>${patternErrorCode}</u>`);
+				}
 			} else {
 				el.removeClass("error");
 			}

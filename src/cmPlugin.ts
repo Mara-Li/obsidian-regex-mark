@@ -10,35 +10,32 @@ import {
 	type ViewUpdate,
 	WidgetType,
 } from "@codemirror/view";
-import {MarkRule, Pattern, SettingOptions} from "./model";
+import { MarkRule, Pattern, SettingOptions } from "./model";
 import { Notice, sanitizeHTMLToDom } from "obsidian";
 import type RegexMark from "./main";
 import { applyRuleClasses } from "./utils";
 
 interface ConfigWithPlugin {
-  settings: SettingOptions,
+	settings: SettingOptions;
 	plugin: RegexMark;
 }
 
-const Config = Facet.define<{ settings: SettingOptions, plugin: RegexMark }, ConfigWithPlugin>({
+const Config = Facet.define<{ settings: SettingOptions; plugin: RegexMark }, ConfigWithPlugin>({
 	combine(options) {
 		const combined = combineConfig(options, {});
 		const plugin = options.findLast((opt) => "plugin" in opt)?.plugin;
-    const settings = options.findLast((opt) => "settings" in opt)?.settings;
+		const settings = options.findLast((opt) => "settings" in opt)?.settings;
 
 		return {
 			...combined,
-      plugin,
-      settings,
+			plugin,
+			settings,
 		} as ConfigWithPlugin;
 	},
 });
 
 export function cmExtension(plugin: RegexMark) {
-	const extensions: Extension[] = [
-    cmPlugin,
-    Config.of({plugin, settings: plugin.settings})
-  ];
+	const extensions: Extension[] = [cmPlugin, Config.of({ plugin, settings: plugin.settings })];
 	return extensions;
 }
 
@@ -66,15 +63,13 @@ class CMPlugin implements PluginValue {
 	buildDecorations(view: EditorView) {
 		const decorations = [];
 
-    const {settings, plugin} = view.state.facet(Config);
+		const { settings, plugin } = view.state.facet(Config);
 		const data: MarkRule[] = settings.mark;
-		const pattern = settings._pattern;
 
 		const mode = this.viewMode(view);
 		for (const part of view.visibleRanges) {
 			for (const d of data) {
-				if (d.shouldSkip(mode))
-					continue;
+				if (d.shouldSkip(mode)) continue;
 				try {
 					const cursor = new RegExpCursor(view.state.doc, d.regexString, {}, part.from, part.to);
 					while (!cursor.next().done) {
@@ -91,7 +86,7 @@ class CMPlugin implements PluginValue {
 						}
 						const string = view.state.sliceDoc(from, to);
 						const markDeco = Decoration.replace({
-							widget: new LivePreviewWidget(string, d, view, pattern),
+							widget: new LivePreviewWidget(string, d, view),
 						});
 						decorations.push(markDeco.range(from, to));
 					}
@@ -114,18 +109,15 @@ const cmPlugin = ViewPlugin.fromClass(CMPlugin, pluginSpec);
 class LivePreviewWidget extends WidgetType {
 	data: MarkRule;
 	view: EditorView;
-	pattern: Pattern;
 
 	constructor(
 		readonly value: string,
 		data: MarkRule,
-		view: EditorView,
-		pattern: Pattern
+		view: EditorView
 	) {
 		super();
 		this.data = data;
 		this.view = view;
-		this.pattern = pattern;
 	}
 
 	//Widget is only updated when the raw text is changed / the elements get focus and loses it
@@ -142,20 +134,18 @@ class LivePreviewWidget extends WidgetType {
 		let wrap = document.createElement("span");
 		const text = this.value;
 
-    const regex = this.data.regex;
-    const dataText = regex.exec(text);
-    if (dataText) {
-      wrap.append(
-        applyRuleClasses(text, this.data, dataText,
-          (substring) => `<span class="cm-hide">${substring}</span>`
-        )
-      )
-      return wrap;
-    } else {
-      wrap.addClass(this.data.class);
-      wrap.innerText = text;
-      return wrap;
-    }
+		const regex = this.data.regex;
+		const dataText = regex.exec(text);
+		if (dataText) {
+			wrap.append(
+				applyRuleClasses(text, this.data, dataText, (substring) => `<span class="cm-hide">${substring}</span>`)
+			);
+			return wrap;
+		} else {
+			wrap.addClass(this.data.class);
+			wrap.innerText = text;
+			return wrap;
+		}
 	}
 
 	ignoreEvent(_event: Event) {
@@ -165,7 +155,6 @@ class LivePreviewWidget extends WidgetType {
 	destroy(_dom: HTMLElement): void {
 		//do nothing
 	}
-
 }
 
 function checkSelectionOverlap(selection: EditorSelection | undefined, from: number, to: number): boolean {

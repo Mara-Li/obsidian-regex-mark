@@ -1,8 +1,8 @@
 import { cloneDeep } from "lodash";
 import { ButtonComponent, Modal, Platform, Setting, TextAreaComponent } from "obsidian";
 import type { RemarkRegexSettingTab } from ".";
-import type { SettingOptionsObj, MarkRuleObj } from "../interface";
-import {SettingOptions} from "../model";
+import type { SettingOptionsObj, MarkRuleObj, SettingOptionsObj0 } from "../interface";
+import { SettingOptions } from "../model";
 import type RegexMark from "../main";
 
 export class ImportSettings extends Modal {
@@ -31,48 +31,12 @@ export class ImportSettings extends Modal {
 			});
 			setting.nameEl.appendChild(errorSpan);
 			const importAndClose = async (str: string) => {
-				const oldSettings = cloneDeep(this.settings.serialize());
 				if (str) {
 					try {
-						const importSettings = JSON.parse(str) as unknown;
-						if (importSettings) {
-							if (Object.hasOwn(importSettings, "pattern")) {
-								oldSettings.pattern = (importSettings as SettingOptionsObj).pattern;
-								delete (importSettings as SettingOptionsObj).pattern;
-							}
-							const marks: MarkRuleObj[] = [];
-							//import the list of regex only
-							if (Object.hasOwn(importSettings, "mark") || importSettings instanceof Array) {
-								if (Object.hasOwn(importSettings, "mark")) {
-									marks.push(...(importSettings as SettingOptionsObj).mark);
-								} else if (importSettings instanceof Array) {
-									marks.push(...(importSettings as MarkRuleObj[]));
-								}
-								for (const setting of marks) {
-									if (!setting.regex || !setting.class) {
-										throw new Error("Invalid importation");
-									}
-								}
-								//import only if not in the old settings
-								const imported = marks.filter((setting: MarkRuleObj) => {
-									return !oldSettings.mark.find((oldSetting: MarkRuleObj) => oldSetting.regex === setting.regex);
-								});
-								oldSettings.mark.push(...imported);
-								this.settings = SettingOptions.from(this.plugin,oldSettings);
-							} else if (importSettings instanceof Object && !Object.hasOwn(importSettings, "mark")) {
-								if (!Object.hasOwn(importSettings, "regex") || !Object.hasOwn(importSettings, "class")) {
-									throw new Error("Invalid importation");
-								}
-								const imported = importSettings as MarkRuleObj;
-								if (!oldSettings.mark.find((oldSetting: MarkRuleObj) => oldSetting.regex === imported.regex)) {
-									oldSettings.mark.push(importSettings as MarkRuleObj);
-									this.settings = SettingOptions.from(this.plugin,oldSettings);
-								} else {
-									throw new Error("Already in the settings");
-								}
-							}
-						}
-						await this.plugin.overrideSettings(oldSettings);
+						const importSettings = JSON.parse(str) as SettingOptionsObj | SettingOptionsObj0 | MarkRuleObj;
+
+						this.settings.merge(importSettings);
+
 						this.close();
 						this.settingTab.display();
 					} catch (e) {
@@ -149,8 +113,7 @@ export class ExportSettings extends Modal {
 			.setName("Export settings")
 			.setDesc("Allow to export regex to share it with other users.")
 			.then((setting) => {
-				const copied = cloneDeep(this.settings.serialize());
-				const output = JSON.stringify(copied, null, 2);
+				const output = JSON.stringify(this.settings.serialize(), null, 2);
 				setting.controlEl.createEl(
 					"a",
 					{

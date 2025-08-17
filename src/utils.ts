@@ -1,35 +1,35 @@
 import { cloneDeep } from "lodash";
 import { type App, sanitizeHTMLToDom, type TFile } from "obsidian";
 import type { PatternObj } from "./interface";
-import {MarkRule} from "./model";
-import {DEFAULT_PATTERN} from "./interface";
+import { MarkRule } from "./model";
+import { DEFAULT_PATTERN } from "./interface";
 
 export function removeTags(regex: string, pattern: PatternObj = DEFAULT_PATTERN) {
-  if(!regex) return regex;
-  const patternReg = new RegExp(`^(?:${pattern.open})?(.*?)(?:${pattern.close})?$`);
-  return regex.replace(patternReg, "$1($2)$3");
+	if (!regex) return regex;
+	const patternReg = new RegExp(`^(?:${pattern.open})?(.*?)(?:${pattern.close})?$`);
+	return regex.replace(patternReg, "$1($2)$3");
 }
 
-export function regexMayMatchNewlineCharacter(regex:string){
-  regex = regex.replace(/\\{2}/gm,"") //clean "\";
-
-  //check negated
-  const negativeReg = /\[\^(.*?[^\\])]|\[\^]/gm;
-  const [...negativeMatches] = regex.match(negativeReg) || []
-
-  return negativeMatches.some(m => !m.includes("\\n")) //check negated
-      || !!regex.replace(negativeReg, "").match(/\\(?:n|s|u000A|u000D|u2028|u2029)/); //check positive
+export function valideRegexSyntax(regex: string, flags = "g") {
+	try {
+		new RegExp(regex, flags);
+		return true;
+	} catch {
+		return false;
+	}
 }
 
-export function hasToHide(regex: string, pattern?: PatternObj) {
-	return !!(removeTags(regex, pattern).match(/\((.*?)\)/)) && hasPattern(regex, pattern);
-}
+export function regexMayMatchNewlineCharacter(regex: string) {
+	regex = regex.replace(/\\{2}/gm, ""); //clean "\";
 
-export function hasPattern(regex: string, pattern?: PatternObj) {
-	if (!pattern) return false;
-	const open = new RegExp(pattern.open);
-	const close = new RegExp(pattern.close);
-	return open.test(regex) || close.test(regex);
+	//check negated
+	const negativeReg = /\[\^(.*?[^\\])]|\[\^]/gm;
+	const [...negativeMatches] = regex.match(negativeReg) || [];
+
+	return (
+		negativeMatches.some((m) => !m.includes("\\n")) || //check negated
+		!!regex.replace(negativeReg, "").match(/\\(?:n|s|u000A|u000D|u2028|u2029)/)
+	); //check positive
 }
 
 export function extractGroups(regex: string): string[] {
@@ -58,7 +58,7 @@ export function applyRuleClasses(
 	text: string,
 	d: MarkRule,
 	match: RegExpExecArray,
-  hideReplacementFunction: ((hideText:string) => string) = (() => ""),
+	hideReplacementFunction: (hideText: string) => string = () => ""
 ): DocumentFragment {
 	const mainSpan = document.createElement("span");
 	mainSpan.setAttribute("data-group", "false");
@@ -73,12 +73,14 @@ export function applyRuleClasses(
 
 	if (processedText) {
 		const groups: { name: string; pos: [number, number]; children: number[]; subtxt: string; replacement?: string }[] =
-      (!match.groups) ? [] : Object.entries(match.groups).map(([name, subtxt]) => ({
-				name,
-				pos: <[number, number]>match?.indices?.groups?.[name]?.map((i) => i - match.index), //Match internal Indexes
-				children: [],
-				subtxt,
-			})); //already sorted by position, no need to sort
+			!match.groups
+				? []
+				: Object.entries(match.groups).map(([name, subtxt]) => ({
+						name,
+						pos: <[number, number]>match?.indices?.groups?.[name]?.map((i) => i - match.index), //Match internal Indexes
+						children: [],
+						subtxt,
+					})); //already sorted by position, no need to sort
 
 		//collect nested groups and group lengths
 		for (let i = 0; i < groups.length; i++) {
@@ -97,12 +99,12 @@ export function applyRuleClasses(
 			}
 		}
 
-    if(d.hide && d.patternSubRegex.close){
-      processedText = processedText.replace(d.patternSubRegex.close, hideReplacementFunction);
-    }
+		if (d.hide && d.patternSubRegex.close) {
+			processedText = processedText.replace(d.patternSubRegex.close, hideReplacementFunction);
+		}
 		//walk backwards
 		for (let i = groups.length - 1; i >= 0; i--) {
-			const { name, pos, children } = groups[i];
+			const { name, pos, children, subtxt } = groups[i];
 			const mappedChildren = children.map((j) => groups[j]);
 
 			const evaluatedEnd = mappedChildren.reduce(
@@ -110,34 +112,22 @@ export function applyRuleClasses(
 				pos[1]
 			);
 
-			const before   = processedText.substring(0, pos[0]),
-				    after    = processedText.substring(evaluatedEnd),
-				    cursubtxt= processedText.substring(pos[0], evaluatedEnd);
+			const before = processedText.substring(0, pos[0]),
+				cursubtxt = processedText.substring(pos[0], evaluatedEnd),
+				after = processedText.substring(evaluatedEnd);
 
-			const replacement = `<span data-group="true" class="${name}">${cursubtxt}</span>`;
+			const replacement = `<span data-group="true" data-contents="${subtxt}" class="${name}">${cursubtxt}</span>`;
 			groups[i].replacement = replacement;
 
 			processedText = `${before}${replacement}${after}`;
 		}
-    if(d.hide && d.patternSubRegex.open){
-      processedText = processedText.replace(d.patternSubRegex.open, hideReplacementFunction);
-    }
+		if (d.hide && d.patternSubRegex.open) {
+			processedText = processedText.replace(d.patternSubRegex.open, hideReplacementFunction);
+		}
 	}
 	mainSpan.innerHTML = processedText.trimStart();
 
-
-  const parent = new DocumentFragment();
-  parent.append(preNode, mainSpan, afterNode);
+	const parent = new DocumentFragment();
+	parent.append(preNode, mainSpan, afterNode);
 	return parent;
-}
-
-/**
- * Get a character that is not used inside the string.
- */
-function getCharacterNotInString(string:string){
-  let char = 0xe000;
-  while (string.includes(String.fromCharCode(char)) && char < 0xf8ff) {
-    char++;
-  }
-  return String.fromCharCode(char);
 }

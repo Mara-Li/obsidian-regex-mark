@@ -1,4 +1,4 @@
-import {MarkRule} from "./model";
+import { MarkRule } from "./model";
 
 export interface MarkRuleObj {
 	/**
@@ -6,7 +6,7 @@ export interface MarkRuleObj {
 	 */
 	regex: string;
 	/**
-	 * Regex _flags
+	 * Regex #flags
 	 * @default ['g', 'i']
 	 */
 	flags?: RegexFlags[];
@@ -53,11 +53,12 @@ export const DEFAULT_PATTERN: PatternObj = {
 	open: `{{open:(.*?)}}`,
 	close: `{{close:(.*?)}}`,
 };
+export const DEFAULT_PROPERTYNAME = "regex_mark";
 
 export const DEFAULT_SETTINGS: SettingOptionsObj = {
 	mark: [],
 	pattern: DEFAULT_PATTERN,
-	propertyName: "regex_mark",
+	propertyName: DEFAULT_PROPERTYNAME,
 };
 
 export type ViewMode = {
@@ -80,13 +81,13 @@ export type AutoRules = {
 	exclude?: boolean;
 };
 
+export type RegexString = string;
+
 export const DEFAULT_VIEW_MODE: ViewMode = {
 	reading: true,
 	source: true,
 	live: true,
-  codeBlock: true,
+	codeBlock: true,
 };
 
 export type RegexFlags = "g" | "i" | "m" | "s" | "u" | "y"; // "d" intentionally unusable
-
-

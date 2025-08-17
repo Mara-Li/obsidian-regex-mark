@@ -3,20 +3,20 @@ import { type App, MarkdownView, sanitizeHTMLToDom } from "obsidian";
 
 import type { PatternObj } from "./interface";
 import { applyRuleClasses } from "./utils";
-import {MarkRule} from "./model";
+import { MarkRule } from "./model";
 
-export function MarkdownProcessor(data: MarkRule[], element: HTMLElement, app: App, propertyName: string, pattern?: PatternObj) {
+export function MarkdownProcessor(data: MarkRule[], element: HTMLElement, app: App) {
 	const paragraph = element.findAll("p, li, h1, h2, h3, h4, h5, h6, td, .callout-title-inner, th, code");
 	paragraph.push(...element.findAllSelf(".table-cell-wrapper"));
 
 	const activeMode = app.workspace.getActiveViewOfType(MarkdownView)?.getMode();
 
-  //Filter Rules that don't apply here
-  data = data.filter(rule => !rule.shouldSkip(activeMode));
+	//Filter Rules that don't apply here
+	data = data.filter((rule) => !rule.shouldSkip(activeMode));
 
 	for (const p of paragraph) {
-    //Does Any Rule match?
-		if (data.every( markRule => !markRule.regex.test(p.textContent || "") )) continue;
+		//Does Any Rule match?
+		if (data.every((markRule) => !markRule.regex.test(p.textContent || ""))) continue;
 
 		const treeWalker = document.createTreeWalker(p, NodeFilter.SHOW_TEXT);
 		const textNodes: Node[] = [];
@@ -33,8 +33,8 @@ export function MarkdownProcessor(data: MarkRule[], element: HTMLElement, app: A
 		}
 
 		for (let i = 0; i < textNodes.length; i++) {
-      const node = textNodes[i];
-      let text = node.textContent;
+			const node = textNodes[i];
+			let text = node.textContent;
 
 			if (text) {
 				let hasChanges = false;
@@ -44,25 +44,28 @@ export function MarkdownProcessor(data: MarkRule[], element: HTMLElement, app: A
 					if (node.parentNode?.nodeName === "CODE" && markRule.viewMode?.codeBlock === false) continue;
 
 					const regex: RegExp = markRule.regex;
-          const dataMatch = regex.exec(text);
+					const dataMatch = regex.exec(text);
 
-          if(dataMatch) {
-            if (dataMatch[0].includes("\n")) {
-              console.warn(`Regex Mark with regex: ${regex}; class: ${markRule.class} matched with newline. No class applied`);
-              continue;
-            }
+					if (dataMatch) {
+						if (dataMatch[0].includes("\n")) {
+							console.warn(
+								`Regex Mark with regex: ${regex}; class: ${markRule.class} matched with newline. No class applied`
+							);
+							continue;
+						}
 
-            finalElement = applyRuleClasses(text, markRule, dataMatch);
+						finalElement = applyRuleClasses(text, markRule, dataMatch);
 
-            if (markRule.hasFlag("g")){
-              textNodes.push( // Attach Unprocessed Text Nodes
-                ...[...finalElement.childNodes].filter(e => e.nodeType === Node.TEXT_NODE)
-              )
-            }
+						if (markRule.hasFlag("g")) {
+							textNodes.push(
+								// Attach Unprocessed Text Nodes
+								...[...finalElement.childNodes].filter((e) => e.nodeType === Node.TEXT_NODE)
+							);
+						}
 
-            hasChanges = true;
-            break;
-          }
+						hasChanges = true;
+						break;
+					}
 				}
 
 				if (hasChanges && node.parentNode) {
