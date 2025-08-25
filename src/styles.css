@@ -188,3 +188,8 @@
 .remark-regex-options .setting-item.full-width input {
 	width: 100%;
 }
+
+.RegexMark .callout.callout {
+	margin-left: 0 !important;
+	margin-right: 0 !important;
+}
