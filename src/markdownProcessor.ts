@@ -1,9 +1,7 @@
 /** Reading mode processor .*/
 import { type App, MarkdownView, sanitizeHTMLToDom } from "obsidian";
-
-import type { PatternObj } from "./interface";
+import type { MarkRule } from "./model";
 import { applyRuleClasses } from "./utils";
-import { MarkRule } from "./model";
 
 export function MarkdownProcessor(data: MarkRule[], element: HTMLElement, app: App) {
 	const paragraph = element.findAll("p, li, h1, h2, h3, h4, h5, h6, td, .callout-title-inner, th, code");
@@ -34,7 +32,7 @@ export function MarkdownProcessor(data: MarkRule[], element: HTMLElement, app: A
 
 		for (let i = 0; i < textNodes.length; i++) {
 			const node = textNodes[i];
-			let text = node.textContent;
+			const text = node.textContent;
 
 			if (text) {
 				let hasChanges = false;
