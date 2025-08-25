@@ -1,8 +1,8 @@
 import { cloneDeep } from "lodash";
 import { type App, sanitizeHTMLToDom, type TFile } from "obsidian";
 import type { PatternObj } from "./interface";
-import { MarkRule } from "./model";
 import { DEFAULT_PATTERN } from "./interface";
+import type { MarkRule } from "./model";
 
 export function removeTags(regex: string, pattern: PatternObj = DEFAULT_PATTERN) {
 	if (!regex) return regex;
