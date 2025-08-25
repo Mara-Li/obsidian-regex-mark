@@ -10,6 +10,7 @@ import {
 	AutoRules,
 	RegexString,
 	DEFAULT_PROPERTYNAME,
+	LEGAL_REGEX_FLAGS,
 } from "./interface";
 import {
 	extractGroups,
@@ -90,11 +91,19 @@ export class MarkRule extends ModelObject<MarkRuleObj, MarkRuleErrorCode> {
 	 * Regex #flags
 	 * @default ['g', 'i']
 	 */
-	#flags: RegexFlags[]; //TODO: refactor flag validation, see index.ts
+	#flags: Set<RegexFlags>;
 	get flags() {
 		return this.#flags;
 	}
-	set flags(val) {
+	set flags(val: Set<RegexFlags> | RegexFlags[] | string) {
+		// Filter valid #flags and ensure uniqueness
+		if (typeof val === "string") {
+			val = val
+				.toLowerCase()
+				.split("")
+				.filter((f: RegexFlags) => LEGAL_REGEX_FLAGS.includes(f)) as RegexFlags[];
+		}
+		if (Array.isArray(val)) val = new Set(val);
 		this.#flags = val;
 		this._invokeOnChange();
 	}
@@ -160,7 +169,7 @@ export class MarkRule extends ModelObject<MarkRuleObj, MarkRuleErrorCode> {
 	}
 
 	get flagsString() {
-		return `${this.#flags.join("")}d`;
+		return `${[...this.#flags].join("")}d`;
 	}
 
 	//#endregion
@@ -176,7 +185,7 @@ export class MarkRule extends ModelObject<MarkRuleObj, MarkRuleErrorCode> {
 		super();
 		this._settings = settings;
 		this.#regexRaw = regex;
-		this.#flags = flags ?? ["g", "i"];
+		this.flags = flags ?? ["g", "i"];
 		this.#class = cls;
 		this.#hide = hide;
 		this.#viewMode = viewMode ?? DEFAULT_VIEW_MODE;
@@ -186,7 +195,7 @@ export class MarkRule extends ModelObject<MarkRuleObj, MarkRuleErrorCode> {
 	serialize(): MarkRuleObj {
 		return {
 			regex: this.regexRaw,
-			flags: this.#flags,
+			flags: [...this.#flags],
 			class: this.#class,
 			hide: this.#hide,
 			viewMode: this.#viewMode,
@@ -267,7 +276,7 @@ export class MarkRule extends ModelObject<MarkRuleObj, MarkRuleErrorCode> {
 		}
 	}
 	hasFlag(flag: RegexFlags) {
-		return this.#flags.includes(flag);
+		return this.#flags.has(flag);
 	}
 	hasPatterns() {
 		const pattern = this.patternSubRegex;
@@ -283,16 +292,15 @@ export class MarkRule extends ModelObject<MarkRuleObj, MarkRuleErrorCode> {
 	//#endregion
 
 	public static from({ regex, flags, class: cls, hide, disable, viewMode }: MarkRuleObj, settings: SettingOptions) {
-		const option = new MarkRule(regex, flags, cls, hide, viewMode, settings);
-		if (disable) {
+		if (disable && !viewMode) {
 			console.warn(`Deprecated disable option found for ${cls}, removing it and adjust the viewMode option.`);
-			option.viewMode = {
+			viewMode = {
 				reading: false,
 				source: false,
 				live: false,
 			};
 		}
-		return option;
+		return new MarkRule(regex, flags, cls, hide, viewMode, settings);
 	}
 }
 
@@ -368,7 +376,12 @@ export class SettingOptions extends ModelObject<SettingOptionsObj, MarkRuleError
 	}
 	//#endregion
 
-	constructor(plugin: RegexMark, mark: MarkRuleObj[] = [], pattern = DEFAULT_PATTERN, propertyName = "regex_mark") {
+	constructor(
+		plugin: RegexMark,
+		mark: MarkRuleObj[] = [],
+		pattern = DEFAULT_PATTERN,
+		propertyName = DEFAULT_PROPERTYNAME
+	) {
 		super();
 		this.#mark = mark.map((o) => MarkRule.from(o, this).addOnChange(() => this._invokeOnChange()));
 		this.#pattern = Pattern.from(pattern).addOnChange(() => this._invokeOnChange());
@@ -377,8 +390,10 @@ export class SettingOptions extends ModelObject<SettingOptionsObj, MarkRuleError
 	}
 
 	static from(settingsData: SettingOptionsObj | SettingOptionsObj0, plugin: RegexMark) {
-		if (Array.isArray(settingsData)) {
-			return new SettingOptions(plugin, settingsData, DEFAULT_PATTERN, DEFAULT_PROPERTYNAME);
+		if (!settingsData) {
+			return new SettingOptions(plugin);
+		} else if (Array.isArray(settingsData)) {
+			return new SettingOptions(plugin, settingsData);
 		} else {
 			const { mark, pattern, propertyName } = settingsData;
 			return new SettingOptions(plugin, mark, pattern, propertyName);

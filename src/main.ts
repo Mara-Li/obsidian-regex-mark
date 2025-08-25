@@ -8,32 +8,17 @@ import { RemarkRegexSettingTab } from "./settings";
 
 export default class RegexMark extends Plugin {
 	settings: SettingOptions;
-	extensions: Extension[];
-	cmExtension: Extension;
+	extensions: Extension[] = [];
 
 	async onload() {
 		console.log("loading plugin RegexMark");
 		await this.loadSettings();
-		/*const hasDisable = this.settings.mark.filter((data) => data.disable);
-		for (const data of hasDisable) {
-			if (data.disable) {
-				console.warn(`Deprecated disable option found for ${data.class}, removing it and adjust the viewMode option.`);
-				data.viewMode = {
-					reading: false,
-					source: false,
-					live: false,
-				};
-				delete data.disable;
-				await this.saveSettings();
-			}
-		}*/
 		this.addSettingTab(new RemarkRegexSettingTab(this.app, this));
 		this.registerMarkdownPostProcessor((element: HTMLElement) => {
 			MarkdownProcessor(this.settings.mark, element, this.app);
 		});
-		this.extensions = [];
 		this.updateCmExtension();
-		this.extensions.forEach((e) => this.registerEditorExtension(e));
+		this.registerEditorExtension(this.extensions);
 	}
 
 	onunload() {
@@ -56,9 +41,7 @@ export default class RegexMark extends Plugin {
 	}
 
 	updateCmExtension() {
-		if (this.cmExtension) this.extensions.remove(this.cmExtension);
-		this.cmExtension = cmExtension(this);
-		this.extensions.push(...this.cmExtension);
+		this.extensions = cmExtension(this);
 		this.app.workspace.updateOptions();
 	}
 }

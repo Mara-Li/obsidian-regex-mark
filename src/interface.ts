@@ -91,3 +91,4 @@ export const DEFAULT_VIEW_MODE: ViewMode = {
 };
 
 export type RegexFlags = "g" | "i" | "m" | "s" | "u" | "y"; // "d" intentionally unusable
+export const LEGAL_REGEX_FLAGS: RegexFlags[] = ["g", "i", "m", "s", "u", "y"];

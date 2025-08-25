@@ -35,8 +35,7 @@ const Config = Facet.define<{ settings: SettingOptions; plugin: RegexMark }, Con
 });
 
 export function cmExtension(plugin: RegexMark) {
-	const extensions: Extension[] = [cmPlugin, Config.of({ plugin, settings: plugin.settings })];
-	return extensions;
+	return [cmPlugin, Config.of({ plugin, settings: plugin.settings })];
 }
 
 class CMPlugin implements PluginValue {
@@ -104,7 +103,7 @@ const pluginSpec: PluginSpec<CMPlugin> = {
 	decorations: (value: CMPlugin) => value.decorations,
 };
 
-const cmPlugin = ViewPlugin.fromClass(CMPlugin, pluginSpec);
+export const cmPlugin = ViewPlugin.fromClass(CMPlugin, pluginSpec);
 
 class LivePreviewWidget extends WidgetType {
 	data: MarkRule;

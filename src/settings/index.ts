@@ -14,6 +14,7 @@ import { dedent } from "ts-dedent";
 import {
 	DEFAULT_PATTERN,
 	DEFAULT_VIEW_MODE,
+	LEGAL_REGEX_FLAGS,
 	type MarkRuleObj,
 	type PatternObj,
 	type RegexFlags,
@@ -247,28 +248,22 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 	 * Creates the #flags text input field
 	 */
 	private createFlagsInput(text: TextComponent, data: MarkRule) {
-		text.setValue(data.flags?.join("").toLowerCase() ?? "gi").onChange(async (value: string) => {
+		text.setValue([...data.flags].join("")).onChange(async (value: string) => {
 			text.inputEl.removeClass("is-invalid");
 			this.addTooltip("Regex #flags", text.inputEl);
 
-			//TODO: Refactor
-			// Filter valid #flags and ensure uniqueness
-			data.flags = value
-				.split("")
-				.map((d) => d.toLowerCase())
-				.filter(
-					(d, index, self) => ["g", "i", "m", "s", "u", "y"].includes(d) && self.indexOf(d) === index
-				) as RegexFlags[];
+			data.flags = value;
 
 			// Highlight invalid #flags
 			const invalidFlags = value
 				.split("")
-				.filter((d, index, self) => !["g", "i", "m", "s", "u", "y"].includes(d) || self.indexOf(d) !== index);
+				.filter((d: RegexFlags, index, self) => !LEGAL_REGEX_FLAGS.includes(d) || self.indexOf(d) !== index);
 
 			if (invalidFlags.length > 0) {
 				text.inputEl.addClass("is-invalid");
 				this.addTooltip("Invalid #flags ; they are automatically fixed at save", text.inputEl);
 			}
+			text.setValue([...data.flags].join(""));
 		});
 
 		text.inputEl.addClasses(["min-width", "#flags-input"]);
