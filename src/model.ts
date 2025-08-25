@@ -185,7 +185,7 @@ export class MarkRule extends ModelObject<MarkRuleObj, MarkRuleErrorCode> {
 		super();
 		this._settings = settings;
 		this.#regexRaw = regex;
-		this.flags = flags ?? ["g", "i"];
+		this.#flags = new Set(flags ?? ["g", "i"]);
 		this.#class = cls;
 		this.#hide = hide;
 		this.#viewMode = viewMode ?? DEFAULT_VIEW_MODE;
