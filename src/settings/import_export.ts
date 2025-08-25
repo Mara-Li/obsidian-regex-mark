@@ -1,9 +1,8 @@
-import { cloneDeep } from "lodash";
-import { ButtonComponent, Modal, Platform, Setting, TextAreaComponent } from "obsidian";
-import type { RemarkRegexSettingTab } from ".";
-import type { SettingOptionsObj, MarkRuleObj, SettingOptionsObj0 } from "../interface";
-import { SettingOptions } from "../model";
+import { ButtonComponent, Modal, Notice, Platform, Setting, TextAreaComponent } from "obsidian";
+import type { MarkRuleObj, SettingOptionsObj, SettingOptionsObj0 } from "../interface";
 import type RegexMark from "../main";
+import type { SettingOptions } from "../model";
+import type { RemarkRegexSettingTab } from ".";
 
 export class ImportSettings extends Modal {
 	plugin: RegexMark;
@@ -36,12 +35,12 @@ export class ImportSettings extends Modal {
 						const importSettings = JSON.parse(str) as SettingOptionsObj | SettingOptionsObj0 | MarkRuleObj;
 
 						this.settings.merge(importSettings);
-
+						await this.plugin.saveSettings();
 						this.close();
-						this.settingTab.display();
 					} catch (e) {
 						errorSpan.addClass("active");
 						errorSpan.setText(`Error during importation: ${e}`);
+						console.error(e);
 					}
 				} else {
 					errorSpan.addClass("active");
@@ -90,6 +89,7 @@ export class ImportSettings extends Modal {
 	onClose(): void {
 		const { contentEl } = this;
 		contentEl.empty();
+		this.settingTab.display();
 	}
 }
 
@@ -128,7 +128,9 @@ export class ExportSettings extends Modal {
 								textArea.inputEl.select();
 								textArea.inputEl.setSelectionRange(0, 99999);
 								//use clipboard API
-								navigator.clipboard.writeText(textArea.inputEl.value);
+								navigator.clipboard.writeText(textArea.inputEl.value).then(() => {
+									new Notice("Copied to clipboard");
+								});
 								copyButton.addClass("success");
 								setTimeout(() => {
 									if (copyButton.parentNode) copyButton.removeClass("success");
