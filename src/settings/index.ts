@@ -5,9 +5,9 @@ import {
 	MarkdownRenderer,
 	Notice,
 	PluginSettingTab,
-	sanitizeHTMLToDom,
 	Setting,
-	TextComponent,
+	sanitizeHTMLToDom,
+	type TextComponent,
 	type ToggleComponent,
 } from "obsidian";
 import { dedent } from "ts-dedent";
@@ -20,8 +20,8 @@ import {
 	type RegexFlags,
 	type ViewMode,
 } from "../interface";
-import { MarkRule, MarkRuleErrorCode, Pattern, SettingOptions } from "../model";
 import type RegexMark from "../main";
+import { type MarkRule, MarkRuleErrorCode, Pattern, type SettingOptions } from "../model";
 import { RemarkPatternTab } from "./change_pattern";
 import { ExportSettings, ImportSettings } from "./import_export";
 import { PropertyModal } from "./property_name";
