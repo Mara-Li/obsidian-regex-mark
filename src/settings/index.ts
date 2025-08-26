@@ -43,14 +43,14 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 	 * @param data - The setting option containing regex information
 	 */
 	disableToggle(data: MarkRule) {
-		const isRegexInvalid = this.verifyRegexFromInput(data).includes(MarkRuleErrorCode.RegexHideMissingPatterns);
+    const hasNoPatterns = !data.hasPatterns();
 		const toggleComponent = this.toggles.get(data);
 
 		if (toggleComponent) {
-			toggleComponent.toggleEl.toggleClass("is-disabled-manually", isRegexInvalid);
-			toggleComponent.setDisabled(isRegexInvalid);
+			toggleComponent.toggleEl.toggleClass("is-disabled-manually", hasNoPatterns);
+			toggleComponent.setDisabled(hasNoPatterns);
 
-			const tooltip = isRegexInvalid
+			const tooltip = hasNoPatterns
 				? "Can't hide the regex if no group is found in it."
 				: "Hide the regex in Live-Preview, only keeping the content.";
 
