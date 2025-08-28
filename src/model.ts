@@ -425,7 +425,7 @@ export class SettingOptions extends ModelObject<SettingOptionsObj, MarkRuleError
 		const pattern = settingsDataClean.pattern ? Pattern.from(settingsDataClean.pattern) : null;
 
 		if (marks.some((m) => !m.isValide()) || (pattern && !pattern.isValide())) {
-			throw new Error("Invalide Data", {
+			throw new Error("Invalid Data", {
 				cause: [
 					["patternRegex", pattern ? [...pattern.getErrors()] : []],
 					...marks.map((m) => [`class: ${m.class}, regx: ${m.regex}`, [...m.getErrors()]]),
