@@ -41,14 +41,52 @@ export function cmExtension(plugin: RegexMark) {
 class CMPlugin implements PluginValue {
 	decorations: DecorationSet;
 	private plugin: RegexMark;
+	private compositionRange: { from: number; to: number } | null = null;
+	view: EditorView;
+
+	onCompositionstart: (a: HTMLElementEventMap[keyof HTMLElementEventMap]) => any;
+	onCompositionupdate: (a: HTMLElementEventMap[keyof HTMLElementEventMap]) => any;
+	onCompositionend: (a: HTMLElementEventMap[keyof HTMLElementEventMap]) => any;
 
 	constructor(view: EditorView) {
 		this.plugin = view.state.facet(Config).plugin;
 		this.decorations = this.buildDecorations(view);
+		this.view = view;
+
+		this.view.dom.addEventListener(
+			"compositionstart",
+			(this.onCompositionstart = () => {
+				const sel = this.view.state.selection.main;
+				this.compositionRange = { from: sel.from, to: sel.to };
+				this.decorations = this.buildDecorations(this.view);
+			})
+		);
+		this.view.dom.addEventListener(
+			"compositionupdate",
+			(this.onCompositionupdate = () => {
+				if (!this.compositionRange) return;
+				this.compositionRange.to = this.view.state.selection.main.to;
+				this.decorations = this.buildDecorations(this.view);
+			})
+		);
+		this.view.dom.addEventListener(
+			"compositionend",
+			(this.onCompositionend = () => {
+				this.compositionRange = null;
+				this.decorations = this.buildDecorations(this.view);
+			})
+		);
+	}
+
+	destroy() {
+		this.view.dom.removeEventListener("compositionstart", this.onCompositionstart);
+		this.view.dom.removeEventListener("compositionupdate", this.onCompositionupdate);
+		this.view.dom.removeEventListener("compositionend", this.onCompositionend);
 	}
 
 	update(update: ViewUpdate) {
 		if (update) {
+			this.view = update.view;
 			this.decorations = this.buildDecorations(update.view);
 		}
 	}
@@ -73,6 +111,11 @@ class CMPlugin implements PluginValue {
 					const cursor = new RegExpCursor(view.state.doc, d.regexString, {}, part.from, part.to);
 					while (!cursor.next().done) {
 						const { from, to } = cursor.value;
+
+						if (this.compositionRange && from <= this.compositionRange.to && to >= this.compositionRange.from) {
+							continue;
+						}
+
 						const insideBlock = disableInBlock(d, view, cursor, part, from, to);
 						if (insideBlock) continue;
 

@@ -279,7 +279,7 @@ export class MarkRule extends ModelObject<MarkRuleObj, MarkRuleErrorCode> {
 	}
 	hasPatterns() {
 		const pattern = this.patternSubRegex;
-		return pattern.open || pattern.close;
+		return pattern.open !== null || pattern.close !== null;
 	}
 	hasNamedGroups() {
 		return extractGroups(this.regexString).length > 0;
