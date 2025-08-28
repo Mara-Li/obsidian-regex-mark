@@ -1,17 +1,20 @@
+import * as console from "console";
+import type { App, MarkdownViewModeType } from "obsidian";
 import {
+	type AutoRules,
 	DEFAULT_PATTERN,
+	DEFAULT_PROPERTYNAME,
 	DEFAULT_VIEW_MODE,
+	LEGAL_REGEX_FLAGS,
+	type MarkRuleObj,
 	type PatternObj,
 	type RegexFlags,
-	type MarkRuleObj,
-	type SettingOptionsObj0,
+	type RegexString,
 	type SettingOptionsObj,
+	type SettingOptionsObj0,
 	type ViewMode,
-	AutoRules,
-	RegexString,
-	DEFAULT_PROPERTYNAME,
-	LEGAL_REGEX_FLAGS,
 } from "./interface";
+import type RegexMark from "./main";
 import {
 	extractGroups,
 	getFile,
@@ -20,10 +23,6 @@ import {
 	removeTags,
 	valideRegexSyntax,
 } from "./utils";
-import { App, type MarkdownViewModeType, Notice, sanitizeHTMLToDom } from "obsidian";
-import RegexMark from "./main";
-import * as console from "console";
-import { Function } from "estree";
 
 export enum MarkRuleErrorCode {
 	RegexMissing = "Regex is missing",
