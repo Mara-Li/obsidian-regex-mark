@@ -432,7 +432,25 @@ export class SettingOptions extends ModelObject<SettingOptionsObj, MarkRuleError
 				],
 			});
 		} else if (marks.some((newMark) => this.#mark.some((mark) => mark.eq(newMark)))) {
-			throw new Error("Duplicate");
+			//duplicates
+			const toAdd: MarkRule[] = [];
+			for (const newMark of marks) {
+				const existingIdx = this.#mark.findIndex((mark) => mark.eq(newMark));
+				if (existingIdx >= 0) {
+					const old = this.#mark[existingIdx];
+					old.removeOnChange(this._invokeOnChange);
+					newMark.addOnChange(this._invokeOnChange);
+					this.#mark[existingIdx] = newMark;
+				} else {
+					const addIdx = toAdd.findIndex((m) => m.eq(newMark));
+					if (addIdx >= 0) {
+						toAdd[addIdx] = newMark;
+					} else {
+						toAdd.push(newMark);
+					}
+				}
+			}
+			if (toAdd.length > 0) this.#addMark(...toAdd);
 		}
 
 		this.#addMark(...marks);
