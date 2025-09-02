@@ -33,14 +33,12 @@ export class ImportSettings extends Modal {
 				if (str) {
 					try {
 						const importSettings = JSON.parse(str) as SettingOptionsObj | SettingOptionsObj0 | MarkRuleObj;
-
 						this.settings.merge(importSettings);
-						await this.plugin.saveSettings();
 						this.close();
 					} catch (e) {
-						errorSpan.addClass("active");
-						errorSpan.setText(`Error during importation: ${e}`);
 						console.error(e);
+						errorSpan.addClass("active");
+						errorSpan.setText(`Error during importation: ${e.message} Individual Errors: ${e.cause}`);
 					}
 				} else {
 					errorSpan.addClass("active");
