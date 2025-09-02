@@ -13,7 +13,7 @@ import {
 import { MarkRule, Pattern, SettingOptions } from "./model";
 import { Notice, sanitizeHTMLToDom } from "obsidian";
 import type RegexMark from "./main";
-import { applyRuleClasses } from "./utils";
+import { applyRuleClasses, substituteString } from "./utils";
 
 interface ConfigWithPlugin {
 	settings: SettingOptions;
@@ -110,7 +110,7 @@ class CMPlugin implements PluginValue {
 				try {
 					const cursor = new RegExpCursor(view.state.doc, d.regexString, {}, part.from, part.to);
 					while (!cursor.next().done) {
-						const { from, to } = cursor.value;
+						const { from, to, match } = cursor.value;
 
 						if (this.compositionRange && from <= this.compositionRange.to && to >= this.compositionRange.from) {
 							continue;
@@ -122,7 +122,7 @@ class CMPlugin implements PluginValue {
 						//don't add the decoration if the cursor (selection in the editor) is inside the decoration
 						if (checkSelectionOverlap(view.state.selection, from, to) || this.viewMode(view) === "Source") {
 							//just apply the decoration to the whole line
-							const markup = Decoration.mark({ class: d.class });
+							const markup = Decoration.mark({ class: substituteString(d.class, match) });
 							decorations.push(markup.range(from, to));
 							continue;
 						}

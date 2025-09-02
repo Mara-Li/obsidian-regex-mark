@@ -75,6 +75,29 @@ For example :
 > [!WARNING]
 > The named group is only displayed when not in `source` mode or when the cursor is not on the text.
 
+## Class Substitution
+
+To the class string substitution will be applied.
+Explaination taken from 
+
+| Pattern   | Inserts                                   |
+|-----------|-------------------------------------------|
+| `$$`      | Becomes "$"                               |
+| `$&`      | Becomes the full matched string.          |
+| `$n`      | Becomes the capturing group n             |
+| `$<Name>` | Becomes the named capturing group "Name"  |
+
+For example :
+- <u>Regex</u> : `\color\[(r|b|g)]`
+- <u>Class</u> : `color-$1`
+- <u>Text</u> : `\color[r]`
+- <u>Result</u> :
+  ```html
+  <span class="color-r" data-contents="\color[r]">
+    \color[r]
+  </span>
+  ```
+
 # Settings
 
 ![img.png](_assets/settings.png)
