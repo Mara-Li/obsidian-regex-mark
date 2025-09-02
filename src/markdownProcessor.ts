@@ -1,27 +1,23 @@
 /** Reading mode processor .*/
 import { type App, MarkdownView, sanitizeHTMLToDom } from "obsidian";
+import type { MarkRule } from "./model";
+import { applyRuleClasses } from "./utils";
 
-import type { Mark, Pattern } from "./interface";
-import { addGroupText, extractGroups, matchGroups, removeTags, shouldSkip } from "./utils";
-
-export function MarkdownProcessor(data: Mark, element: HTMLElement, app: App, propertyName: string, pattern?: Pattern) {
+export function MarkdownProcessor(data: MarkRule[], element: HTMLElement, app: App) {
 	const paragraph = element.findAll("p, li, h1, h2, h3, h4, h5, h6, td, .callout-title-inner, th, code");
 	paragraph.push(...element.findAllSelf(".table-cell-wrapper"));
-	const activeMode = app.workspace.getActiveViewOfType(MarkdownView)?.getMode() === "source";
+
+	const activeMode = app.workspace.getActiveViewOfType(MarkdownView)?.getMode();
+
+	//Filter Rules that don't apply here
+	data = data.filter((rule) => !rule.shouldSkip(activeMode));
+
 	for (const p of paragraph) {
-		let ignore = true;
-		for (const d of data) {
-			if (d.viewMode?.reading === false || shouldSkip(d, app, propertyName, pattern)) continue;
-			const regex = new RegExp(removeTags(d.regex, pattern), d.flags?.join("") ?? "gi");
-			if (regex.test(p.textContent || "")) {
-				ignore = false;
-				break;
-			}
-		}
-		if (ignore) continue;
+		//Does Any Rule match?
+		if (data.every((markRule) => !markRule.regex.test(p.textContent || ""))) continue;
 
 		const treeWalker = document.createTreeWalker(p, NodeFilter.SHOW_TEXT);
-		const textNodes = [];
+		const textNodes: Node[] = [];
 		while (treeWalker.nextNode()) {
 			const parentSpan = (treeWalker.currentNode as Node).parentElement;
 			if (
@@ -33,65 +29,40 @@ export function MarkdownProcessor(data: Mark, element: HTMLElement, app: App, pr
 			}
 			textNodes.push(treeWalker.currentNode);
 		}
-		for (const node of textNodes) {
-			let text = node.textContent;
+
+		for (let i = 0; i < textNodes.length; i++) {
+			const node = textNodes[i];
+			const text = node.textContent;
+
 			if (text) {
 				let hasChanges = false;
 				let finalElement: DocumentFragment | undefined;
 
-				for (const d of data) {
-					if (!d.viewMode) d.viewMode = { reading: true, source: true, live: true, codeBlock: true };
-					if (node.parentNode?.nodeName === "CODE" && d.viewMode?.codeBlock === false) continue;
+				for (const markRule of data) {
+					if (node.parentNode?.nodeName === "CODE" && markRule.viewMode?.codeBlock === false) continue;
 
-					const enabled = activeMode ? d.viewMode?.live : d.viewMode?.reading;
-					if (!d.regex || !d.class || d.regex === "" || d.class === "" || !enabled) continue;
+					const regex: RegExp = markRule.regex;
+					const dataMatch = regex.exec(text);
 
-					const flags = d.flags ? [...d.flags, "d"].join("") : "gid";
-
-					const hasPatterns = pattern && d.regex.includes("{{open:") && d.regex.includes("{{close:");
-					const hasNamedGroups = extractGroups(d.regex).length > 0;
-
-					let regex: RegExp;
-					if (hasPatterns && hasNamedGroups && d.hide) {
-						let regexStr = d.regex;
-						const openMatch = regexStr.match(/{{open:(.*?)}}/);
-						const closeMatch = regexStr.match(/{{close:(.*?)}}/);
-						if (openMatch && closeMatch) {
-							regexStr = regexStr.replace(/{{open:(.*?)}}/, openMatch[1]);
-							regexStr = regexStr.replace(/{{close:(.*?)}}/, closeMatch[1]);
+					if (dataMatch) {
+						if (dataMatch[0].includes("\n")) {
+							console.warn(
+								`Regex Mark with regex: ${regex}; class: ${markRule.class} matched with newline. No class applied`
+							);
+							continue;
 						}
-						regex = new RegExp(regexStr, flags);
-					} else {
-						regex = new RegExp(removeTags(d.regex, pattern), flags);
-					}
 
-					if (d.hide) {
-						const group = removeTags(d.regex, pattern)
-							.match(/\((.*?)\)/)
-							?.filter((x) => x != null);
-						const dataText = regex.exec(text);
-						if (!group || !dataText || /* $1 defines visible content */ dataText.length < 2) continue;
-						const subgroup = matchGroups(regex.source, text);
-						if (!subgroup && !(hasPatterns && hasNamedGroups)) {
-							text = text.replace(regex, `<span class="${d.class}" data-contents="$1">$1</span>`);
-							hasChanges = true;
-						} else {
-							finalElement = addGroupText(text, d, dataText, pattern);
-							hasChanges = true;
-							break;
+						finalElement = applyRuleClasses(text, markRule, dataMatch);
+
+						if (markRule.hasFlag("g")) {
+							textNodes.push(
+								// Attach Unprocessed Text Nodes
+								...[...finalElement.childNodes].filter((e) => e.nodeType === Node.TEXT_NODE)
+							);
 						}
-					} else {
-						const dataText = regex.exec(text);
-						if (!dataText) continue;
-						const subgroup = matchGroups(regex.source, text);
-						if (!subgroup) {
-							text = text.replace(regex, `<span class="${d.class}" data-contents="$&">$&</span>`);
-							hasChanges = true;
-						} else {
-							finalElement = addGroupText(text, d, dataText, pattern);
-							hasChanges = true;
-							break;
-						}
+
+						hasChanges = true;
+						break;
 					}
 				}
 

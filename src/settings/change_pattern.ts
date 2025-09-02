@@ -1,22 +1,14 @@
 import { type App, Component, MarkdownRenderer, Modal, Notice, Setting, sanitizeHTMLToDom } from "obsidian";
 import { dedent } from "ts-dedent";
-import { DEFAULT_PATTERN, type Pattern } from "../interface";
-
-enum ErrorCode {
-	NotOpen = "Pattern doesn't contain 'open:'",
-	NotClose = "Pattern doesn't contain 'close:'",
-	Empty = "Pattern is empty",
-	Invalid = "Pattern is invalid",
-	WithoutGroup = "Pattern doesn't contain a group",
-	NeedChar = "Pattern need to contain a character for enclosing",
-}
+import { DEFAULT_PATTERN, type PatternObj } from "../interface";
+import { Pattern } from "../model";
 
 export class RemarkPatternTab extends Modal {
-	result: Pattern;
-	oldPattern: Pattern | undefined;
-	onSubmit: (result: Pattern) => void;
+	result: PatternObj;
+	oldPattern: PatternObj | undefined;
+	onSubmit: (result: PatternObj) => void;
 
-	constructor(app: App, oldPattern: Pattern | undefined, onSubmit: (result: Pattern) => void) {
+	constructor(app: App, oldPattern: PatternObj | undefined, onSubmit: (result: PatternObj) => void) {
 		super(app);
 		this.onSubmit = onSubmit;
 		this.oldPattern = oldPattern;
@@ -28,7 +20,7 @@ export class RemarkPatternTab extends Modal {
 
 	onOpen(): void {
 		const { contentEl } = this;
-		this.contentEl.addClasses(["RegexMark", "pattern-change"]);
+		this.contentEl.addClasses(["RegexMark", "_patternRegex-change"]);
 		this.result = this.oldPattern ?? DEFAULT_PATTERN;
 
 		new Setting(contentEl).setHeading().setName("Change open/close tags");
@@ -58,7 +50,7 @@ export class RemarkPatternTab extends Modal {
 
 		new Setting(contentEl)
 			.setName("Pattern")
-			.setDesc("Define the pattern to be used")
+			.setDesc("Define the _patternRegex to be used")
 			.addText((text) => {
 				text.inputEl.addClass("pattern");
 				text.inputEl.setAttribute("data-type", "open");
@@ -70,8 +62,8 @@ export class RemarkPatternTab extends Modal {
 			});
 
 		new Setting(contentEl)
-			.setName("Close pattern")
-			.setDesc("Define the close pattern to be used")
+			.setName("Close _patternRegex")
+			.setDesc("Define the close _patternRegex to be used")
 			.addText((text) => {
 				text.inputEl.addClass("pattern");
 				text.inputEl.setAttribute("data-type", "close");
@@ -105,30 +97,18 @@ export class RemarkPatternTab extends Modal {
 			});
 	}
 
-	verifyRegexPattern(pattern: string, which: "open" | "close"): ErrorCode | true {
-		//verify if the pattern is valid
-		if (pattern.trim().length === 0) return ErrorCode.Empty;
-		if (which === "open" && !pattern.includes("open:")) return ErrorCode.NotOpen;
-		if (which === "close" && !pattern.includes("close:")) return ErrorCode.NotClose;
-		if (pattern === `${which}:(.*?)`) return ErrorCode.NeedChar;
-		if (!pattern.match(/\(\.\*\??\)/)) return ErrorCode.WithoutGroup;
-		try {
-			new RegExp(pattern);
-			return true;
-		} catch (_e) {
-			return ErrorCode.Invalid;
-		}
-	}
-
 	verifyAllPattern(): boolean {
 		const errors: string[] = [];
-		this.contentEl.querySelectorAll("input.pattern").forEach((el) => {
+		this.contentEl.querySelectorAll("input._patternRegex").forEach((el) => {
 			const which = el.getAttribute("data-type") as "open" | "close";
 			const value = el.getAttribute("data-value") ?? "";
-			const result = this.verifyRegexPattern(value, which);
-			if (result !== true) {
-				el.addClass("error");
-				errors.push(`<code>${value}</code>: <u>${result}</u>`);
+			const pattern = Pattern.from({ [which]: value } as PatternObj);
+			const result = [...pattern.getErrorsSingle(which)];
+			if (result.length > 0) {
+				for (const patternErrorCode of result) {
+					el.addClass("error");
+					errors.push(`<code>${value}</code>: <u>${patternErrorCode}</u>`);
+				}
 			} else {
 				el.removeClass("error");
 			}

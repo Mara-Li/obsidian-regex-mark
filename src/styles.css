@@ -57,6 +57,7 @@
 .RegexMark input,
 .regex-setting input {
 	font-family: var(--font-monospace);
+	font-variant-ligatures: none;
 }
 
 .setting-item.import-export {
@@ -186,4 +187,9 @@
 
 .remark-regex-options .setting-item.full-width input {
 	width: 100%;
+}
+
+.RegexMark .callout.callout {
+	margin-left: 0 !important;
+	margin-right: 0 !important;
 }

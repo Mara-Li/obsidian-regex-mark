@@ -1,8 +1,8 @@
-import { cloneDeep } from "lodash";
-import { ButtonComponent, Modal, Platform, Setting, TextAreaComponent } from "obsidian";
-import type { RemarkRegexSettingTab } from ".";
-import type { Mark, SettingOption, SettingOptions } from "../interface";
+import { ButtonComponent, Modal, Notice, Platform, Setting, TextAreaComponent } from "obsidian";
+import type { MarkRuleObj, SettingOptionsObj, SettingOptionsObj0 } from "../interface";
 import type RegexMark from "../main";
+import type { SettingOptions } from "../model";
+import type { RemarkRegexSettingTab } from ".";
 
 export class ImportSettings extends Modal {
 	plugin: RegexMark;
@@ -30,53 +30,15 @@ export class ImportSettings extends Modal {
 			});
 			setting.nameEl.appendChild(errorSpan);
 			const importAndClose = async (str: string) => {
-				const oldSettings = cloneDeep(this.settings);
 				if (str) {
 					try {
-						const importSettings = JSON.parse(str) as unknown;
-						if (importSettings) {
-							if (Object.hasOwn(importSettings, "pattern")) {
-								oldSettings.pattern = (importSettings as SettingOptions).pattern;
-								delete (importSettings as SettingOptions).pattern;
-							}
-							const marks: Mark = [];
-							//import the list of regex only
-							if (Object.hasOwn(importSettings, "mark") || importSettings instanceof Array) {
-								if (Object.hasOwn(importSettings, "mark")) {
-									marks.push(...(importSettings as SettingOptions).mark);
-								} else if (importSettings instanceof Array) {
-									marks.push(...(importSettings as Mark));
-								}
-								for (const setting of marks) {
-									if (!setting.regex || !setting.class) {
-										throw new Error("Invalid importation");
-									}
-								}
-								//import only if not in the old settings
-								const imported = marks.filter((setting: SettingOption) => {
-									return !oldSettings.mark.find((oldSetting: SettingOption) => oldSetting.regex === setting.regex);
-								});
-								oldSettings.mark.push(...imported);
-								this.settings = oldSettings;
-							} else if (importSettings instanceof Object && !Object.hasOwn(importSettings, "mark")) {
-								if (!Object.hasOwn(importSettings, "regex") || !Object.hasOwn(importSettings, "class")) {
-									throw new Error("Invalid importation");
-								}
-								const imported = importSettings as SettingOption;
-								if (!oldSettings.mark.find((oldSetting: SettingOption) => oldSetting.regex === imported.regex)) {
-									oldSettings.mark.push(importSettings as SettingOption);
-									this.settings = oldSettings;
-								} else {
-									throw new Error("Already in the settings");
-								}
-							}
-						}
-						await this.plugin.overrideSettings(oldSettings);
+						const importSettings = JSON.parse(str) as SettingOptionsObj | SettingOptionsObj0 | MarkRuleObj;
+						this.settings.merge(importSettings);
 						this.close();
-						this.settingTab.display();
 					} catch (e) {
+						console.error(e);
 						errorSpan.addClass("active");
-						errorSpan.setText(`Error during importation: ${e}`);
+						errorSpan.setText(`Error during importation: ${e.message} Individual Errors: ${e.cause}`);
 					}
 				} else {
 					errorSpan.addClass("active");
@@ -125,6 +87,7 @@ export class ImportSettings extends Modal {
 	onClose(): void {
 		const { contentEl } = this;
 		contentEl.empty();
+		this.settingTab.display();
 	}
 }
 
@@ -148,8 +111,7 @@ export class ExportSettings extends Modal {
 			.setName("Export settings")
 			.setDesc("Allow to export regex to share it with other users.")
 			.then((setting) => {
-				const copied = cloneDeep(this.settings);
-				const output = JSON.stringify(copied, null, 2);
+				const output = JSON.stringify(this.settings.serialize(), null, 2);
 				setting.controlEl.createEl(
 					"a",
 					{
@@ -164,7 +126,9 @@ export class ExportSettings extends Modal {
 								textArea.inputEl.select();
 								textArea.inputEl.setSelectionRange(0, 99999);
 								//use clipboard API
-								navigator.clipboard.writeText(textArea.inputEl.value);
+								navigator.clipboard.writeText(textArea.inputEl.value).then(() => {
+									new Notice("Copied to clipboard");
+								});
 								copyButton.addClass("success");
 								setTimeout(() => {
 									if (copyButton.parentNode) copyButton.removeClass("success");
