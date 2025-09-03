@@ -363,9 +363,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 	 */
 	private async verifyAndApplySettings() {
 		if (this.verifyDuplicates()) {
-			const validRules = (
-				await Promise.all(this.plugin.settings.mark.map((d) => this.verifyRule(d, this.plugin.settings.pattern)))
-			).every((a) => a);
+			const validRules = (await Promise.all(this.plugin.settings.mark.map((d) => this.verifyRule(d)))).every((a) => a);
 
 			if (validRules) {
 				try {
@@ -415,7 +413,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 	/**
 	 * Verifies if a single rule is valid
 	 */
-	async verifyRule(data: MarkRule, pattern?: PatternObj) {
+	async verifyRule(data: MarkRule) {
 		const index = this.plugin.settings.mark.indexOf(data);
 		const inputElement = document.querySelectorAll(".regex-input")[index];
 		const inputCss = document.querySelectorAll(".css-input")[index];
@@ -435,32 +433,6 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 			}
 			return false;
 		}
-	}
-
-	/**
-	 * Gets the regex value from input element
-	 */
-	private getRegexFromInput(data: MarkRule) {
-		const index = this.plugin.settings.mark.indexOf(data);
-		const input = document.querySelectorAll<HTMLElement>(".regex-input")[index];
-
-		if (input) {
-			const regex = input.getAttribute("regex-value");
-			if (regex) return regex;
-		}
-
-		return data.regexRaw;
-	}
-
-	/**
-	 * Checks if the regex is valid for the hide toggle
-	 */
-	private verifyRegexFromInput(data: MarkRule): MarkRuleErrorCode[] {
-		const newRegex = this.getRegexFromInput(data);
-		const clone = data.clone();
-		clone.regexRaw = newRegex;
-
-		return [...clone.getErrors()];
 	}
 
 	/**
