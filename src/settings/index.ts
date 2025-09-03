@@ -43,7 +43,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 	 * @param data - The setting option containing regex information
 	 */
 	disableToggle(data: MarkRule) {
-    const hasNoPatterns = !data.hasPatterns();
+		const hasNoPatterns = !data.hasPatterns();
 		const toggleComponent = this.toggles.get(data);
 
 		if (toggleComponent) {

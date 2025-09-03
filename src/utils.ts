@@ -47,21 +47,17 @@ export function getFile(app: App): TFile | null {
 	return file ? file : null;
 }
 
-export function substituteString(str:string, match:RegExpMatchArray|RegExpExecArray){
-  const substituteRegex = /(\$*?)\$(&|\d+|<([A-Za-z_]\w*)>)?/g
-  return str.replace(substituteRegex, (fullM, $prefix:string, identifier:string = "", name?:string) => {
-    //cut half of $
-    const $half = $prefix.substring(0,Math.floor($prefix.length/2))
+export function substituteString(str: string, match: RegExpMatchArray | RegExpExecArray) {
+	const substituteRegex = /(\$*?)\$(&|\d+|<([A-Za-z_]\w*)>)?/g;
+	return str.replace(substituteRegex, (fullM, $prefix: string, identifier: string = "", name?: string) => {
+		//cut half of $
+		const $half = $prefix.substring(0, Math.floor($prefix.length / 2));
 
-    if(!identifier || $prefix.length % 2 === 1)
-      return $half + "$" + identifier;
-    else if(identifier === "&")
-      return $half + match[0]
-    else if(name)
-      return $half + (match.groups?.[name] ?? "$" + identifier);
-    else
-      return $half + (match[Number(identifier)] ?? "$" + identifier);
-  });
+		if (!identifier || $prefix.length % 2 === 1) return $half + "$" + identifier;
+		else if (identifier === "&") return $half + match[0];
+		else if (name) return $half + (match.groups?.[name] ?? "$" + identifier);
+		else return $half + (match[Number(identifier)] ?? "$" + identifier);
+	});
 }
 
 export function getFrontmatter(file: TFile | null, app: App): Record<string, unknown> | null {

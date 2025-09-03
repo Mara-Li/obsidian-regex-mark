@@ -67,10 +67,10 @@ abstract class ModelObject<SerializedObj, ErrorCode> {
 		return this;
 	}
 
-  //lambda to preserve `this`
+	//lambda to preserve `this`
 	protected _invokeOnChange = () => {
 		this._onChange.forEach((f) => f());
-	}
+	};
 }
 
 export class MarkRule extends ModelObject<MarkRuleObj, MarkRuleErrorCode> {
@@ -205,17 +205,17 @@ export class MarkRule extends ModelObject<MarkRuleObj, MarkRuleErrorCode> {
 		return MarkRule.from(this.serialize(), this._settings);
 	}
 
-  /**
-   * Automatically fixes fixable Errors and returns the remaining
-   */
-  autoFix(){
-    const errors = new Set([...this.getErrors()])
-    if(errors.has(MarkRuleErrorCode.RegexHideMissingPatterns)){
-      this.#hide = false;
-      errors.delete(MarkRuleErrorCode.RegexHideMissingPatterns)
-    }
-    return [...errors]
-  }
+	/**
+	 * Automatically fixes fixable Errors and returns the remaining
+	 */
+	autoFix() {
+		const errors = new Set([...this.getErrors()]);
+		if (errors.has(MarkRuleErrorCode.RegexHideMissingPatterns)) {
+			this.#hide = false;
+			errors.delete(MarkRuleErrorCode.RegexHideMissingPatterns);
+		}
+		return [...errors];
+	}
 	//#endregion
 
 	//#region checks
@@ -434,29 +434,29 @@ export class SettingOptions extends ModelObject<SettingOptionsObj, MarkRuleError
 			settingsDataClean = settingsData as SettingOptionsObj;
 		}
 
-		const marks = settingsDataClean.mark.filter(m => m.class || m.regex).map((m) => MarkRule.from(m, this));
+		const marks = settingsDataClean.mark.filter((m) => m.class || m.regex).map((m) => MarkRule.from(m, this));
 		const pattern = settingsDataClean.pattern ? Pattern.from(settingsDataClean.pattern) : null;
 
-    if(pattern && !pattern.isValide()){
-      throw new Error("Invalide Pattern", {
-        cause:[...pattern.getErrors()]
-      })
-    }
+		if (pattern && !pattern.isValide()) {
+			throw new Error("Invalide Pattern", {
+				cause: [...pattern.getErrors()],
+			});
+		}
 
-    const errors = marks
-      .map((m) => ({
-        rule: m,
-        errorCodes: m.autoFix()
-      }))
-      .filter(({errorCodes}) => errorCodes.length)
+		const errors = marks
+			.map((m) => ({
+				rule: m,
+				errorCodes: m.autoFix(),
+			}))
+			.filter(({ errorCodes }) => errorCodes.length);
 
-    if(errors.length){
-      throw new Error("Invalide Rules", {
-        cause: errors.map(({rule,errorCodes}) => [`CLASS: ${rule.class}, REGEX: ${rule.regex}`,errorCodes])
-      })
-    }
+		if (errors.length) {
+			throw new Error("Invalide Rules", {
+				cause: errors.map(({ rule, errorCodes }) => [`CLASS: ${rule.class}, REGEX: ${rule.regex}`, errorCodes]),
+			});
+		}
 
-    if (marks.some((newMark) => this.#mark.some((mark) => mark.eq(newMark)))) {
+		if (marks.some((newMark) => this.#mark.some((mark) => mark.eq(newMark)))) {
 			//duplicates
 			const toAdd: MarkRule[] = [];
 			for (const newMark of marks) {
@@ -476,10 +476,9 @@ export class SettingOptions extends ModelObject<SettingOptionsObj, MarkRuleError
 				}
 			}
 			if (toAdd.length > 0) this.#addMark(...toAdd);
+		} else {
+			this.#addMark(...marks);
 		}
-    else{
-      this.#addMark(...marks);
-    }
 
 		if (pattern) this.#changePattern(pattern);
 
