@@ -8,12 +8,11 @@ import {
 	type PluginValue,
 	ViewPlugin,
 	type ViewUpdate,
-	WidgetType,
 } from "@codemirror/view";
 import { MarkRule, Pattern, SettingOptions } from "./model";
 import { Notice, sanitizeHTMLToDom } from "obsidian";
 import type RegexMark from "./main";
-import { applyRuleClasses, substituteString } from "./utils";
+import { substituteString } from "./utils";
 
 interface ConfigWithPlugin {
 	settings: SettingOptions;
@@ -119,18 +118,49 @@ class CMPlugin implements PluginValue {
 						const insideBlock = disableInBlock(d, view, cursor, part, from, to);
 						if (insideBlock) continue;
 
-						//don't add the decoration if the cursor (selection in the editor) is inside the decoration
-						if (checkSelectionOverlap(view.state.selection, from, to) || this.viewMode(view) === "Source") {
-							//just apply the decoration to the whole line
-							const markup = Decoration.mark({ class: substituteString(d.class, match) });
-							decorations.push(markup.range(from, to));
-							continue;
+						// Apply the main CSS class to the full match range.
+						// Using Decoration.mark (instead of Decoration.replace/widget) preserves
+						// Obsidian's markdown rendering inside the matched region.
+						const markup = Decoration.mark({ class: substituteString(d.class, match) });
+						decorations.push(markup.range(from, to));
+
+						// Source mode: only the main class is needed.
+						if (mode === "Source") continue;
+
+						// Live Preview: also apply named group classes.
+						if (match.indices?.groups) {
+							for (const [name, indices] of Object.entries(match.indices.groups)) {
+								if (indices) {
+									// indices are relative to part.from; convert to absolute document positions.
+									const groupFrom = from + indices[0] - match.index;
+									const groupTo = from + indices[1] - match.index;
+									decorations.push(Decoration.mark({ class: name }).range(groupFrom, groupTo));
+								}
+							}
 						}
-						const string = view.state.sliceDoc(from, to);
-						const markDeco = Decoration.replace({
-							widget: new LivePreviewWidget(string, d, view),
-						});
-						decorations.push(markDeco.range(from, to));
+
+						// Live Preview with hide: hide open/close markers via cm-hide when the
+						// cursor is not inside the matched range. The CSS `.cm-hide { display:none }`
+						// hides them, while `.cm-active .cm-hide { display:inline }` reveals them
+						// on the active line, matching Obsidian's standard hide-syntax behaviour.
+						if (d.hide && !checkSelectionOverlap(view.state.selection, from, to)) {
+							const matchedText = view.state.sliceDoc(from, to);
+							const { open: openPattern, close: closePattern } = d.patternSubRegex;
+
+							if (openPattern) {
+								const openMatch = openPattern.exec(matchedText);
+								if (openMatch) {
+									decorations.push(Decoration.mark({ class: "cm-hide" }).range(from, from + openMatch[0].length));
+								}
+							}
+
+							if (closePattern) {
+								const closeMatch = closePattern.exec(matchedText);
+								if (closeMatch) {
+									decorations.push(Decoration.mark({ class: "cm-hide" }).range(to - closeMatch[0].length, to));
+								}
+							}
+						}
 					}
 				} catch (e) {
 					console.error(e);
@@ -147,57 +177,6 @@ const pluginSpec: PluginSpec<CMPlugin> = {
 };
 
 export const cmPlugin = ViewPlugin.fromClass(CMPlugin, pluginSpec);
-
-class LivePreviewWidget extends WidgetType {
-	data: MarkRule;
-	view: EditorView;
-
-	constructor(
-		readonly value: string,
-		data: MarkRule,
-		view: EditorView
-	) {
-		super();
-		this.data = data;
-		this.view = view;
-	}
-
-	//Widget is only updated when the raw text is changed / the elements get focus and loses it
-
-	eq(other: LivePreviewWidget) {
-		//return false if the regex is edited
-		const regex = this.data.regex;
-		if (this.value.match(regex) === null) return false;
-
-		return other.value == this.value;
-	}
-
-	toDOM() {
-		let wrap = document.createElement("span");
-		const text = this.value;
-
-		const regex = this.data.regex;
-		const dataText = regex.exec(text);
-		if (dataText) {
-			wrap.append(
-				applyRuleClasses(text, this.data, dataText, (substring) => `<span class="cm-hide">${substring}</span>`)
-			);
-			return wrap;
-		} else {
-			wrap.addClass(this.data.class);
-			wrap.innerText = text;
-			return wrap;
-		}
-	}
-
-	ignoreEvent(_event: Event) {
-		return false;
-	}
-
-	destroy(_dom: HTMLElement): void {
-		//do nothing
-	}
-}
 
 function checkSelectionOverlap(selection: EditorSelection | undefined, from: number, to: number): boolean {
 	if (!selection) {
