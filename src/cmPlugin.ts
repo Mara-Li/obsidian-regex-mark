@@ -9,7 +9,7 @@ import {
 	ViewPlugin,
 	type ViewUpdate,
 } from "@codemirror/view";
-import { MarkRule, Pattern, SettingOptions } from "./model";
+import { MarkRule, SettingOptions } from "./model";
 import { Notice, sanitizeHTMLToDom } from "obsidian";
 import type RegexMark from "./main";
 import { substituteString } from "./utils";
@@ -84,8 +84,16 @@ class CMPlugin implements PluginValue {
 	}
 
 	update(update: ViewUpdate) {
-		if (update) {
-			this.view = update.view;
+		this.view = update.view;
+		const configChanged = update.startState.facet(Config) !== update.state.facet(Config);
+		const { settings } = update.state.facet(Config);
+		const hasHideRules = settings.mark.some((d) => d.hide);
+		if (
+			update.docChanged ||
+			update.viewportChanged ||
+			configChanged ||
+			(update.selectionSet && hasHideRules)
+		) {
 			this.decorations = this.buildDecorations(update.view);
 		}
 	}
@@ -99,11 +107,15 @@ class CMPlugin implements PluginValue {
 	buildDecorations(view: EditorView) {
 		const decorations = [];
 
-		const { settings, plugin } = view.state.facet(Config);
+		const { settings } = view.state.facet(Config);
 		const data: MarkRule[] = settings.mark;
 
 		const mode = this.viewMode(view);
 		for (const part of view.visibleRanges) {
+			// Pre-compute code block ranges once per visible part if any active rule needs it.
+			const needsBlockCheck = data.some((d) => !d.shouldSkip(mode) && d.viewMode?.codeBlock === false);
+			const blockRanges = needsBlockCheck ? computeBlockRanges(view, part) : null;
+
 			for (const d of data) {
 				if (d.shouldSkip(mode)) continue;
 				try {
@@ -115,8 +127,9 @@ class CMPlugin implements PluginValue {
 							continue;
 						}
 
-						const insideBlock = disableInBlock(d, view, cursor, part, from, to);
-						if (insideBlock) continue;
+						if (d.viewMode?.codeBlock === false && blockRanges && isInsideBlockRange(blockRanges, from, to)) {
+							continue;
+						}
 
 						// Apply the main CSS class to the full match range.
 						// Using Decoration.mark (instead of Decoration.replace/widget) preserves
@@ -190,26 +203,20 @@ function checkSelectionOverlap(selection: EditorSelection | undefined, from: num
 	return false;
 }
 
-function disableInBlock(
-	data: MarkRule,
+function computeBlockRanges(
 	view: EditorView,
-	blockMatch: any,
-	part: { from: number; to: number },
-	from: number,
-	to: number
-) {
-	if (data.viewMode?.codeBlock || data.viewMode?.codeBlock === undefined) return false;
+	part: { from: number; to: number }
+): Array<{ from: number; to: number }> {
 	const blockRegex = /(```[\s\S]*?```|`[^`]*`)/g;
-	let insideBlock = false;
-	blockRegex.lastIndex = 0;
-	// biome-ignore lint/suspicious/noAssignInExpressions: Let blockRegex be reused
-	while ((blockMatch = blockRegex.exec(view.state.doc.sliceString(part.from, part.to))) !== null) {
-		const blockFrom = blockMatch.index + part.from;
-		const blockTo = blockRegex.lastIndex + part.from;
-		if (from >= blockFrom && to <= blockTo) {
-			insideBlock = true;
-			break;
-		}
+	const ranges: Array<{ from: number; to: number }> = [];
+	const text = view.state.doc.sliceString(part.from, part.to);
+	let m: RegExpExecArray | null;
+	while ((m = blockRegex.exec(text)) !== null) {
+		ranges.push({ from: m.index + part.from, to: blockRegex.lastIndex + part.from });
 	}
-	return insideBlock;
+	return ranges;
+}
+
+function isInsideBlockRange(ranges: Array<{ from: number; to: number }>, from: number, to: number): boolean {
+	return ranges.some((r) => from >= r.from && to <= r.to);
 }
