@@ -7,10 +7,6 @@
 	display: none;
 }
 
-.is-live-preview .cm-active .cm-hide {
-	display: inline;
-}
-
 .RegexMark {
 	-webkit-user-select: text;
 	user-select: text;

@@ -140,9 +140,7 @@ class CMPlugin implements PluginValue {
 						}
 
 						// Live Preview with hide: hide open/close markers via cm-hide when the
-						// cursor is not inside the matched range. The CSS `.cm-hide { display:none }`
-						// hides them, while `.cm-active .cm-hide { display:inline }` reveals them
-						// on the active line, matching Obsidian's standard hide-syntax behaviour.
+						// cursor is not inside the matched range.
 						if (d.hide && !checkSelectionOverlap(view.state.selection, from, to)) {
 							const matchedText = view.state.sliceDoc(from, to);
 							const { open: openPattern, close: closePattern } = d.patternSubRegex;
