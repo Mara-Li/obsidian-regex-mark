@@ -1,14 +1,14 @@
 import * as fs from "fs";
 import * as path from "path";
-import builtins from "builtin-modules";
+import { builtinModules as builtins } from "node:module";
 import { Command } from "commander";
-import dotenv from "dotenv";
+import { loadEnvFile } from "node:process";
 import esbuild from "esbuild";
 import manifest from "./manifest.json" with { type: "json" };
 import packageJson from "./package.json" with { type: "json" };
 
 // Initial configuration
-dotenv.config({ path: [".env"] });
+if (fs.existsSync(".env")) loadEnvFile();
 
 // Parsing command line arguments
 const program = new Command();
@@ -37,9 +37,7 @@ function resolveOutputDir() {
 	if (options.outputDir) return options.outputDir;
 
 	if (options.vault) {
-		const vaultPath = typeof options.vault === "string"
-			? options.vault
-			: process.env.VAULT;
+		const vaultPath = typeof options.vault === "string" ? options.vault : process.env.VAULT;
 
 		if (!vaultPath) throw new Error("VAULT environment variable not set");
 
@@ -77,7 +75,7 @@ function getPlugins(outDir) {
 				build.onEnd(() => {
 					fs.copyFileSync("src/styles.css", path.join(outDir, "styles.css"));
 				});
-			}
+			},
 		});
 	}
 
@@ -89,7 +87,7 @@ function getPlugins(outDir) {
 				const manifestSource = isBeta ? "manifest-beta.json" : "manifest.json";
 				fs.copyFileSync(manifestSource, path.join(outDir, "manifest.json"));
 			});
-		}
+		},
 	});
 
 	return plugins;
@@ -133,10 +131,10 @@ async function buildPlugin() {
 		minifySyntax: isProd,
 		minifyWhitespace: isProd,
 		outdir: outDir,
-		plugins: getPlugins(outDir)
+		plugins: getPlugins(outDir),
 	});
 
-	console.log(`🚀 ${isProd ? 'Production' : 'Development'} build`);
+	console.log(`🚀 ${isProd ? "Production" : "Development"} build`);
 	console.log(`📤 Output directory: ${outDir}`);
 
 	if (isProd) {
@@ -148,7 +146,7 @@ async function buildPlugin() {
 	}
 }
 
-buildPlugin().catch(err => {
+buildPlugin().catch((err) => {
 	console.error("Build failed:", err);
 	process.exit(1);
 });
