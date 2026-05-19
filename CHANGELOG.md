@@ -1,3 +1,9 @@
+## [1.11.1](https://github.com/Mara-Li/obsidian-regex-mark/compare/1.11.1-4...1.11.1) (2026-05-19)
+### Bug Fixes
+
+* keep regex markers hidden unless cursor is inside match ([45bfd0e](https://github.com/Mara-Li/obsidian-regex-mark/commit/45bfd0ed1ec55abf218c8a67e1df615e19535e23))
+* use Decoration.mark instead of widget to allow markdown inside matches ([0d9cdcd](https://github.com/Mara-Li/obsidian-regex-mark/commit/0d9cdcd83d9401c606b9c83baf5e77c959fea96b))
+
 ## [1.11.0](https://github.com/Mara-Li/obsidian-regex-mark/compare/1.11.0-3...1.11.0) (2025-07-11)
 ### Bug Fixes
 
