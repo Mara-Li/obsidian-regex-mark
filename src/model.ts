@@ -85,6 +85,8 @@ export class MarkRule extends ModelObject<MarkRuleObj, MarkRuleErrorCode> {
 	}
 	set regexRaw(val) {
 		this.#regexRaw = val;
+		this.#cachedRegexString = undefined;
+		this.#cachedPatternSubRegex = undefined;
 		this._invokeOnChange();
 	}
 	/**
@@ -105,6 +107,7 @@ export class MarkRule extends ModelObject<MarkRuleObj, MarkRuleErrorCode> {
 		}
 		if (Array.isArray(val)) val = new Set(val);
 		this.#flags = val;
+		this.#cachedFlagsString = undefined;
 		this._invokeOnChange();
 	}
 	/**
@@ -140,6 +143,11 @@ export class MarkRule extends ModelObject<MarkRuleObj, MarkRuleErrorCode> {
 		this._invokeOnChange();
 	}
 
+	// Cached computed properties — invalidated by their respective setters.
+	#cachedRegexString: string | undefined;
+	#cachedFlagsString: string | undefined;
+	#cachedPatternSubRegex: { open: RegExp | null; close: RegExp | null } | undefined;
+
 	/**
 	 * The Regex from {@link #regexRaw} with applied {@link #flags}
 	 */
@@ -151,25 +159,33 @@ export class MarkRule extends ModelObject<MarkRuleObj, MarkRuleErrorCode> {
 	 * The Subregex of the {@link SettingOptions#pattern}
 	 */
 	get patternSubRegex() {
-		const pattern = this._settings.patternRegex,
-			openMatchString = pattern.open.exec(this.#regexRaw)?.[1],
-			closeMatchString = pattern.close.exec(this.#regexRaw)?.[1];
-
-		return {
-			open: openMatchString ? new RegExp(`^${openMatchString}`) : null,
-			close: closeMatchString ? new RegExp(`${closeMatchString}$`) : null,
-		};
+		if (this.#cachedPatternSubRegex === undefined) {
+			const pattern = this._settings.patternRegex,
+				openMatchString = pattern.open.exec(this.#regexRaw)?.[1],
+				closeMatchString = pattern.close.exec(this.#regexRaw)?.[1];
+			this.#cachedPatternSubRegex = {
+				open: openMatchString ? new RegExp(`^${openMatchString}`) : null,
+				close: closeMatchString ? new RegExp(`${closeMatchString}$`) : null,
+			};
+		}
+		return this.#cachedPatternSubRegex;
 	}
 
 	/**
 	 * {@link regexRaw} with transformed applied {@link SettingOptions#pattern}
 	 */
 	get regexString() {
-		return removeTags(this.#regexRaw, this._settings.pattern);
+		if (this.#cachedRegexString === undefined) {
+			this.#cachedRegexString = removeTags(this.#regexRaw, this._settings.pattern);
+		}
+		return this.#cachedRegexString;
 	}
 
 	get flagsString() {
-		return `${[...this.#flags].join("")}d`;
+		if (this.#cachedFlagsString === undefined) {
+			this.#cachedFlagsString = `${[...this.#flags].join("")}d`;
+		}
+		return this.#cachedFlagsString;
 	}
 
 	//#endregion
