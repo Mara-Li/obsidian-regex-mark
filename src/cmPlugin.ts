@@ -1,4 +1,3 @@
-import { RegExpCursor } from "@codemirror/search";
 import { combineConfig, type EditorSelection, type Extension, Facet } from "@codemirror/state";
 import {
 	Decoration,
@@ -114,16 +113,23 @@ class CMPlugin implements PluginValue {
 			for (const d of data) {
 				if (d.shouldSkip(mode)) continue;
 				try {
-					const cursor = new RegExpCursor(
-						view.state.doc,
-						d.regexString,
-						{ ignoreCase: d.hasFlag("i") },
-						part.from,
-						part.to
-					);
 					const isGlobal = d.hasFlag("g");
-					while (!cursor.next().done) {
-						const { from, to, match } = cursor.value;
+					// Build a regex carrying all user flags.
+					// 'g' is always added so exec() can iterate, and 'd' is always present
+					// (via flagsString) so match.indices are available for named groups.
+					const iterFlagsString = isGlobal ? d.flagsString : `${d.flagsString}g`;
+					const iterRegex = new RegExp(d.regexString, iterFlagsString);
+					const text = view.state.doc.sliceString(part.from, part.to);
+					let match: RegExpExecArray | null;
+					while ((match = iterRegex.exec(text)) !== null) {
+						// Guard against zero-length matches causing an infinite loop.
+						if (match[0].length === 0) {
+							iterRegex.lastIndex++;
+							continue;
+						}
+
+						const from = part.from + match.index;
+						const to = from + match[0].length;
 
 						if (this.compositionRange && from <= this.compositionRange.to && to >= this.compositionRange.from) {
 							continue;
@@ -149,9 +155,9 @@ class CMPlugin implements PluginValue {
 						if (match.indices?.groups) {
 							for (const [name, indices] of Object.entries(match.indices.groups)) {
 								if (indices) {
-									// indices are relative to part.from; convert to absolute document positions.
-									const groupFrom = from + indices[0] - match.index;
-									const groupTo = from + indices[1] - match.index;
+									// indices are relative to the sliced text; convert to absolute document positions.
+									const groupFrom = part.from + indices[0];
+									const groupTo = part.from + indices[1];
 									decorations.push(Decoration.mark({ class: name }).range(groupFrom, groupTo));
 								}
 							}
