@@ -88,12 +88,7 @@ class CMPlugin implements PluginValue {
 		const configChanged = update.startState.facet(Config) !== update.state.facet(Config);
 		const { settings } = update.state.facet(Config);
 		const hasHideRules = settings.mark.some((d) => d.hide);
-		if (
-			update.docChanged ||
-			update.viewportChanged ||
-			configChanged ||
-			(update.selectionSet && hasHideRules)
-		) {
+		if (update.docChanged || update.viewportChanged || configChanged || (update.selectionSet && hasHideRules)) {
 			this.decorations = this.buildDecorations(update.view);
 		}
 	}
@@ -119,7 +114,14 @@ class CMPlugin implements PluginValue {
 			for (const d of data) {
 				if (d.shouldSkip(mode)) continue;
 				try {
-					const cursor = new RegExpCursor(view.state.doc, d.regexString, {}, part.from, part.to);
+					const cursor = new RegExpCursor(
+						view.state.doc,
+						d.regexString,
+						{ ignoreCase: d.hasFlag("i") },
+						part.from,
+						part.to
+					);
+					const isGlobal = d.hasFlag("g");
 					while (!cursor.next().done) {
 						const { from, to, match } = cursor.value;
 
@@ -138,7 +140,10 @@ class CMPlugin implements PluginValue {
 						decorations.push(markup.range(from, to));
 
 						// Source mode: only the main class is needed.
-						if (mode === "Source") continue;
+						if (mode === "Source") {
+							if (!isGlobal) break;
+							continue;
+						}
 
 						// Live Preview: also apply named group classes.
 						if (match.indices?.groups) {
@@ -172,6 +177,8 @@ class CMPlugin implements PluginValue {
 								}
 							}
 						}
+
+						if (!isGlobal) break;
 					}
 				} catch (e) {
 					console.error(e);
@@ -203,10 +210,7 @@ function checkSelectionOverlap(selection: EditorSelection | undefined, from: num
 	return false;
 }
 
-function computeBlockRanges(
-	view: EditorView,
-	part: { from: number; to: number }
-): Array<{ from: number; to: number }> {
+function computeBlockRanges(view: EditorView, part: { from: number; to: number }): Array<{ from: number; to: number }> {
 	const blockRegex = /(```[\s\S]*?```|`[^`]*`)/g;
 	const ranges: Array<{ from: number; to: number }> = [];
 	const text = view.state.doc.sliceString(part.from, part.to);
