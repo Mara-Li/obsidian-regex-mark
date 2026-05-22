@@ -1,3 +1,8 @@
+## [1.11.2-0](https://github.com/Mara-Li/obsidian-regex-mark/compare/1.11.1...1.11.2-0) (2026-05-22)
+### Bug Fixes
+
+* all regex flags now respected in live preview and source mode ([#44](https://github.com/Mara-Li/obsidian-regex-mark/issues/44)) ([4278092](https://github.com/Mara-Li/obsidian-regex-mark/commit/42780921bf561f6b4ce32c6786e462a474512f79)), closes [#43](https://github.com/Mara-Li/obsidian-regex-mark/issues/43)
+
 ## [1.11.1-4](https://github.com/Mara-Li/obsidian-regex-mark/compare/1.11.1-3...1.11.1-4) (2025-09-03)
 
 ## [1.11.1-3](https://github.com/Mara-Li/obsidian-regex-mark/compare/1.11.1-2...1.11.1-3) (2025-07-25)
