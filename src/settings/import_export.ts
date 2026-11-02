@@ -1,4 +1,4 @@
-import { Notice, Setting, SettingPage, TextAreaComponent } from "obsidian";
+import { Notice, Setting, SettingPage, type TextAreaComponent } from "obsidian";
 import type { MarkRuleObj, SettingOptionsObj, SettingOptionsObj0 } from "../interface";
 import type { SettingOptions } from "../model";
 
