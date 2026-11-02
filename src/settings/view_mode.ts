@@ -101,7 +101,7 @@ export function viewModeDefinitions(ctx: ViewModeContext, rule: MarkRule): Setti
 				},
 			},
 			items: autoRules.map(
-				(auto, index): SettingGroupItem =>
+				(auto, index) =>
 					({
 						type: "page",
 						// Stable even when the name changes, see `RemarkRegexSettingTab#rulesDefinition`
@@ -129,7 +129,7 @@ export function viewModeDefinitions(ctx: ViewModeContext, rule: MarkRule): Setti
 									type: "dropdown",
 									key: ctx.bind(
 										() => auto.type,
-										(value) => mutate(() => (auto.type = value as AutoRules["type"]))
+										(value) => mutate(() => (auto.type = value))
 									),
 									options: { path: "Path", frontmatter: "Properties" },
 								},
@@ -162,7 +162,7 @@ export function viewModeDefinitions(ctx: ViewModeContext, rule: MarkRule): Setti
 											setting.addButton((button) =>
 												button
 													.setButtonText("Delete")
-													.setWarning()
+													.setDestructive()
 													.onClick(() => {
 														mutate((vm) => vm.autoRules?.splice(vm.autoRules.indexOf(auto), 1));
 														ctx.refresh();

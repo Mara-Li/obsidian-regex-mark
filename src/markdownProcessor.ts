@@ -19,7 +19,7 @@ export function MarkdownProcessor(data: MarkRule[], element: HTMLElement, app: A
 		const treeWalker = document.createTreeWalker(p, NodeFilter.SHOW_TEXT);
 		const textNodes: Node[] = [];
 		while (treeWalker.nextNode()) {
-			const parentSpan = (treeWalker.currentNode as Node).parentElement;
+			const parentSpan = treeWalker.currentNode.parentElement;
 			if (
 				parentSpan?.hasAttribute("data-processed") ||
 				parentSpan?.hasAttribute("data-group") ||

@@ -2,16 +2,15 @@ import type { Extension } from "@codemirror/state";
 import { Plugin } from "obsidian";
 
 import { cmExtension } from "./cmPlugin";
-import { SettingOptions } from "./model";
 import { MarkdownProcessor } from "./markdownProcessor";
+import { SettingOptions } from "./model";
 import { RemarkRegexSettingTab } from "./settings";
 
 export default class RegexMark extends Plugin {
-	settings: SettingOptions;
+	declare settings: SettingOptions;
 	extensions: Extension[] = [];
 
 	async onload() {
-		console.log("loading plugin RegexMark");
 		await this.loadSettings();
 		this.addSettingTab(new RemarkRegexSettingTab(this.app, this));
 		this.registerMarkdownPostProcessor((element: HTMLElement) => {
@@ -21,12 +20,8 @@ export default class RegexMark extends Plugin {
 		this.registerEditorExtension(this.extensions);
 	}
 
-	onunload() {
-		console.log("unloading plugin RegexMark");
-	}
-
 	async loadSettings() {
-		const settingsData = await this.loadData();
+		const settingsData = (await this.loadData()) as Parameters<typeof SettingOptions.from>[0];
 		this.settings = SettingOptions.from(settingsData, this);
 		this.settings.addOnChange(() => this.applyChanges());
 	}

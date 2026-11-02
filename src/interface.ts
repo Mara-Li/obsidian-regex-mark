@@ -1,5 +1,3 @@
-import { MarkRule } from "./model";
-
 export interface MarkRuleObj {
 	/**
 	 * Regex to match the text

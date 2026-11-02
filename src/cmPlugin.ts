@@ -1,4 +1,4 @@
-import { combineConfig, type EditorSelection, type Extension, Facet } from "@codemirror/state";
+import { combineConfig, type EditorSelection, Facet } from "@codemirror/state";
 import {
 	Decoration,
 	type DecorationSet,
@@ -42,9 +42,9 @@ class CMPlugin implements PluginValue {
 	private compositionRange: { from: number; to: number } | null = null;
 	view: EditorView;
 
-	onCompositionstart: (a: HTMLElementEventMap[keyof HTMLElementEventMap]) => any;
-	onCompositionupdate: (a: HTMLElementEventMap[keyof HTMLElementEventMap]) => any;
-	onCompositionend: (a: HTMLElementEventMap[keyof HTMLElementEventMap]) => any;
+	onCompositionstart: (a: HTMLElementEventMap[keyof HTMLElementEventMap]) => void;
+	onCompositionupdate: (a: HTMLElementEventMap[keyof HTMLElementEventMap]) => void;
+	onCompositionend: (a: HTMLElementEventMap[keyof HTMLElementEventMap]) => void;
 
 	constructor(view: EditorView) {
 		this.plugin = view.state.facet(Config).plugin;
@@ -188,7 +188,7 @@ class CMPlugin implements PluginValue {
 					}
 				} catch (e) {
 					console.error(e);
-					new Notice(sanitizeHTMLToDom(`<span class="error RegexMark"><code>${d.regex}</code>: <b>${e}</b></span>`));
+					new Notice(sanitizeHTMLToDom(`<span class="error RegexMark"><code>${d.regex}</code>: <b>${e instanceof Error ? e.message : String(e)}</b></span>`));
 				}
 			}
 		}

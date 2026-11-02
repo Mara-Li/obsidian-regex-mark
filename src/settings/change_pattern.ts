@@ -49,7 +49,7 @@ export class PatternPage extends SettingPage {
 			- <u>Close</u>: \`${this.exampleRegex(current.close)}\`.
 		`);
 		const docEl = containerEl.createDiv();
-		MarkdownRenderer.render(this.app, desc, docEl, "", this.component);
+		void MarkdownRenderer.render(this.app, desc, docEl, "", this.component);
 
 		const inputs = new Map<"open" | "close", HTMLInputElement>();
 		const addPatternSetting = (which: "open" | "close", name: string, desc: string) => {

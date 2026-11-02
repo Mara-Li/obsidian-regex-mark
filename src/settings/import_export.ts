@@ -34,7 +34,7 @@ export class ImportPage extends SettingPage {
 			} catch (e) {
 				console.error(e);
 				const error = e as Error;
-				showError(`Error during importation: ${error.message} Individual Errors: ${error.cause}`);
+				showError(`Error during importation: ${error.message} Individual Errors: ${String(error.cause)}`);
 				return;
 			}
 			new Notice("Regexes imported");
@@ -49,7 +49,10 @@ export class ImportPage extends SettingPage {
 			const file = fileInput.files?.[0];
 			if (!file) return;
 			const reader = new FileReader();
-			reader.onload = (e) => importAndNotify(e.target?.result?.toString().trim() ?? "");
+			reader.onload = (e) => {
+				const result = e.target?.result;
+				importAndNotify(typeof result === "string" ? result.trim() : "");
+			};
 			reader.readAsText(file);
 		});
 
@@ -105,9 +108,8 @@ export class ExportPage extends SettingPage {
 			button.setButtonText("Download").onClick(() => {
 				const blob = new Blob([output], { type: "application/json" });
 				const url = URL.createObjectURL(blob);
-				const a = document.createElement("a");
-				a.href = url;
-				a.download = "regexmark.json";
+				// biome-ignore lint/correctness/noUndeclaredVariables: createEl is a global added by Obsidian
+				const a = createEl("a", { attr: { href: url, download: "regexmark.json" } });
 				a.click();
 				URL.revokeObjectURL(url);
 			})

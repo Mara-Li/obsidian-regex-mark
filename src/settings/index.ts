@@ -21,7 +21,7 @@ import { viewModeDefinitions } from "./view_mode";
 
 type Binding = {
 	get: () => unknown;
-	set: (value: any) => void;
+	set: (value: unknown) => void;
 };
 
 export class RemarkRegexSettingTab extends PluginSettingTab {
@@ -49,7 +49,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 	 */
 	bind<T>(get: () => T, set: (value: T) => void): string {
 		const key = `binding-${this.bindings.size}`;
-		this.bindings.set(key, { get, set });
+		this.bindings.set(key, { get, set: (value) => set(value as T) });
 		return key;
 	}
 
@@ -181,7 +181,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 				const component = new Component();
 				component.load();
 
-				MarkdownRenderer.render(
+				void MarkdownRenderer.render(
 					this.app,
 					dedent(`Regex Mark allows to add custom CSS class to text that matches a regex.
 
@@ -382,7 +382,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 							setting.addButton((button) =>
 								button
 									.setButtonText("Delete")
-									.setWarning()
+									.setDestructive()
 									.onClick(() => {
 										this.settings.removeMark(rule);
 										this.update();

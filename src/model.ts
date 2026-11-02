@@ -1,4 +1,3 @@
-import * as console from "console";
 import type { App, MarkdownViewModeType } from "obsidian";
 import {
 	type AutoRules,
@@ -41,7 +40,7 @@ export enum PatternErrorCode {
 }
 
 abstract class ModelObject<SerializedObj, ErrorCode> {
-	private readonly _onChange: Set<() => any> = new Set();
+	private readonly _onChange: Set<() => unknown> = new Set();
 
 	public isValide() {
 		return this.getErrors().next().done;
@@ -58,11 +57,11 @@ abstract class ModelObject<SerializedObj, ErrorCode> {
 	 * Will be invoked when the object changes
 	 * @param func
 	 */
-	public addOnChange(func: () => any): this {
+	public addOnChange(func: () => unknown): this {
 		this._onChange.add(func);
 		return this;
 	}
-	public removeOnChange(func: () => any): this {
+	public removeOnChange(func: () => unknown): this {
 		this._onChange.delete(func);
 		return this;
 	}
@@ -103,7 +102,7 @@ export class MarkRule extends ModelObject<MarkRuleObj, MarkRuleErrorCode> {
 			val = val
 				.toLowerCase()
 				.split("")
-				.filter((f: RegexFlags) => LEGAL_REGEX_FLAGS.includes(f)) as RegexFlags[];
+				.filter((f): f is RegexFlags => LEGAL_REGEX_FLAGS.includes(f as RegexFlags));
 		}
 		if (Array.isArray(val)) val = new Set(val);
 		this.#flags = val;
@@ -247,7 +246,7 @@ export class MarkRule extends ModelObject<MarkRuleObj, MarkRuleErrorCode> {
 		}
 		if (!this.class?.trim()) yield MarkRuleErrorCode.ClassMissing;
 	}
-	shouldSkip(activeMode?: MarkdownViewModeType | "Live" | "Source" | undefined): boolean {
+	shouldSkip(activeMode?: MarkdownViewModeType | "Live" | "Source"): boolean {
 		return (
 			!this.isValide() ||
 			!validateAutoRules(this._settings.plugin.app, this._settings.propertyName, this.viewMode?.autoRules) ||
@@ -296,7 +295,7 @@ export class MarkRule extends ModelObject<MarkRuleObj, MarkRuleErrorCode> {
 		function isNotExist(value: unknown, frontmatter?: Record<string, unknown> | null) {
 			return !frontmatter || value == null || (Array.isArray(value) && value.length === 0);
 		}
-		function checkValue(value: any, regex: RegExp, rule: AutoRules): boolean | "none" {
+		function checkValue(value: unknown, regex: RegExp, rule: AutoRules): boolean | "none" {
 			if ((typeof value === "string" || typeof value === "number") && regex.test(value.toString()))
 				return !rule.exclude;
 			else if (Array.isArray(value) && value.length > 0) return value.some((v) => checkValue(v, regex, rule));
@@ -622,10 +621,7 @@ export class SettingOptions extends ModelObject<SettingOptionsObj, MarkRuleError
 		return duplicateIndex.flatMap((d) => (d.index.length > 1 ? d.index : []));
 	}
 	*getErrors(): Generator<MarkRuleErrorCode | PatternErrorCode> {
-		for (const serializableObj of [this.#pattern, ...this.mark] as ModelObject<
-			any,
-			MarkRuleErrorCode | PatternErrorCode
-		>[]) {
+		for (const serializableObj of [this.#pattern, ...this.mark]) {
 			yield* serializableObj.getErrors();
 		}
 	}

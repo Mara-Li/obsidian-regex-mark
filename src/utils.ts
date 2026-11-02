@@ -73,7 +73,7 @@ export function applyRuleClasses(
 	match: RegExpExecArray,
 	hideReplacementFunction: (hideText: string) => string = () => ""
 ): DocumentFragment {
-	const mainSpan = document.createElement("span");
+	const mainSpan = createSpan();
 	mainSpan.setAttribute("data-group", "false");
 	mainSpan.setAttribute("class", substituteString(d.class, match));
 	mainSpan.setAttribute("data-contents", match[0]);
@@ -138,7 +138,7 @@ export function applyRuleClasses(
 			processedText = processedText.replace(d.patternSubRegex.open, hideReplacementFunction);
 		}
 	}
-	mainSpan.innerHTML = processedText.trimStart();
+	mainSpan.append(sanitizeHTMLToDom(processedText.trimStart()));
 
 	const parent = new DocumentFragment();
 	parent.append(preNode, mainSpan, afterNode);
