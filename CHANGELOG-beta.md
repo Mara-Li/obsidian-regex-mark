@@ -1,3 +1,13 @@
+## [1.12.0-0](https://github.com/Mara-Li/obsidian-regex-mark/compare/1.11.2-0...1.12.0-0) (2026-11-02)
+### Features
+
+* refactor settings management and improve UI for regex patterns ([52973fa](https://github.com/Mara-Li/obsidian-regex-mark/commit/52973fa27ab8966570a01c38706863b99c594d07))
+
+### Bug Fixes
+
+* css issues ([e35287e](https://github.com/Mara-Li/obsidian-regex-mark/commit/e35287edc8162735df084188c5659e5a18b1f355))
+* improve error handling and type safety in various modules ([2ce6f81](https://github.com/Mara-Li/obsidian-regex-mark/commit/2ce6f81aa4ffffe9f93419ef12e287d9d790c03d))
+
 ## [1.11.2-0](https://github.com/Mara-Li/obsidian-regex-mark/compare/1.11.1...1.11.2-0) (2026-05-22)
 ### Bug Fixes
 
