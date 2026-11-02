@@ -1,3 +1,8 @@
+## [1.12.0-1](https://github.com/Mara-Li/obsidian-regex-mark/compare/1.12.0-0...1.12.0-1) (2026-11-02)
+### Bug Fixes
+
+* update module resolution strategy in TypeScript configuration ([f4594c0](https://github.com/Mara-Li/obsidian-regex-mark/commit/f4594c03c012475a8334d1693669a47a0f40832a))
+
 ## [1.12.0-0](https://github.com/Mara-Li/obsidian-regex-mark/compare/1.11.2-0...1.12.0-0) (2026-11-02)
 ### Features
 
