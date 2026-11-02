@@ -28,6 +28,31 @@
 	width: 100%;
 }
 
+/* Mobile: the regex takes a full row, the remaining controls wrap on the next one */
+.is-mobile .regex-setting {
+	flex-wrap: wrap;
+}
+
+.is-mobile .regex-setting .setting-item-control {
+	flex: 1 1 100%;
+	width: 100%;
+	flex-wrap: wrap;
+	justify-content: flex-start;
+	row-gap: var(--size-4-2);
+}
+
+.is-mobile .regex-setting input.regex-input {
+	order: -1;
+	flex: 1 1 100%;
+	width: 100%;
+}
+
+.is-mobile .regex-setting input.css-input {
+	flex: 1 1 10ch;
+	width: auto;
+	min-width: 10ch;
+}
+
 .regex-setting input.is-invalid {
 	border-color: var(--text-error);
 }
