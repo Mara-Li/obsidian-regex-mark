@@ -116,6 +116,7 @@ export class MarkRule extends ModelObject<MarkRuleObj, MarkRuleErrorCode> {
 	#class: string;
 	set class(val) {
 		this.#class = val;
+		this._invokeOnChange();
 	}
 	get class() {
 		return this.#class;
@@ -126,6 +127,7 @@ export class MarkRule extends ModelObject<MarkRuleObj, MarkRuleErrorCode> {
 	#hide?: boolean;
 	set hide(val) {
 		this.#hide = val;
+		this._invokeOnChange();
 	}
 	get hide() {
 		return this.#hide;
@@ -355,11 +357,20 @@ export class Pattern extends ModelObject<PatternObj, PatternErrorCode> {
 	*getErrorsSingle(which: "open" | "close") {
 		const pattern = this[which];
 		//verify if the _patternRegex is valid
-		if (pattern.trim().length === 0) return PatternErrorCode.Empty;
-		if (!valideRegexSyntax(pattern)) return PatternErrorCode.Invalid;
+		if (pattern.trim().length === 0) {
+			yield PatternErrorCode.Empty;
+			return;
+		}
+		if (!valideRegexSyntax(pattern)) {
+			yield PatternErrorCode.Invalid;
+			return;
+		}
 		if (which === "open" && !pattern.includes("open:")) yield PatternErrorCode.NotOpen;
 		if (which === "close" && !pattern.includes("close:")) yield PatternErrorCode.NotClose;
-		if (pattern === `${which}:(.*?)`) return PatternErrorCode.NeedChar;
+		if (pattern === `${which}:(.*?)`) {
+			yield PatternErrorCode.NeedChar;
+			return;
+		}
 		if (!pattern.match(/\(\.\*\??\)/)) yield PatternErrorCode.WithoutGroup;
 	}
 	serialize(): PatternObj {
@@ -527,10 +538,13 @@ export class SettingOptions extends ModelObject<SettingOptionsObj, MarkRuleError
 		mark.removeOnChange(this._invokeOnChange);
 		this._invokeOnChange();
 	}
-	moveMarkIndex(mark: MarkRule, up: number) {
-		const index = this.plugin.settings.#mark.indexOf(mark);
-		if (index >= this.plugin.settings.#mark.length - 1 || index <= 0) return;
-		this.plugin.settings.mark.splice(index + up, 0, this.plugin.settings.mark.splice(index, 1)[0]);
+	/**
+	 * Move the mark at `from` to the position `to`
+	 */
+	reorderMark(from: number, to: number) {
+		if (from === to || from < 0 || to < 0 || from >= this.#mark.length || to >= this.#mark.length) return;
+		const [mark] = this.#mark.splice(from, 1);
+		this.#mark.splice(to, 0, mark);
 		this._invokeOnChange();
 	}
 

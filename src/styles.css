@@ -16,51 +16,6 @@
 	color: #fafafa;
 }
 
-.regex-setting .setting-item-info {
-	display: none;
-}
-
-.regex-setting input.min-width {
-	min-width: 7ch;
-}
-
-.regex-setting input.extra-width {
-	width: 100%;
-}
-
-/* Mobile: the regex takes a full row, the remaining controls wrap on the next one */
-.is-mobile .regex-setting {
-	flex-wrap: wrap;
-}
-
-.is-mobile .regex-setting .setting-item-control {
-	flex: 1 1 100%;
-	width: 100%;
-	flex-wrap: wrap;
-	justify-content: flex-start;
-	row-gap: var(--size-4-2);
-}
-
-.is-mobile .regex-setting input.regex-input {
-	order: -1;
-	flex: 1 1 100%;
-	width: 100%;
-}
-
-.is-mobile .regex-setting input.css-input {
-	flex: 1 1 10ch;
-	width: auto;
-	min-width: 10ch;
-}
-
-.regex-setting input.is-invalid {
-	border-color: var(--text-error);
-}
-
-.regex-setting .is-disabled-manually {
-	opacity: 0.5;
-}
-
 .regex-mark-callout {
 	border-left: 2px solid var(--color-blue);
 	padding-left: 1em;
@@ -75,26 +30,13 @@
 	background-color: rgba(var(--color-red-rgb), 0.6);
 }
 
-.RegexMark input,
-.regex-setting input {
+.RegexMark input {
 	font-family: var(--font-monospace);
 	font-variant-ligatures: none;
 }
 
-.setting-item.import-export {
-	padding-bottom: 10px;
-}
-
-.RegexMark .export-import > .setting-item-info {
-	display: flex;
-	flex-direction: row;
-	gap: 4px;
-	overflow: hidden;
-	padding: 0;
-}
-
-.RegexMark .setting-item.export-import > .setting-item-control {
-	padding-bottom: 10px;
+.RegexMark input.error {
+	border-color: var(--text-error);
 }
 
 .RegexMark .import-error {
@@ -102,53 +44,17 @@
 	color: var(--text-error);
 }
 
-.RegexMark input.error {
-	border-color: var(--text-error);
-}
-
 .RegexMark .import-error.active {
 	display: block;
 }
 
-.RegexMark .import-input {
-	width: 0.1px;
-	height: 0.1px;
-	opacity: 0;
-	overflow: hidden;
-	position: absolute;
-	z-index: -1;
+.RegexMark .setting-item.regex-textarea {
+	flex-direction: column;
+	align-items: stretch;
+	gap: var(--size-4-2);
 }
 
-.RegexMark .copy,
-.RegexMark .download,
-.RegexMark .import-label {
-	color: var(--text-normal);
-	font-size: var(--font-ui-small);
-	border-radius: var(--button-radius);
-	border: 0;
-	padding: var(--size-4-1) var(--size-4-3);
-	font-weight: var(--input-font-weight);
-	font-family: inherit;
-	cursor: pointer;
-	background-color: var(--interactive-normal);
-	box-shadow: var(--input-shadow);
-	text-align: center;
-	white-space: nowrap;
-	text-decoration: none;
-	transition:
-		background-color 0.1s ease,
-		box-shadow 0.1s ease;
-}
-
-.RegexMark .copy:hover,
-.RegexMark .download:hover,
-.RegexMark .import-label:hover {
-	background-color: var(--interactive-hover);
-	box-shadow: var(--input-shadow-hover);
-}
-
-.RegexMark .import-save {
-	text-align: center;
+.RegexMark .setting-item.regex-textarea .setting-item-control {
 	width: 100%;
 }
 
@@ -160,54 +66,13 @@
 	font-size: 14px;
 }
 
-.RegexMark .copy.success::before {
-	opacity: 1;
+.RegexMark .setting-item.regex-documentation {
+	display: block;
 }
 
-.RegexMark .copy::before {
-	color: var(--color-green);
-	content: "✓";
-	position: absolute;
-	left: -18px;
-	font-weight: bold;
-	opacity: 0;
-	transition: 150ms opacity ease-in-out;
-}
-
-.RegexMark .copy,
-.RegexMark .download {
-	position: relative;
-	display: inline-block;
-	margin-left: 10px;
-}
-
-.is-mobile .RegexMark .copy,
-.RegexMark .copy,
-.RegexMark .download {
-	padding: 9px !important;
-}
-
-.RegexMark .min-width {
-	min-width: 7ch;
-}
-
-.remark-regex-options .p-4 {
-	padding-left: 1rem;
-	border-left: 1px solid var(--background-modifier-border);
-}
-
-.remark-regex-options hr {
-	border: 0;
-	border-top: 1px solid var(--background-modifier-border);
-	margin: 1rem 0;
-}
-
-.remark-regex-options .setting-item.no-info .setting-item-info {
+.RegexMark .regex-documentation > .setting-item-info,
+.RegexMark .regex-documentation > .setting-item-control {
 	display: none;
-}
-
-.remark-regex-options .setting-item.full-width input {
-	width: 100%;
 }
 
 .RegexMark .callout.callout {

@@ -144,3 +144,12 @@ export function applyRuleClasses(
 	parent.append(preNode, mainSpan, afterNode);
 	return parent;
 }
+
+/**
+ * Make each name unique by suffixing the duplicates with their position
+ */
+export function uniqueNames(names: string[]): string[] {
+	return names.map((name, index) =>
+		names.indexOf(name) === names.lastIndexOf(name) ? name : `${name} (${index + 1})`
+	);
+}
