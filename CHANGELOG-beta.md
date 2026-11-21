@@ -1,3 +1,8 @@
+## [1.12.0-2](https://github.com/Mara-Li/obsidian-regex-mark/compare/1.12.0-1...1.12.0-2) (2026-11-21)
+### Features
+
+* enhance auto rule management with stable IDs and delete button ([42d408b](https://github.com/Mara-Li/obsidian-regex-mark/commit/42d408b36a937936271f6bedc1071395857584eb))
+
 ## [1.12.0-1](https://github.com/Mara-Li/obsidian-regex-mark/compare/1.12.0-0...1.12.0-1) (2026-11-02)
 ### Bug Fixes
 
