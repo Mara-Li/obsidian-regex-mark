@@ -1,2 +1,5 @@
 allowBuilds:
   esbuild: true
+minimumReleaseAgeExclude:
+  - '@obsidian-typings/obsidian-public-1.15.1@1.4.0'
+  - '@obsidian-typings/obsidian-public-latest@6.63.0'

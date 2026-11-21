@@ -533,6 +533,8 @@ export class SettingOptions extends ModelObject<SettingOptionsObj, MarkRuleError
 	}
 	removeMark(mark: MarkRule) {
 		const index = this.#mark.indexOf(mark);
+		// splice(-1, 1) would remove the last rule
+		if (index < 0) return;
 		this.#mark.splice(index, 1);
 		mark.removeOnChange(this._invokeOnChange);
 		this._invokeOnChange();

@@ -10,11 +10,13 @@ import {
 	sanitizeHTMLToDom,
 } from "obsidian";
 import { dedent } from "ts-dedent";
-import { DEFAULT_PATTERN, LEGAL_REGEX_FLAGS, type PatternObj, type RegexFlags } from "../interface";
+import { type AutoRules, DEFAULT_PATTERN, LEGAL_REGEX_FLAGS, type PatternObj, type RegexFlags } from "../interface";
 import type RegexMark from "../main";
 import { type MarkRule, MarkRuleErrorCode, Pattern, type SettingOptions } from "../model";
 import { uniqueNames } from "../utils";
 import { PatternPage } from "./change_pattern";
+import { deleteButton } from "./delete_button";
+import { IdRegistry } from "./ids";
 import { ExportPage, ImportPage } from "./import_export";
 import { managePage } from "./manage_page";
 import { viewModeDefinitions } from "./view_mode";
@@ -30,8 +32,11 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 	 * Getters/setters used by the `control` definitions. Rebuilt with the definitions.
 	 */
 	private bindings: Map<string, Binding> = new Map();
-	private ruleIds: WeakMap<MarkRule, string> = new WeakMap();
-	private nextRuleId = 0;
+	/**
+	 * Ids of the pages: they follow the object, so they survive a rename or a reorder
+	 */
+	private ruleIds = new IdRegistry<MarkRule>("rule");
+	private autoRuleIds = new IdRegistry<AutoRules>("auto-rule");
 
 	constructor(app: App, plugin: RegexMark) {
 		super(app, plugin);
@@ -55,14 +60,21 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 
 	/**
 	 * Go back to the parent page, as the back button does.
-	 * The public API has no method for that, so it uses the one of the settings modal if it exists.
-	 * @returns `false` when it is not possible
+	 * @returns `false` when it is not possible (nothing is open)
 	 */
 	goBack(): boolean {
-		const modal = (this.app as unknown as { setting?: { closePage?: () => void } }).setting;
-		if (typeof modal?.closePage !== "function") return false;
+		const modal = this.app.setting;
+		if (!modal?.pageStack?.length) return false;
 		modal.closePage();
 		return true;
+	}
+
+	/**
+	 * Open a page of this tab, from its path of ids (the ids of the pages from the root of the tab).
+	 * Does nothing when the settings are closed.
+	 */
+	openPage(...path: string[]): void {
+		this.app.setting?.navigateToPage(this, path);
 	}
 
 	getControlValue(key: string): unknown {
@@ -224,24 +236,25 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 			addItem: {
 				name: "Add regex",
 				action: () => {
-					this.settings.addNewMark();
+					const rule = this.settings.addNewMark();
 					this.update();
+					// Go directly to the new regex: it has nothing to show until it is filled
+					this.openPage(this.ruleId(rule));
 				},
 			},
 			items: this.settings.mark.map(
-				(rule): SettingGroupItem =>
-					({
-						type: "page",
-						// The pages are found again with their id: it needs to stay the same when the name changes
-						id: this.ruleId(rule),
-						// A getter, so the name follows the class without rebuilding the definitions
-						get name() {
-							return ruleName(rule);
-						},
-						displayValue: () => rule.regexRaw,
-						status: () => (rule.isValide() ? null : "warning"),
-						items: this.ruleDefinitions(rule),
-					}) as SettingGroupItem
+				(rule): SettingGroupItem => ({
+					type: "page",
+					// The pages are found again with their id: it needs to stay the same when the name changes
+					id: this.ruleId(rule),
+					// A getter, so the name follows the class without rebuilding the definitions
+					get name() {
+						return ruleName(rule);
+					},
+					displayValue: () => rule.regexRaw,
+					status: () => (rule.isValide() ? null : "warning"),
+					items: this.ruleDefinitions(rule),
+				})
 			),
 		};
 
@@ -252,7 +265,6 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 				managePage({
 					id: "manage-rules",
 					name: "Reorder regexes",
-					desc: "The order is the order of application.",
 					emptyState: "No regex.",
 					visible: () => this.settings.mark.length > 1,
 					rows: this.settings.mark.map((rule) => ({
@@ -276,12 +288,7 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 	}
 
 	private ruleId(rule: MarkRule): string {
-		let id = this.ruleIds.get(rule);
-		if (!id) {
-			id = `rule-${this.nextRuleId++}`;
-			this.ruleIds.set(rule, id);
-		}
-		return id;
+		return this.ruleIds.get(rule);
 	}
 
 	/**
@@ -368,31 +375,16 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 					bind: (get, set) => this.bind(get, set),
 					refresh: () => this.update(),
 					goBack: () => this.goBack(),
+					autoRuleId: (auto) => this.autoRuleIds.get(auto),
 					propertyName: () => this.settings.propertyName,
 				},
 				rule
 			),
-			{
-				type: "group",
-				items: [
-					{
-						name: "Delete this regex",
-						desc: "Remove the regex and its settings.",
-						render: (setting) => {
-							setting.addButton((button) =>
-								button
-									.setButtonText("Delete")
-									.setDestructive()
-									.onClick(() => {
-										this.settings.removeMark(rule);
-										this.update();
-										new Notice(this.goBack() ? "Regex deleted." : "Regex deleted, you can go back.");
-									})
-							);
-						},
-					},
-				],
-			},
+			deleteButton("Remove this regex and its settings", () => {
+				this.settings.removeMark(rule);
+				this.update();
+				new Notice(this.goBack() ? "Regex deleted." : "Regex deleted, you can go back.");
+			}),
 		];
 	}
 

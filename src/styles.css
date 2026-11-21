@@ -79,3 +79,16 @@
 	margin-left: 0 !important;
 	margin-right: 0 !important;
 }
+
+/* A row with only a full-width button (no label) */
+.setting-item.regex-delete > .setting-item-info {
+	display: none;
+}
+
+.setting-item.regex-delete > .setting-item-control {
+	flex: 1;
+}
+
+.setting-item.regex-delete button {
+	width: 100%;
+}

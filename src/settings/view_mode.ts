@@ -3,6 +3,7 @@ import { Notice, type SettingDefinitionItem, type SettingGroupItem, sanitizeHTML
 import { type AutoRules, DEFAULT_VIEW_MODE, type ViewMode } from "../interface";
 import type { MarkRule } from "../model";
 import { uniqueNames } from "../utils";
+import { deleteButton } from "./delete_button";
 import { managePage } from "./manage_page";
 
 export interface ViewModeContext {
@@ -19,6 +20,10 @@ export interface ViewModeContext {
 	 * @returns `false` when it is not possible
 	 */
 	goBack(): boolean;
+	/**
+	 * Stable id of the page of an auto rule, it follows the rule when the list is reordered
+	 */
+	autoRuleId(auto: AutoRules): string;
 	propertyName(): string;
 }
 
@@ -101,80 +106,64 @@ export function viewModeDefinitions(ctx: ViewModeContext, rule: MarkRule): Setti
 				},
 			},
 			items: autoRules.map(
-				(auto, index) =>
-					({
-						type: "page",
-						// Stable even when the name changes, see `RemarkRegexSettingTab#rulesDefinition`
-						id: `auto-rule-${index}`,
-						// A getter, so the name follows the value without rebuilding the definitions
-						get name() {
-							const list = view().autoRules ?? [];
-							return uniqueNames(list.map(describeAutoRule))[list.indexOf(auto)] ?? describeAutoRule(auto);
+				(auto): SettingGroupItem => ({
+					type: "page",
+					// Stable when the name changes or when the rules are reordered
+					id: ctx.autoRuleId(auto),
+					// A getter, so the name follows the value without rebuilding the definitions
+					get name() {
+						const list = view().autoRules ?? [];
+						return uniqueNames(list.map(describeAutoRule))[list.indexOf(auto)] ?? describeAutoRule(auto);
+					},
+					items: [
+						{
+							name: "Condition",
+							control: {
+								type: "dropdown",
+								key: ctx.bind(
+									() => (auto.exclude ? "not" : "equal"),
+									(value) => mutate(() => (auto.exclude = value === "not"))
+								),
+								options: { equal: "Equal", not: "Not" },
+							},
 						},
-						items: [
-							{
-								name: "Condition",
-								control: {
-									type: "dropdown",
-									key: ctx.bind(
-										() => (auto.exclude ? "not" : "equal"),
-										(value) => mutate(() => (auto.exclude = value === "not"))
-									),
-									options: { equal: "Equal", not: "Not" },
+						{
+							name: "Type",
+							control: {
+								type: "dropdown",
+								key: ctx.bind(
+									() => auto.type,
+									(value) => mutate(() => (auto.type = value))
+								),
+								options: { path: "Path", frontmatter: "Properties" },
+							},
+						},
+						{
+							name: "Value",
+							desc: "A regex or a string.",
+							control: {
+								type: "text",
+								key: ctx.bind(
+									() => auto.value,
+									(value) => mutate(() => (auto.value = value))
+								),
+								placeholder: "Enter a regex or a string",
+								validate: (value) => {
+									try {
+										new RegExp(value);
+									} catch {
+										return "Invalid regular expression";
+									}
 								},
 							},
-							{
-								name: "Type",
-								control: {
-									type: "dropdown",
-									key: ctx.bind(
-										() => auto.type,
-										(value) => mutate(() => (auto.type = value))
-									),
-									options: { path: "Path", frontmatter: "Properties" },
-								},
-							},
-							{
-								name: "Value",
-								desc: "A regex or a string.",
-								control: {
-									type: "text",
-									key: ctx.bind(
-										() => auto.value,
-										(value) => mutate(() => (auto.value = value))
-									),
-									placeholder: "Enter a regex or a string",
-									validate: (value) => {
-										try {
-											new RegExp(value);
-										} catch {
-											return "Invalid regular expression";
-										}
-									},
-								},
-							},
-							{
-								type: "group",
-								items: [
-									{
-										name: "Delete this auto rule",
-										render: (setting) => {
-											setting.addButton((button) =>
-												button
-													.setButtonText("Delete")
-													.setDestructive()
-													.onClick(() => {
-														mutate((vm) => vm.autoRules?.splice(vm.autoRules.indexOf(auto), 1));
-														ctx.refresh();
-														new Notice(ctx.goBack() ? "Auto rule deleted." : "Auto rule deleted, you can go back.");
-													})
-											);
-										},
-									},
-								],
-							},
-						],
-					}) as SettingGroupItem
+						},
+						deleteButton("Remove this auto rule", () => {
+							mutate((vm) => vm.autoRules?.splice(vm.autoRules.indexOf(auto), 1));
+							ctx.refresh();
+							new Notice(ctx.goBack() ? "Auto rule deleted." : "Auto rule deleted, you can go back.");
+						}),
+					],
+				})
 			),
 		},
 		// The pages of the list can't be reordered by the list itself

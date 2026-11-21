@@ -6,7 +6,7 @@ interface ManagePageOptions {
 	 */
 	id: string;
 	name: string;
-	desc: string;
+	desc?: string;
 	emptyState: string;
 	visible?: () => boolean;
 	/**
@@ -38,7 +38,7 @@ export function managePage(options: ManagePageOptions): SettingGroupItem {
 				items: rows.map(descriptor),
 			},
 		],
-	} as SettingGroupItem;
+	};
 }
 
 /**
