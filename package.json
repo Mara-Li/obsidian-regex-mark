@@ -3,7 +3,7 @@
 	"version": "1.12.0-2",
 	"description": "Add custom CSS classes to text based on regular expressions.",
 	"main": "main.js",
-	"private": "true",
+	"private": true,
 	"scripts": {
 		"prebuild": "tsc --noEmit --skipLibCheck",
 		"build": "node esbuild.config.mjs --production",
