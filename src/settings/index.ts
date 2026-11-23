@@ -19,6 +19,7 @@ import { deleteButton } from "./delete_button";
 import { IdRegistry } from "./ids";
 import { ExportPage, ImportPage } from "./import_export";
 import { managePage } from "./manage_page";
+import { textAreaField } from "./text_area";
 import { viewModeDefinitions } from "./view_mode";
 
 type Binding = {
@@ -304,21 +305,19 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 
 	private ruleDefinitions(rule: MarkRule): SettingDefinitionItem[] {
 		return [
-			{
+			textAreaField({
 				name: "Regex",
 				desc: "The regex used to find the text.",
-				control: {
-					type: "text",
-					key: this.bind(
-						() => rule.regexRaw,
-						(value) => {
-							rule.regexRaw = value;
-						}
-					),
-					placeholder: "Regex",
-					validate: (value) => this.validateRegex(rule, value),
+				placeholder: "Regex",
+				rows: 5,
+				get: () => rule.regexRaw,
+				set: (value) => {
+					rule.regexRaw = value;
 				},
-			},
+				validate: (value) => this.validateRegex(rule, value),
+				// The "Hide" toggle depends on the regex
+				onSaved: () => this.refreshDomState(),
+			}),
 			{
 				name: "Flags",
 				desc: "Regex flags, for example `gi`.",
@@ -341,21 +340,18 @@ export class RemarkRegexSettingTab extends PluginSettingTab {
 					},
 				},
 			},
-			{
+			textAreaField({
 				name: "Class",
 				desc: "The CSS class added to the matched text.",
-				control: {
-					type: "text",
-					key: this.bind(
-						() => rule.class,
-						(value) => {
-							rule.class = value;
-						}
-					),
-					placeholder: "Class",
-					validate: (value) => (value.trim() ? undefined : MarkRuleErrorCode.ClassMissing),
+				placeholder: "Class",
+				rows: 3,
+				get: () => rule.class,
+				set: (value) => {
+					rule.class = value;
 				},
-			},
+				validate: (value) => (value.trim() ? undefined : MarkRuleErrorCode.ClassMissing),
+				onSaved: () => this.refreshDomState(),
+			}),
 			{
 				name: "Hide open/close tags",
 				desc: "Hide the regex in Live-Preview, only keeping the content. Needs a group in the regex.",
